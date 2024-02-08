@@ -54,19 +54,24 @@ def convert_line(line, line_number):
     # remove newline character
     line = line[:-1]
 
+    # skip line if only contains whitespace
+    if line.isspace() or line == "":
+        return ""
+
     # handle heading
     if line_number == 0:
-        return "<h2>" + line + "</h2>"
+        return "<h2>" + line + "\n</h2>\n"
 
     # handle subheading
     if len(line) > 0 and line[0] == "[":
-        return "<b><big>" + line + "</big></b>"
+        return "\n\n<b><big>" + line + "\n</big></b>\n"
 
     line = line.split(" ")
     new_line = [new_word(word) for word in line]
     new_line = " ".join(new_line)
-    newline = adjust_whitespaces(new_line)
-    return newline
+    new_line = adjust_whitespaces(new_line)
+    new_line += "\n"
+    return new_line
 
 
 def converted_file(filepath):
@@ -77,7 +82,7 @@ def converted_file(filepath):
     output = ""
 
     output += "\n<pre>\n"
-    output += "\n".join([convert_line(line, i) for i, line in enumerate(lines)])
+    output += "".join([convert_line(line, i) for i, line in enumerate(lines)])
     output += "\n</pre>\n"
 
     return output
@@ -92,6 +97,7 @@ def convert_all():
         f = open(out_path, "w")
         f.write(converted)
         f.close()
+        print("converted " + filepath)
 
 
 if __name__ == "__main__":

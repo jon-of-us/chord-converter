@@ -5,7 +5,7 @@ Artist: Elton John
 C F G  C
  
 [Verse 1]
-C                                Dm
+C                                Dm  
 Daniel is traveling tonight on a plane 
 G                              E7          Am
  I can see the red tail lights heading for Spain 
@@ -18,7 +18,7 @@ God it looks like Daniel,  must be the clouds in my eyes
 C F G
  
 [Verse 2]
-C                                          Dm
+C                                          Dm 
 They say Spain is pretty though I've never been 
 G                                          E7        Am
  Well Daniel says it's the best place that he's ever seen 
@@ -34,7 +34,7 @@ F                         C
 Do you still feel the pain of the scars that won't heal? 
                Am                         F
 Your eyes have died but you see more than I 
-Ab*             C    A7                 Dm  G7
+Ab              C    A7                 Dm  G7
 Daniel you're a star in the face of the sky 
  
 C Dm  G E7 Am  F G Am  F G7 F C  G7 F G7 F C
@@ -48,7 +48,7 @@ Daniel my brother you are older than me
 Do you still feel the pain of the scars that won't heal? 
                Am                         F
 Your eyes have died but you see more than I 
-Ab*             C    A7                 Dm  G7
+Ab              C    A7                 Dm  G7
 Daniel you're a star in the face of the sky 
  
 [Verse 1]
