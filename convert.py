@@ -1,4 +1,4 @@
-from chord_lookup import new_chords
+from chord_lookup import note_dict, chord_dict
 
 
 class Chord:
@@ -11,49 +11,59 @@ class Chord:
 
     @classmethod
     def from_string(self, string):
-        """convert string to chord object"""
+        """convert string to chord object, return string if conversion failed"""
+        split = string.split("/")
+        if len(split) > 2:
+            return string
+        # handle bass note
+        if len(split) == 2:
+            if not split[1] in note_dict:
+                return string
+            bass_note = note_dict[split[1]]
+        else:
+            bass_note = None
+        chord_str = split[0]
+        if len(chord_str) >= 2 and chord_str[:2] in note_dict:
+            note = note_dict[chord_str[:2]]
+            chord_type_str = chord_str[1:]
+        elif len(chord_str) == 1 and chord_str[0] in note_dict:
+            note = note_dict[chord_str[0]]
+            chord_type_str = chord_str[1:]
+        else:
+            return string
+        chord_type = (
+            chord_dict[chord_type_str]
+            if chord_type_str in chord_dict
+            else chord_type_str
+        )
 
-class Line:
-    
-    def __init__(self, str, index):
-        def line_is_chordline(str):
-            """check if line contains chords"""
-            
+        return Chord(note, chord_type, len(string))
+
+    def __str__(self):
+        output = str(self.note)
+        if self.bass_note != None:
+            output += "/" + self.bass_note
+        output += " "
+
+        # adjust length add % to indicate that whitespaces are missing and $ to indicate length is too long
+        if self.length > len(output):
+            output += "%" * (self.length - len(output))
+        if self.length < len(output):
+            output += "$" * (len(output) - self.length)
+
+        # add bold font
+        output = "<b>" + output + "</b>"
 
 
-        self.content = str
-        if index == 0:
-            self.type = "heading"
-        elif len(str) > 0 and str[0] == "[":
-            self.type = "subheading"
-        elif str == "" or str.isspace():
-            self.type = "empty"
-        elif 
-
-
-def line_to_array(line):
-    """convert line into array of chords and strings"""
-
-
-def convert_line(line, line_number):
-    """convert a line of chords to the new format"""
-
-    def new_word(word):
-        # split while keeping dilimeter
-        word = word.split("/")
-        for i in range(1, len(word)):
-            word[i] = "/" + word[i]
-
-        new_word = [new_chords[part] if part in new_chords else part for part in word]
-        new_word = "".join(new_word)
-        return new_word
+def convert_line(line, index):
+    """takes line without whitespace"""
 
     def adjust_whitespaces(line):
         """removes whitespaces, if new chord is too long
         (indicated by a $ for each character that the new chord is too long
         and a % for each character that the new chord is too short)
         """
-        output = ""
+        new_line = ""
         n_whitespaces_to_remove = 0
         last_char_was_whitespace = False
         for char in line:
@@ -64,37 +74,37 @@ def convert_line(line, line_number):
             elif char == " ":
                 if n_whitespaces_to_remove < 0:
                     n_whitespaces_to_remove += 1
-                    output += "  "
+                    new_line += "  "
                 elif last_char_was_whitespace and n_whitespaces_to_remove > 0:
                     n_whitespaces_to_remove -= 1
                 else:
-                    output += " "
+                    new_line += " "
                 last_char_was_whitespace = True
             else:
-                output += char
+                new_line += char
                 last_char_was_whitespace = False
-        return output
+        return new_line
 
-    # remove newline character
-    line = line[:-1]
-
-    # skip line if only contains whitespace
-    if line.isspace() or line == "":
-        return ""
-
-    # handle heading
-    if line_number == 0:
-        return "<h2>" + line + "\n</h2>\n"
-
-    # handle subheading
+    # test if line is heading
+    if index == 0:
+        return f"<h1> {line} \n<h1>\n"
+    # test if line is subheading
     if len(line) > 0 and line[0] == "[":
-        return "\n\n<b><big>" + line + "\n</big></b>\n"
+        return f"\n\n<b><big> {line} \n</big></b>\n"
+    # test if line is empty
+    if line == "" or line.isspace():
+        return ""
+    # line is considered as chord line, if there are more chords than words
+    split = line.split(" ")
+    chord_list = map(Chord.from_string, split)
+    n_words = len([x for x in chord_list if type(x) == line and x != ""])
+    n_chords = len([x for x in chord_list if type(x) == Chord])
+    if n_chords < n_words:
+        return line
 
-    line = line.split(" ")
-    new_line = [new_word(word) for word in line]
-    new_line = " ".join(new_line)
-    new_line = adjust_whitespaces(new_line)
-    new_line += "\n"
+    new_line = " ".join([str(x) for x in chord_list])
+    adjust_whitespaces(new_line)
+
     return new_line
 
 
