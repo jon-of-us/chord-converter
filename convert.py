@@ -1,4 +1,5 @@
 from chord_lookup import note_dict, chord_dict
+import numpy as np
 
 
 class Chord:
@@ -9,40 +10,11 @@ class Chord:
         self.chord_type = chord_type
         self.bass_note = bass_note
 
-    @classmethod
-    def from_string(self, string):
-        """convert string to chord object, return string if conversion failed"""
-        split = string.split("/")
-        if len(split) > 2:
-            return string
-        # handle bass note
-        if len(split) == 2:
-            if not split[1] in note_dict:
-                return string
-            bass_note = note_dict[split[1]]
-        else:
-            bass_note = None
-        chord_str = split[0]
-        if len(chord_str) >= 2 and chord_str[:2] in note_dict:
-            note = note_dict[chord_str[:2]]
-            chord_type_str = chord_str[1:]
-        elif len(chord_str) == 1 and chord_str[0] in note_dict:
-            note = note_dict[chord_str[0]]
-            chord_type_str = chord_str[1:]
-        else:
-            return string
-        chord_type = (
-            chord_dict[chord_type_str]
-            if chord_type_str in chord_dict
-            else chord_type_str
-        )
-
-        return Chord(note, chord_type, len(string))
-
     def __str__(self):
         output = str(self.note)
+        output += self.chord_type
         if self.bass_note != None:
-            output += "/" + self.bass_note
+            output += f"/" + str(self.bass_note)
         output += " "
 
         # adjust length add % to indicate that whitespaces are missing and $ to indicate length is too long
@@ -53,6 +25,8 @@ class Chord:
 
         # add bold font
         output = "<b>" + output + "</b>"
+
+        return output
 
 
 def convert_line(line, index):
@@ -85,6 +59,39 @@ def convert_line(line, index):
                 last_char_was_whitespace = False
         return new_line
 
+    def convert_word(string):
+        """convert string to chord object, return string if conversion failed"""
+        split = string.split("/")
+        if len(split) > 2:
+            return string
+
+        # handle bass note
+        if len(split) == 2:
+            if not split[1] in note_dict:
+                return string
+            bass_note = note_dict[split[1]]
+        else:
+            bass_note = None
+
+        chord_str = split[0]
+        if len(chord_str) >= 2 and chord_str[:2] in note_dict:
+            note = note_dict[chord_str[:2]]
+            chord_type_str = chord_str[2:]
+        elif len(chord_str) >= 1 and chord_str[0] in note_dict:
+            note = note_dict[chord_str[0]]
+            chord_type_str = chord_str[1:]
+        else:
+            return string
+        # check if its really a chord
+        if chord_type_str in chord_dict:
+            chord_type = chord_dict[chord_type_str]
+        elif np.any([x.isdigit() for x in chord_type_str]):
+            chord_type = chord_type_str
+        else:
+            return string
+
+        return Chord(note, chord_type, len(string), bass_note)
+
     # test if line is heading
     if index == 0:
         return f"<h1> {line} \n<h1>\n"
@@ -96,14 +103,16 @@ def convert_line(line, index):
         return ""
     # line is considered as chord line, if there are more chords than words
     split = line.split(" ")
-    chord_list = map(Chord.from_string, split)
+    # chord_list = map(Chord.from_string, split)
+    chord_list = list(map(convert_word, split))
+
     n_words = len([x for x in chord_list if type(x) == line and x != ""])
     n_chords = len([x for x in chord_list if type(x) == Chord])
     if n_chords < n_words:
         return line
 
-    new_line = " ".join([str(x) for x in chord_list])
-    adjust_whitespaces(new_line)
+    new_line = " ".join(str(x) for x in chord_list)
+    new_line = adjust_whitespaces(new_line)
 
     return new_line
 
