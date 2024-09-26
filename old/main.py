@@ -1,6 +1,7 @@
 #
 
 from os import walk
+from chord_lookup import new_chords
 
 
 def files_in_folder(path):
