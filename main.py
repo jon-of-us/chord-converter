@@ -3,6 +3,7 @@
 from os import walk
 from chord_lookup import new_chords
 
+
 def files_in_folder(path):
     """yield relative path to all files in a directory"""
     for dirpath, dirnames, filenames in walk(path):
@@ -73,21 +74,48 @@ def convert_line(line, line_number):
     return new_line
 
 
+def html_body(title, content):
+    return f"""
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{title}</title>
+    </head>
+    <body>
+        {content}
+    </body>
+</html>
+"""
+
+def line_type(line):
+    if line.strip()[0] == "[":
+        return "subheading"
+    split = line.split(" ")
+    words = [word.split("/")[0] for word in split]
+    n_words = len(words)
+    n_chords = sum(1 for word in words if word in new_chords)
+    if n_chords / n_words > 0.5:
+        return "chords"
+    if len(line.strip()) == 0:
+        return "empty"
+    return "lyrics"
+
 def converted_file(filepath):
-    f = open(filepath, "r")
-    lines = f.readlines()
-    f.close()
+    with open(filepath, "r") as f:
+        lines = [line.rstrip('\n') for line in f]
+    line_types = [line_type(line) for line in lines]
+    line_types[0] = "title"
+    result = []
+    for i in range(len(lines)):
+        if line_types[i] == "title":
+            result.append("<h1>" + lines[i] + "</h1>")
 
-    output = ""
+    title = lines[0]
 
-    output += "\n<pre>\n"
-    output += "".join([convert_line(line, i) for i, line in enumerate(lines)])
-    output += "\n</pre>\n"
-
-    return output
+    return html_body(title, "")
 
 
-def convert_all():
+if __name__ == "__main__":
     for filepath in files_in_folder("./input"):
         converted = converted_file(filepath)
         out_path = "./output/" + filepath.split("/")[-1]
@@ -97,7 +125,3 @@ def convert_all():
         f.write(converted)
         f.close()
         print("converted " + filepath)
-
-
-if __name__ == "__main__":
-    convert_all()
