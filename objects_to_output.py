@@ -14,9 +14,9 @@ def html_body(title, content):
 
 # fmt: off
 is_in_scale = [True, True, True, False, False, False, False, True, True, True, True, True]
-new_chord_basic = ["●", "●+", "●++", "-▲↑", "▲↑", "●↓", "●+↓", "--▲", "-▲", "▲", "▲+", "-●"]
-new_chord_major = ["●", "●+", "●++", "-▲↑", "▲↑", "●↓", "●+↓", "--▲", "-▲", "▲", "▲+", "▲++"]
-new_chord_minor = ["●", "●+", "●++", "-▲↑", "▲↑", "●↓", "●+↓", "--▲", "-▲", "▲", "--●", "-●"]
+new_chord_basic = ["●", "●+", "●++", "▲-↑", "▲↑", "●↓", "●+↓", "▲--", "▲-", "▲", "▲+", "●-"]
+new_chord_major = ["●", "●+", "●++", "▲-↑", "▲↑", "●↓", "●+↓", "▲--", "▲-", "▲", "▲+", "▲++"]
+new_chord_minor = ["●", "●+", "●++", "▲-↑", "▲↑", "●↓", "●+↓", "▲--", "▲-", "▲", "●--", "●-"]
 
 nums = ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "t", "e"]
 # fmt: on
@@ -35,7 +35,7 @@ def converted_chord(chord_list, index):
         res += new_chord_minor[chord.root]
     else:
         res += new_chord_basic[chord.root]
-    if not ((chord.type == "J" and "▲" in res) or (chord.type == "N" and "⬤" in res)):
+    if not ((chord.type == "J" and "▲" in res) or (chord.type == "N" and "●" in res)):
         res += chord.type
     if chord.bass != None:
         res += "/" + nums[(chord.bass - chord.root + 12) % 12]
@@ -65,7 +65,7 @@ def output(content, chords, title):
                     " " * max(0, chord_or_word.place - len(chord_line)) + string + " "
                 )
 
-            output += "<pre>" + chord_line + "</pre>\n"
+            output += "<pre><b>" + chord_line + "</b></pre>\n"
             if obj.text != None:
                 output += "<pre>" + obj.text + "</pre>\n"
         else:

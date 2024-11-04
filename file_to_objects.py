@@ -41,7 +41,7 @@ def line_objects(lines):
             lengs = [len(word) for word in split]
             place_in_line = [sum(lengs[:i]) + i for i in range(len(lengs))]
             chord_or_words = []
-            for i, word in enumerate(split):
+            for j, word in enumerate(split):
                 if word == "":
                     continue
                 chord = chord_from_word(word)
@@ -49,12 +49,12 @@ def line_objects(lines):
                     chords.append(chord)
                     chord_or_words.append(
                         SimpleNamespace(
-                            type="chord", idx=len(chords) - 1, place=place_in_line[i]
+                            type="chord", idx=len(chords) - 1, place=place_in_line[j]
                         )
                     )
                 else:
                     chord_or_words.append(
-                        SimpleNamespace(type="word", text=word, place=place_in_line[i])
+                        SimpleNamespace(type="word", text=word, place=place_in_line[j])
                     )
             if len(lines) > i + 1 and line_type(lines[i + 1]) == "lyrics":
                 text = lines[i + 1]

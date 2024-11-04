@@ -51,9 +51,9 @@ def chord_from_word(str):
         return None
 
     if len(split) > 1:
-        bass_str = split[2]
+        bass_str = split[1]
         for old, new in chord_table:
-            if bass == old:
+            if bass_str == old:
                 bass = new
                 break
         else:
