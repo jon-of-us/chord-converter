@@ -1,7 +1,8 @@
 #
 
 from os import walk
-from chord_lookup import new_chords
+from objects_to_output import output
+from file_to_objects import line_objects
 
 
 def files_in_folder(path):
@@ -11,117 +12,18 @@ def files_in_folder(path):
             yield dirpath + "/" + filename
 
 
-def convert_line(line, line_number):
-    """convert a line of chords to the new format"""
-
-    def new_word(word):
-        # split while keeping dilimeter
-        word = word.split("/")
-        for i in range(1, len(word)):
-            word[i] = "/" + word[i]
-
-        new_word = [new_chords[part] if part in new_chords else part for part in word]
-        new_word = "".join(new_word)
-        return new_word
-
-    def adjust_whitespaces(line):
-        """removes whitespaces, if new chord is too long
-        (indicated by a $ for each character that the new chord is too long
-        and a % for each character that the new chord is too short)
-        """
-        output = ""
-        n_whitespaces_to_remove = 0
-        last_char_was_whitespace = False
-        for char in line:
-            if char == "$":
-                n_whitespaces_to_remove += 1
-            elif char == "%":
-                n_whitespaces_to_remove -= 1
-            elif char == " ":
-                if n_whitespaces_to_remove < 0:
-                    n_whitespaces_to_remove += 1
-                    output += "  "
-                elif last_char_was_whitespace and n_whitespaces_to_remove > 0:
-                    n_whitespaces_to_remove -= 1
-                else:
-                    output += " "
-                last_char_was_whitespace = True
-            else:
-                output += char
-                last_char_was_whitespace = False
-        return output
-
-    # remove newline character
-    line = line[:-1]
-
-    # skip line if only contains whitespace
-    if line.isspace() or line == "":
-        return ""
-
-    # handle heading
-    if line_number == 0:
-        return "<h2>" + line + "\n</h2>\n"
-
-    # handle subheading
-    if len(line) > 0 and line[0] == "[":
-        return "\n\n<b><big>" + line + "\n</big></b>\n"
-
-    line = line.split(" ")
-    new_line = [new_word(word) for word in line]
-    new_line = " ".join(new_line)
-    new_line = adjust_whitespaces(new_line)
-    new_line += "\n"
-    return new_line
-
-
-def html_body(title, content):
-    return f"""
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>{title}</title>
-    </head>
-    <body>
-        {content}
-    </body>
-</html>
-"""
-
-def line_type(line):
-    if line.strip()[0] == "[":
-        return "subheading"
-    split = line.split(" ")
-    words = [word.split("/")[0] for word in split]
-    n_words = len(words)
-    n_chords = sum(1 for word in words if word in new_chords)
-    if n_chords / n_words > 0.5:
-        return "chords"
-    if len(line.strip()) == 0:
-        return "empty"
-    return "lyrics"
-
-def converted_file(filepath):
-    with open(filepath, "r") as f:
-        lines = [line.rstrip('\n') for line in f]
-    line_types = [line_type(line) for line in lines]
-    line_types[0] = "title"
-    result = []
-    for i in range(len(lines)):
-        if line_types[i] == "title":
-            result.append("<h1>" + lines[i] + "</h1>")
-
-    title = lines[0]
-
-    return html_body(title, "")
-
-
 if __name__ == "__main__":
     for filepath in files_in_folder("./input"):
-        converted = converted_file(filepath)
-        out_path = "./output/" + filepath.split("/")[-1]
-        # save as html
-        out_path = out_path[:-3] + "html"
-        f = open(out_path, "w")
-        f.write(converted)
-        f.close()
+        name = filepath.split("/")[-1].split(".")[0]
+        out_path = "./output/" + name + ".html"
+
+        with open(filepath, "r") as file:
+            lines = file.readlines()
+
+        content, chords = line_objects(lines)
+        converted = output(content, chords, name)
+
+        with open(out_path, "w", encoding="utf-8") as out_file:
+            out_file.write(converted)
+
         print("converted " + filepath)
