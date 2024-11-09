@@ -16,22 +16,23 @@ chord_rests = [
     ("dim", "D", "D"),
     ("dim7", "DN", "D"),
     ("5", "P", None),
-    ("sus", "P⒌", "N"),
-    ("sus2", "P⒉", "J"),
-    ("sus4", "P⒌", "N"),
+    ("sus", "P5", "N"),
+    ("sus2", "P2", "J"),
+    ("sus4", "P5", "N"),
     ("7", "JD", "J"),
     ("m7", "NJ", "N"),
     ("maj7", "JN", "J"),
     ("m7b5", "DN", "D"),
+    ("m#5", "R38", "N"),
 ]
 
 
 def chord_from_word(str):
     """returns chord object or False"""
-    if str == "N.C.":
-        return SimpleNamespace(type="NC")
-    if str == "|":
-        return SimpleNamespace(type="bar")
+    # if str == "N.C.":
+    #     return SimpleNamespace(type="NC", chord_class=None)
+    # if str == "|":
+    #     return SimpleNamespace(type="bar", chord_class=None)
     split = str.split("/")
     chord_str = split[0]
     for old, new in chord_table:

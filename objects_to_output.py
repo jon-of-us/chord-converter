@@ -18,7 +18,7 @@ new_chord_basic = ["●", "●+", "●++", "▲-↑", "▲↑", "●↓", "●+�
 new_chord_major = ["●", "●+", "●++", "▲-↑", "▲↑", "●↓", "●+↓", "▲--", "▲-", "▲", "▲+", "▲++"]
 new_chord_minor = ["●", "●+", "●++", "▲-↑", "▲↑", "●↓", "●+↓", "▲--", "▲-", "▲", "●--", "●-"]
 
-nums = ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "t", "e"]
+nums = ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]
 # fmt: on
 
 
@@ -29,16 +29,16 @@ def converted_chord(chord_list, index):
         return "N.C."
     if chord.type == "bar":
         return "|"
-    if chord.chord_class == "major":
+    if chord.chord_class == "J":
         res += new_chord_major[chord.root]
-    elif chord.chord_class == "minor":
+    elif chord.chord_class == "N":
         res += new_chord_minor[chord.root]
     else:
         res += new_chord_basic[chord.root]
     if not ((chord.type == "J" and "▲" in res) or (chord.type == "N" and "●" in res)):
         res += chord.type
     if chord.bass != None:
-        res += "/" + nums[(chord.bass - chord.root + 12) % 12]
+        res += "/" + nums[(chord.bass - chord.root + 12) * 7 % 12]
     return res
 
 

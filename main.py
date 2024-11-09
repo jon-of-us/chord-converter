@@ -17,7 +17,7 @@ if __name__ == "__main__":
         name = filepath.split("/")[-1].split(".")[0]
         out_path = "./output/" + name + ".html"
 
-        with open(filepath, "r") as file:
+        with open(filepath, "r", encoding="utf-8") as file:
             lines = file.readlines()
 
         content, chords = line_objects(lines)
