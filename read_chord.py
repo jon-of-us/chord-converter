@@ -6,7 +6,8 @@ c2 = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
 old_chords = c1 + c2
 new_chords = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5] * 2
 chord_table = zip(old_chords, new_chords)
-chord_table = sorted(chord_table, key=lambda x: len(x[0]))
+#sort to catch flats and sharps before chord without
+chord_table = sorted(chord_table, key=lambda x: len(x[0]), reverse=True)
 
 # chord rests
 # (old, new, class)
@@ -24,6 +25,7 @@ chord_rests = [
     ("maj7", "JN", "J"),
     ("m7b5", "DN", "D"),
     ("m#5", "R38", "N"),
+    ("6", "J9", "J"),
 ]
 
 

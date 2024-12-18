@@ -15,7 +15,8 @@ def files_in_folder(path):
 if __name__ == "__main__":
     for filepath in files_in_folder("./input"):
         name = filepath.split("/")[-1].split(".")[0]
-        out_path = "./output/" + name + ".html"
+        # out_path = "./output/" + name + ".html"
+        out_path = "C:/Users/jonas/OneDrive/Desktop/akkorde-relativ/" + name + ".html"
 
         with open(filepath, "r", encoding="utf-8") as file:
             lines = file.readlines()

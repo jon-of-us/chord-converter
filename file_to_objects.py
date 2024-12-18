@@ -21,7 +21,10 @@ def line_type(line):
 
 
 def line_objects(lines):
-    """convert to content object with str() function"""
+    """
+    convert to content object with str() function
+    transposes to c major
+    """
     content = []
     chords = []
     lines = [line.strip("\n") for line in lines]
@@ -79,9 +82,8 @@ def line_objects(lines):
             major_chords[chord.root] += 1
         elif chord.chord_class == "N":
             minor_chords[chord.root] += 1
-    major_weights = np.array([0, 0.5, 0, 0, 0, 0, 0, 0.1, 1, 1.3, 1, 0.1])
-    minor_weights = np.array([1.3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
-
+    major_weights = np.array([0, 0.5, 0, 0, 0, 0, 0, 0.1, 1, 1.3, 1, 0.1])[::-1]
+    minor_weights = np.array([1.3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1])[::-1]
     scale_weights = (
         np.convolve(np.tile(major_chords, 2), major_weights, "valid")
         + np.convolve(np.tile(minor_chords, 2), minor_weights, "valid")
@@ -89,5 +91,7 @@ def line_objects(lines):
     scale = np.argmax(scale_weights)
     for chord in chords:
         chord.root = (chord.root - scale + 12) % 12
+        if chord.bass != None:
+            chord.bass = (chord.bass - scale + 12) % 12
 
     return content, chords
