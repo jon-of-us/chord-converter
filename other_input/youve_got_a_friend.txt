@@ -14,7 +14,7 @@ G/C C D Gsus4 G F#m7 B7
 
 When you're down and troubled and you need a helping hand,
 
-    Am7          D7sus4           G     Gsus4   G
+    Am7          D7               G     Gsus4   G
 
 and nothing, oh, nothing is going right,
 
@@ -22,7 +22,7 @@ F#m7                B7              Em     B7      Em    Em7
 
 close your eyes and think of me and soon I will be there
 
-   Am7         Bm7                    D7sus4 D7 Dsus2 D7
+   Am7         Bm7                    D7     D7 Dsus2 D7
 
 to brighten up even your darkest night.
 
@@ -34,7 +34,7 @@ to brighten up even your darkest night.
 
 You just call out my name,  and you know wherever I am,
 
-          G       Gmaj7         D7sus4  D7 Dsus2 D7
+          G       Gmaj7         D7      D7 Dsus2 D7
 
 I'll come running   to see you again.
 
@@ -42,11 +42,11 @@ G                          Gmaj7  C                    Em
 
 Winter, spring, summer, or fall,  all you got to do is call
 
-         C             Bm7   Am7  D7sus4
+         C             Bm7   Am7  D7    
 
 and I'll be there,     yeah, yeah, yeah.
 
-D7sus4             G/C C Gsus4 G F#m7 B7
+D7                 G/C C Gsus4 G F#m7 B7
 
 You've got a friend.
 
@@ -58,7 +58,7 @@ B7     Em   B7                   Em       B7            Em7
 
 If the sky above you should turn dark and full of clouds,
 
-         Am7       D7sus4                   G  Gsus4  G
+         Am7       D7                       G  Gsus4  G
 
 and that old north wind should begin to blow,
 
@@ -66,7 +66,7 @@ F#m7             B7         Em      B7       Em7
 
 keep your head together and call my name out loud.
 
-Am7          Bm7                D7sus4 D7 Dsus2 D7
+Am7          Bm7                D7     D7 Dsus2 D7
 
 Soon I'll be knocking upon your door.
 
@@ -78,7 +78,7 @@ Soon I'll be knocking upon your door.
 
 You just call out my name,  and you know wherever I am,
 
-          G       Gmaj7         D7sus4  D7 Dsus2 D7
+          G       Gmaj7         D7      D7 Dsus2 D7
 
 I'll come running   to see you again.
 
@@ -86,7 +86,7 @@ G                          Gmaj7  C                    Em
 
 Winter, spring, summer, or fall,  all you got to do is call
 
-         C             Bm7   Am7  D7sus4
+         C             Bm7   Am7  D7    
 
 and I'll be there,     yeah, yeah, yeah.
 
@@ -106,7 +106,7 @@ people can be so cold.     They'll hurt you and desert you.
 
 they'll take your soul if you let them.
 
-             D7sus4             D7sus4  D7
+             D7                 D7      D7
 
 Oh yeah, but don't you let them.
 
@@ -118,7 +118,7 @@ Oh yeah, but don't you let them.
 
 You just call out my name,  and you know wherever I am,
 
-          G      Gmaj7         D7sus4 D7 Dsus2 D7
+          G      Gmaj7         D7     D7 Dsus2 D7
 
 I'll come running   to see you again.
 
@@ -126,7 +126,7 @@ G                          Gmaj7  C                    Em
 
 Winter, spring, summer, or fall,  all you got to do is call
 
-         C         Bm7  Am7   D7sus4
+         C         Bm7  Am7   D7    
 
 and I'll be there, yes I will.
 

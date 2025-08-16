@@ -77,11 +77,40 @@ def line_objects(lines):
     # switch to c major
     major_chords = np.zeros(12)
     minor_chords = np.zeros(12)
-    for chord in chords:
+    
+    verse_boundary_chords = set()
+    verse_sections = []
+    current_verse = []
+    
+    for item in content:
+        if item.type in ["heading", "subheading"]:
+            if current_verse:
+                verse_sections.append(current_verse)
+                current_verse = []
+        else:
+            current_verse.append(item)
+    if current_verse:
+        verse_sections.append(current_verse)
+    
+    for verse in verse_sections:
+        verse_chord_indices = []
+        for item in verse:
+            if item.type == "chords":
+                for chord_or_word in item.chord_or_words:
+                    if chord_or_word.type == "chord":
+                        verse_chord_indices.append(chord_or_word.idx)
+        
+        if verse_chord_indices:
+            verse_boundary_chords.add(verse_chord_indices[0])
+            if len(verse_chord_indices) > 1:
+                verse_boundary_chords.add(verse_chord_indices[-1])
+    
+    for i, chord in enumerate(chords):
+        weight = 2.0 if i in verse_boundary_chords else 1.0
         if chord.chord_class == "J":
-            major_chords[chord.root] += 1
+            major_chords[chord.root] += weight
         elif chord.chord_class == "N":
-            minor_chords[chord.root] += 1
+            minor_chords[chord.root] += weight
     major_weights = np.array([0, 0.5, 0, 0, 0, 0, 0, 0.1, 1, 1.3, 1, 0.1])[::-1]
     minor_weights = np.array([1.3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1])[::-1]
     scale_weights = (
