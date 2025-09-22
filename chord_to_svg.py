@@ -31,7 +31,7 @@ def generate_chord_svg(root, chord, bass=0):
     Generates a grid SVG icon for a chord based on new coordinate logic and saves it.
     """
     # COMPUTE COORDINATES
-    row_idx, col_idx = np.indices((c.N_ROWS, c.N_COLS), dtype=float)
+    row_idx, col_idx = np.indices((30, 30), dtype=float)
     row_coords = (
         c.PADDING
         + c.VERTICAL_DISTANCE * row_idx
@@ -50,26 +50,31 @@ def generate_chord_svg(root, chord, bass=0):
 
     # Bass can be given as an explicit coordinate `bass_coord=[r,col]` in the YAML
     provided_bass_index = chord.get("bass_coord")
-    bass_index = provided_bass_index or interval_to_index(bass)
+    bass_index = [provided_bass_index or interval_to_index(bass)]
     tonic_point_indices = [(1, 1), (0, 1)]
-    grid_point_indices = [
-        (r, col)
-        for r in range(c.N_ROWS)
-        for col in range(c.N_COLS)
-        if (r, col) not in chord_point_indices and (r, col) != bass_index
-    ]
+
     # shift all indices, so that no index is negative
-    non_grid_points = chord_point_indices + [bass_index] + tonic_point_indices
+    drawn_point_indices = [
+        bass_index,
+        chord_point_indices, 
+        tonic_point_indices
+    ]
+    drawn_points = sum(drawn_point_indices, [])
+    min_row_idx, min_col_idx = min(r for r, c in drawn_points), min(c for r, c in drawn_points)
+    for point_class in drawn_point_indices:
+        for i in range(len(point_class)):
+            point_class[i] = add(point_class[i], (-min_row_idx, -min_col_idx))
     
 
     # COMPUTE SVG SIZE AND SHIFT
-    
-    used_row_coords = [row_coords[r, c] for r, c in non_grid_points]
-    used_col_coords = [col_coords[r, c] for r, c in non_grid_points]
+    drawn_points = sum(drawn_point_indices, [])
+    used_row_coords = [row_coords[r, c] for r, c in drawn_points]
+    used_col_coords = [col_coords[r, c] for r, c in drawn_points]
     min_row, max_row = min(used_row_coords), max(used_row_coords)
     min_col, max_col = min(used_col_coords), max(used_col_coords)
     width = max_col - min_col + 2 * c.PADDING
     height = max_row - min_row + 2 * c.PADDING
+
     
     # shift coordinates 
     row_coords += -min_row + c.PADDING
@@ -108,8 +113,8 @@ def generate_chord_svg(root, chord, bass=0):
         svg_content = draw_circle(svg_content, point_idx, c.CHORD_RAD, c.CHORD_COLOR)
 
     # Draw bass point as a square
-    cx = col_coords[*bass_index]
-    cy = row_coords[*bass_index]
+    cx = col_coords[*bass_index[0]]
+    cy = row_coords[*bass_index[0]]
     svg_content += f'  <rect x="{cx - c.BASS_SIDELENGTH/2}" y="{cy - c.BASS_SIDELENGTH/2}" width="{c.BASS_SIDELENGTH}" height="{c.BASS_SIDELENGTH}" fill="{c.CHORD_COLOR}" />\n'
 
     # Draw lines between neighboring chord points
@@ -149,7 +154,7 @@ if __name__ == "__main__":
 
     if all_chords:
         for chord in all_chords:
-            generate_chord_svg(root=1, chord=chord, bass=0)
+            generate_chord_svg(root=0, chord=chord)
             print(f"Generated SVG for {chord['name']}")
 
     else:
