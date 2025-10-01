@@ -7,8 +7,8 @@ PADDING = 10
 
 # Points
 GRID_COLOR = "white"
-GRID_RAD = 1
-CHORD_COLOR = "white"
+GRID_RAD = 0
+CHORD_COLOR = "#333333"
 CHORD_RAD = 2
 TONIC_COLOR = "gray"
 TONIC_RAD = 4

@@ -10,8 +10,7 @@ def add(tup1, tup2):
 def interval_to_index(interval):
     """Convert an interval to a point index on the grid."""
     offset = 6
-    qi = (7 * interval + offset) % 12
-    qi -= offset
+    qi = (7 * interval + offset) % 12 - offset
     row = qi // 3
     col = qi % 3
     return (row, col)
@@ -29,6 +28,8 @@ def generate_chord_filename(root, chord, bass=0):
 def generate_chord_svg(root, chord, bass=0):
     """
     Generates a grid SVG icon for a chord based on new coordinate logic and saves it.
+    - bass is an interval
+    - root is a note
     """
     # COMPUTE COORDINATES
     row_idx, col_idx = np.indices((30, 30), dtype=float)
@@ -51,6 +52,13 @@ def generate_chord_svg(root, chord, bass=0):
     # Bass can be given as an explicit coordinate `bass_coord=[r,col]` in the YAML
     provided_bass_index = chord.get("bass_coord")
     bass_index = [provided_bass_index or interval_to_index(bass)]
+
+    # shift by root 
+    root_index = interval_to_index(root*7)
+    for i in range(len(chord_point_indices)):
+        chord_point_indices[i] = add(chord_point_indices[i], root_index)
+    for i in range(len(bass_index)):
+        bass_index[i] = add(bass_index[i], root_index)
     tonic_point_indices = [(1, 1), (0, 1)]
 
     # shift all indices, so that no index is negative
@@ -154,7 +162,7 @@ if __name__ == "__main__":
 
     if all_chords:
         for chord in all_chords:
-            generate_chord_svg(root=0, chord=chord)
+            generate_chord_svg(root=1, chord=chord)
             print(f"Generated SVG for {chord['name']}")
 
     else:
