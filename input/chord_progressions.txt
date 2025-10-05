@@ -1,126 +1,65 @@
 CHORD PROGRESSIONS
 
-C G Am F
 
-Am F C G
-
-Dm G C
-
-C G Am Em F C F G
-
-Am F C Em
-
-Am C Em F
-
-C E7 Am F
-
-C Am Dm G
-
-F G Am G
-
-F C/G E7/G# Am
-
-Gmaj7 Dmaj7
-
-Cmaj7 Gm7 C7 Fmaj7
-
-C Am Fm G C
-
-Am Fmaj7 C G
-
-C G/B Am F G C
-
-Cmaj7 A7 Dm7 G7
-
-Am E7 Am F G C
-
-C F G A7 Dm G C
-
-C Eb Fm C
-
-Am C/G F Dm E7 Am
-
-C Abmaj7 Fm G C
-
-F Bb F C
-
-C E7 Am Fm G C
-
-C A7 Dm G7 C
-
-C D7 G7 C
-
-C Fm C D7 G7 C
-
-C Bb Ab G7 C
-
-C Eb Fm G C
-
-C F G Ab Bb C
-
-C E7 Am D7 G7 C
-
-C Fm C/G G7 C
-
-C F#dim7 G7 C
-
-Cmaj7 Am7 Dm7 G7 Cmaj7
-
-Cmaj7 A7 Dm7 G7 Cmaj7
-
-C Dm Db7 Cmaj7
-
-C Dm G7 Db7 Cmaj7
-
-C Ebmaj7 Fm7 G7 Cmaj7
-
-Cmaj7 Abmaj7 G7 Cmaj7
-
-C G/B Bb Ab G7 C
-
-C E7 Am F D7 G7 C
-
-C F G E7 Am Fm G C
-
-C Dm G7 C E7 Am
-
-Am F G E7 Am
-
-Am G F E7 Am
-
-Am C E7 Am F Dm E7 Am
-
-Am D7 G C E7 Am
-
-Am F Dm E7 Am
-
-Am Cmaj7 Fmaj7 E7 Am
-
-Am G F Dm E7 Am
-
-Am C F Dm E7 Am
-
-Am E7 Am G F E7 Am
-
-Am F G A7 Dm G C
-
-C Fm Ab Bb C
-
-C Fm Db7 C
-
-C Bb C/E Fm G7 C
-
-C G/B Bdim7 C
-
-C A7 Dm G7 C E7 Am
-
-C D7 G E7 Am D7 G7 C
-
-Cmaj7 Db7 Cmaj7
-
-C Eb Ab Db7 C
-
-C Fm D7 G7 C
-
-C Bb Ab Fm G C
+2. Am F C G
+3. Dm G C
+4. C G Am Em F C F G
+5. Am F C Em
+6. Am C Em F
+7. C E7 Am F
+8. C Am Dm G
+9. F G Am G
+10. F C/G E7/G# Am
+11. Gmaj7 Dmaj7
+12. Cmaj7 Gm7 C7 Fmaj7
+13. C Am Fm G C
+14. Am Fmaj7 C G
+15. C G/B Am F G C
+16. Cmaj7 A7 Dm7 G7
+17. Am E7 Am F G C
+18. C F G A7 Dm G C
+19. C Eb Fm C
+20. Am C/G F Dm E7 Am
+21. C Abmaj7 Fm G C
+22. F Bb F C
+23. C E7 Am Fm G C
+24. C A7 Dm G7 C
+25. C D7 G7 C
+26. C Fm C D7 G7 C
+27. C Bb Ab G7 C
+28. C Eb Fm G C
+29. C F G Ab Bb C
+30. C E7 Am D7 G7 C
+31. C Fm C/G G7 C
+32. C F#dim7 G7 C
+33. Cmaj7 Am7 Dm7 G7 Cmaj7
+34. Cmaj7 A7 Dm7 G7 Cmaj7
+35. C Dm Db7 Cmaj7
+36. C Dm G7 Db7 Cmaj7
+37. C Ebmaj7 Fm7 G7 Cmaj7
+38. Cmaj7 Abmaj7 G7 Cmaj7
+39... C G/B Bb Ab G7 C
+40... C E7 Am F D7 G7 C
+41. C F G E7 Am Fm G C
+42. C Dm G7 C E7 Am
+43. Am F G E7 Am
+44. Am G F E7 Am
+45. Am C E7 Am F Dm E7 Am
+46. Am D7 G C E7 Am
+47. Am F Dm E7 Am
+48. Am Cmaj7 Fmaj7 E7 Am
+49. Am G F Dm E7 Am
+50. Am C F Dm E7 Am
+51. Am E7 Am G F E7 Am
+52. Am F G A7 Dm G C
+53. C Fm Ab Bb C
+54. C Fm Db7 C
+55. C Bb C/E Fm G7 C
+56. C G/B Bdim7 C
+57. C A7 Dm G7 C E7 Am
+58. C D7 G E7 Am D7 G7 C
+59. Cmaj7 Db7 Cmaj7
+60. C Eb Ab Db7 C
+61. C Fm D7 G7 C
+62. C Bb Ab Fm G C
 
