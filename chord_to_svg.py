@@ -104,59 +104,6 @@ def generate_chord_svg(root, chord, bass=0):
         f.write(svg_content)
     print(f"Generated SVG: {filepath}")
 
-def generate_chord_svg_components(root, chord, bass=0):
-    """Return (width,height,inner_elements) for constructing an SVG symbol without duplication.
-
-    inner_elements is a string containing circle/rect/line elements only (no outer <svg> wrapper).
-    """
-    row_idx, col_idx = np.indices((30, 30), dtype=float)
-    row_coords = c.PADDING + c.VERTICAL_DISTANCE * row_idx
-    col_coords = c.PADDING + c.HORIZONTAL_DISTANCE * col_idx + c.ROW_SHIFT * row_idx
-    chord_intervals = list(chord.get("intervals", []))
-    provided_coords = chord.get("coords")
-    chord_point_indices = provided_coords or [interval_to_index(i) for i in chord_intervals]
-    provided_bass_index = chord.get("bass_coord")
-    bass_index = [provided_bass_index or interval_to_index(bass)]
-    root_index = interval_to_index(root * 7)
-    for i in range(len(chord_point_indices)):
-        chord_point_indices[i] = add(chord_point_indices[i], root_index)
-    for i in range(len(bass_index)):
-        bass_index[i] = add(bass_index[i], root_index)
-    tonic_point_indices = [(1,1),(0,1)]
-    drawn_point_indices = [bass_index, chord_point_indices, tonic_point_indices]
-    drawn_points = sum(drawn_point_indices, [])
-    min_row_idx, min_col_idx = min(r for r,_ in drawn_points), min(c for _,c in drawn_points)
-    for pc in drawn_point_indices:
-        for j in range(len(pc)):
-            pc[j] = add(pc[j], (-min_row_idx, -min_col_idx))
-    drawn_points = sum(drawn_point_indices, [])
-    used_row_coords = [row_coords[r,c] for r,c in drawn_points]
-    used_col_coords = [col_coords[r,c] for r,c in drawn_points]
-    min_row, max_row = min(used_row_coords), max(used_row_coords)
-    min_col, max_col = min(used_col_coords), max(used_col_coords)
-    width = max_col - min_col + 2 * c.PADDING
-    height = max_row - min_row + 2 * c.PADDING
-    row_coords += -min_row + c.PADDING
-    col_coords += -min_col + c.PADDING
-    parts = []
-    def circle(pt, rad, color):
-        cx = col_coords[*pt]; cy = row_coords[*pt]
-        parts.append(f'<circle cx="{cx}" cy="{cy}" r="{rad}" fill="{color}" />')
-    for pt in tonic_point_indices:
-        circle(pt, c.TONIC_RAD, c.TONIC_COLOR)
-    for pt in chord_point_indices:
-        circle(pt, c.CHORD_RAD, c.CHORD_COLOR)
-    cx = col_coords[*bass_index[0]]; cy = row_coords[*bass_index[0]]
-    parts.append(f'<rect x="{cx - c.BASS_SIDELENGTH/2}" y="{cy - c.BASS_SIDELENGTH/2}" width="{c.BASS_SIDELENGTH}" height="{c.BASS_SIDELENGTH}" fill="{c.CHORD_COLOR}" />')
-    for i in range(len(chord_point_indices)):
-        r1,c1 = chord_point_indices[i]; x1 = col_coords[r1,c1]; y1 = row_coords[r1,c1]
-        for j in range(i+1, len(chord_point_indices)):
-            r2,c2 = chord_point_indices[j]; x2 = col_coords[r2,c2]; y2 = row_coords[r2,c2]
-            dist = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-            if dist < 1.5 * c.HORIZONTAL_DISTANCE:
-                parts.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{c.CHORD_COLOR}" stroke-width="{c.LINE_WIDTH}" />')
-    return width, height, "\n".join(parts)
-
 
 if __name__ == "__main__":
     # Load the chords from the YAML file
