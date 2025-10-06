@@ -1,6 +1,6 @@
 <svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="44.0" cy="27.0" r="4" fill="gray" />
-  <circle cx="58.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="44.0" r="4" fill="gray" />
+  <circle cx="24.0" cy="27.0" r="4" fill="gray" />
   <circle cx="24.0" cy="27.0" r="2" fill="#333333" />
   <circle cx="38.0" cy="10.0" r="2" fill="#333333" />
   <circle cx="44.0" cy="27.0" r="2" fill="#333333" />

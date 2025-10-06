@@ -3,7 +3,7 @@ import numpy as np
 # SVG Dimensions and Layout
 WIDTH = 100
 HEIGHT = 100
-PADDING = 10
+PADDING = 3
 
 # Points
 GRID_COLOR = "white"
@@ -35,6 +35,7 @@ pre { margin: 0.01rem; white-space: pre; }
 .section { margin: 0.75rem 0; }
 .marker { position: relative; display: inline-block; width: 0; height: 0; overflow: visible; }
 .marker > img.chord-icon, .marker > svg.chord-icon { position: absolute; left: 0; bottom: 0; height: 1.1em; }
+.marker > svg.chord-icon { position: absolute; left:0; bottom:0; overflow:visible; }
 .subheading { font-weight: 700; }
 
 /* chord overlay system */

@@ -54,14 +54,17 @@ def generate_chord_svg_string(root, chord, bass=0):
         for j in range(len(point_class)):
             point_class[j] = add(point_class[j], (-min_row_idx, -min_col_idx))
     drawn_points = sum(drawn_point_indices, [])
+
     used_row_coords = [row_coords[r, c] for r, c in drawn_points]
     used_col_coords = [col_coords[r, c] for r, c in drawn_points]
     min_row, max_row = min(used_row_coords), max(used_row_coords)
     min_col, max_col = min(used_col_coords), max(used_col_coords)
+    
     width = max_col - min_col + 2 * c.PADDING
     height = max_row - min_row + 2 * c.PADDING
     row_coords += -min_row + c.PADDING
     col_coords += -min_col + c.PADDING
+
     svg_content = f'<svg class="chord-icon" width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">\n'
 
     def draw_circle(svg_content, point_idx, rad, color):
@@ -71,7 +74,7 @@ def generate_chord_svg_string(root, chord, bass=0):
             svg_content + f'  <circle cx="{cx}" cy="{cy}" r="{rad}" fill="{color}" />\n'
         )
 
-    for point_idx in [(1, 1), (0, 1)]:
+    for point_idx in tonic_point_indices:
         svg_content = draw_circle(svg_content, point_idx, c.TONIC_RAD, c.TONIC_COLOR)
     for point_idx in chord_point_indices:
         svg_content = draw_circle(svg_content, point_idx, c.CHORD_RAD, c.CHORD_COLOR)
