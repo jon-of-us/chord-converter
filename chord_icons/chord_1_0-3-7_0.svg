@@ -1,11 +1,11 @@
-<svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="10.0" cy="44.0" r="4" fill="gray" />
-  <circle cx="24.0" cy="27.0" r="4" fill="gray" />
-  <circle cx="24.0" cy="27.0" r="2" fill="#333333" />
-  <circle cx="38.0" cy="10.0" r="2" fill="#333333" />
-  <circle cx="44.0" cy="27.0" r="2" fill="#333333" />
-  <rect x="21.0" y="24.0" width="6" height="6" fill="#333333" />
-  <line x1="24.0" y1="27.0" x2="38.0" y2="10.0" stroke="#333333" stroke-width="2" />
-  <line x1="24.0" y1="27.0" x2="44.0" y2="27.0" stroke="#333333" stroke-width="2" />
-  <line x1="38.0" y1="10.0" x2="44.0" y2="27.0" stroke="#333333" stroke-width="2" />
+<svg class="chord-icon" width="40.0" height="40.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="3.0" cy="37.0" r="4" fill="gray" />
+  <circle cx="17.0" cy="20.0" r="4" fill="gray" />
+  <circle cx="17.0" cy="20.0" r="2" fill="#333333" />
+  <circle cx="31.0" cy="3.0" r="2" fill="#333333" />
+  <circle cx="37.0" cy="20.0" r="2" fill="#333333" />
+  <rect x="14.0" y="17.0" width="6" height="6" fill="#333333" />
+  <line x1="17.0" y1="20.0" x2="31.0" y2="3.0" stroke="#333333" stroke-width="2" />
+  <line x1="17.0" y1="20.0" x2="37.0" y2="20.0" stroke="#333333" stroke-width="2" />
+  <line x1="31.0" y1="3.0" x2="37.0" y2="20.0" stroke="#333333" stroke-width="2" />
 </svg>
