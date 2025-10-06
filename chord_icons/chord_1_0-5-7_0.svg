@@ -1,0 +1,10 @@
+<svg class="chord-icon" width="60.0" height="37.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="16.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="10.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="7.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="10.0" x2="10.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="10.0" x2="50.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg>

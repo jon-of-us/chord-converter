@@ -1,40 +1,22 @@
-"""
-Parse chord/lyrics text files and replace chord names with SVG icons aligned to the text below.
-
-Approach, inspired by old_code/file_to_objects.py:
-- Detect line types (heading, subheading, chords, lyrics, empty)
-- For a chords line, compute character positions of each chord token
-- If the next line is lyrics, insert invisible markers at those positions in the lyrics line.
-  Each marker contains the chord SVG, absolutely positioned above the text baseline.
-- If no lyrics line follows, create an empty line and place markers there.
-- Use monospace font to keep positional alignment deterministic.
-
-Chord recognition uses old_code/read_chord.chord_from_word for validation.
-Chord SVG selection:
-- Load chord definitions from chords.yaml and match by alias (rest part of the chord string)
-- Generate an SVG filename via chord_to_svg.generate_chord_filename(root=1, chord=def, bass=0)
-- Generate the SVG on demand if it doesn't exist (root fixed to 1 to show chord quality/shape)
-
-Note: Slash-chord bass is ignored for icon generation at this stage (bass=0),
-as visualizing chord quality above the lyric is the primary goal here.
-"""
-
-from __future__ import annotations
-
+# %% IMPORTS
 import os
 import sys
+from types import SimpleNamespace
 from typing import List, Tuple, Optional, Dict, Any
+import config
+import read_chord
+import chord_to_svg
+import numpy as np
 
 import yaml
 
-# Reuse chord parsing/recognition logic from old code
-from old_code.read_chord import chord_from_word as read_chord_from_word
 
-# Icon generation utilities
-import chord_to_svg
+# %% BASE HTML
 
 
-# --- Line classification (inspired by old code) ---------------------------------
+
+# %% PARSE TO HTML
+
 
 def _line_type(line: str) -> str:
     s = line.strip()
@@ -49,212 +31,180 @@ def _line_type(line: str) -> str:
         return "empty"
     words_no_slash = [w.split("/")[0] for w in split]
     n_words = len(words_no_slash)
-    is_chord = [read_chord_from_word(w) is not None for w in words_no_slash]
+    is_chord = [read_chord.from_word(w) is not None for w in words_no_slash]
     n_chords = sum(is_chord)
     if n_chords / max(1, n_words) > 0.4:
         return "chords"
     return "lyrics"
 
-
-# --- Chord alias mapping from chords.yaml --------------------------------------
-
-def _load_chord_defs(yaml_path: str = "chords.yaml") -> List[Dict[str, Any]]:
-    with open(yaml_path, "r") as f:
-        data = yaml.safe_load(f)
-    return data.get("chords", [])
+class ChordOrWord():
+    def __init__(self, pos: Tuple[int, int], content: Any, is_chord: bool):
+        self.pos = pos  # (line index, position in line)
+        self.content = content  # either a Chord object or a string (word)
+        self.is_chord = is_chord
 
 
-def _alias_to_chord_def(alias: str, chord_defs: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    # Find chord def where alias matches exactly
-    for ch in chord_defs:
-        aliases = ch.get("aliases", [])
-        if alias in aliases:
-            return ch
-    return None
-
-
-# --- Parsing chord tokens and positions ----------------------------------------
-
-# Recreate the note root detection used in old_code.read_chord so we can get the 'rest' alias
-_c1 = ["A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab"]
-_c2 = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
-_old_chords = _c1 + _c2
-
-# Sort by length desc so sharps/flats are matched before naturals
-_sorted_roots = sorted(_old_chords, key=lambda x: len(x), reverse=True)
-
-
-def _split_root_and_rest(token: str) -> Optional[Tuple[str, str]]:
-    """Return (root_str, rest_alias) if token looks like a chord, else None.
-    E.g. "G7" -> ("G", "7"), "Am" -> ("A", "m"), "C" -> ("C", "").
-    """
-    lead = token.split("/")[0]
-    for root in _sorted_roots:
-        if lead.startswith(root):
-            return root, lead[len(root) :]
-    return None
-
-
-def _token_positions(line: str) -> Tuple[List[int], List[str]]:
-    """Return character start indices and raw tokens for non-empty items split by spaces."""
-    parts = line.split(" ")
-    lengths = [len(p) for p in parts]
-    # positions count spaces between items
-    positions = [sum(lengths[:i]) + i for i in range(len(lengths))]
-    tokens = [p for p in parts]
-    return positions, tokens
-
-
-# --- Marker insertion -----------------------------------------------------------
-
-def _insert_markers(text: str, inserts: List[Tuple[int, str]]) -> str:
-    """Insert HTML snippets at specific character indices in text.
-    Inserts must be a list of (index, html). Later inserts won't shift earlier positions
-    if we apply from right to left.
-    """
-    if not inserts:
-        return text
-    chars = list(text)
-    # sort descending by index
-    for idx, html in sorted(inserts, key=lambda x: x[0], reverse=True):
-        idx_clamped = max(0, min(idx, len(chars)))
-        chars[idx_clamped:idx_clamped] = [html]
-    return "".join(chars)
-
-
-# --- HTML generation ------------------------------------------------------------
-
-_BASE_CSS = """
-body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; line-height: 1.4; }
-pre { margin: 0.25rem 0; white-space: pre; }
-.section { margin: 0.75rem 0; }
-.marker { position: relative; display: inline-block; width: 0; height: 0; overflow: visible; }
-.marker > img.chord-icon { position: absolute; left: 0; bottom: calc(100% + 4px); height: 1.1em; }
-.subheading { font-weight: 700; }
-"""
-
-
-def _html_head(title: str) -> str:
-    return f"""
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset=\"utf-8\" />
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-    <title>{title}</title>
-    <style>{_BASE_CSS}</style>
-  </head>
-  <body>
-"""
-
-
-def _html_tail() -> str:
-    return "\n  </body>\n</html>\n"
-
-
-def _img_for_chord(alias: str, chord_defs: List[Dict[str, Any]]) -> Optional[str]:
-    ch_def = _alias_to_chord_def(alias, chord_defs)
-    if ch_def is None:
-        return None
-
-    # Root fixed to 1 for consistent relative shape; bass not visualized yet
-    filename = chord_to_svg.generate_chord_filename(root=1, chord=ch_def, bass=0)
-    filepath = os.path.join("chord_icons", filename)
-    # Only use pre-generated icons; if missing, skip
-    if not os.path.exists(filepath):
-        sys.stderr.write(f"Icon missing, skipping: {filepath}\n")
-        return None
-    # Return HTML <img>
-    safe_alt = alias if alias else "maj"
-    return f"<img class=\"chord-icon\" src=\"{filepath}\" alt=\"{safe_alt}\" />"
+def _transpose_to_c_major(chords_or_words: List[ChordOrWord]) -> List[ChordOrWord]:
+    note_count = np.zeros(12, dtype=float)
+    for chord in chords_or_words:
+        if not chord.is_chord:
+            continue
+        chord = chord.content
+        for interval in chord.intervals:
+            note = (chord.root + interval * 7) % 12
+            note_count[note] += 1
+        note_count[(chord.root + chord.bass * 7) % 12] += 0.5  # bass less weight
+    weights = np.array([0.3, 0, 0.3, 1, 1.3, 1, 1, 1.3, 1, 0, 0, 0])
+    scores = np.convolve(np.tile(note_count, 2), weights[::-1], mode="valid")
+    offset_to_c = np.argmax(scores)
+    for chord_or_word in chords_or_words:
+        if not chord_or_word.is_chord:
+            continue
+        chord_or_word.content.root = (chord_or_word.content.root - offset_to_c * 7) % 12
+    return chords_or_words
 
 
 def parse_file_to_html(input_path: str) -> str:
     with open(input_path, "r", encoding="utf-8") as f:
         lines = [ln.rstrip("\n") for ln in f.readlines()]
 
-    chord_defs = _load_chord_defs()
+    # %% preprocessing
+    lines = [line for line in lines if not line.strip() == ""]
+    line_types = [_line_type(ln) for ln in lines]
 
-    out: List[str] = []
+    # %% extract chords, replace chord lines by whitespaces
+    """also contains words in chords lines"""
+    chords_or_words: List[ChordOrWord] = []
+    chords_in_line: List[List[int]]  = [[] for _ in range(len(lines))]
+    for i, (line, ltype) in enumerate(zip(lines, line_types)):
+        if ltype != "chords":
+            continue
+        split = line.split(" ")
+        idx_in_line = 0
+        for tok in split:
+            if tok == "":
+                idx_in_line += 1
+                continue
+            # add chord
+            parsed = read_chord.from_word(tok)
+            content = parsed or tok
+
+            chords_in_line[i].append(len(chords_or_words))
+            chords_or_words.append(
+                ChordOrWord(
+                    pos=(i, idx_in_line),
+                    content=content,
+                    is_chord=parsed is not None,
+                )
+            )
+            idx_in_line += len(tok) + 1  # +1 for space
+    chords_or_words = _transpose_to_c_major(chords_or_words)
+
+    # %% create html
     title = os.path.splitext(os.path.basename(input_path))[0]
-    out.append(_html_head(title))
+    out: List[str] = []
+    out.append(
 
-    i = 0
-    while i < len(lines):
-        line = lines[i]
+f"""
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=\"utf-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    <title>{title}</title>
+    <style>{config.CSS}</style>
+  </head>
+  <body>
+"""
+    )
+
+
+    for i, (line, ltype) in enumerate(zip(lines, line_types)):
         if i == 0:
             # Heading: first line
-            out.append(f"<h2>{line}</h2>")
-            i += 1
-            continue
-
-        ltype = _line_type(line)
-        if ltype == "empty":
-            out.append("<div class=\"section\"></div>")
-            i += 1
-            continue
-
-        if ltype == "subheading":
-            out.append(f"<div class=\"subheading\">{line}</div>")
-            i += 1
-            continue
-
-        if ltype == "lyrics":
-            # Output the lyrics line as-is
-            out.append(f"<pre>{line}</pre>")
-            i += 1
-            continue
-
-        if ltype == "chords":
-            # Compute positions of chord tokens
-            positions, tokens = _token_positions(line)
-            marker_inserts: List[Tuple[int, str]] = []
-
-            for pos, tok in zip(positions, tokens):
-                if not tok:
+            out.append(f"<div class='heading'>{line}</div>")
+        elif ltype == "subheading":
+            out.append(f'<div class="subheading">{line}</div>')
+        elif ltype == "lyrics":
+            out.append(f"<pre class='lyrics'>{line}</pre>")
+        elif ltype == "chords": 
+            # Build a base line of spaces; markers inserted at chord/word start positions
+            cows = [chords_or_words[idx] for idx in chords_in_line[i]]
+            # Determine max length to pre-allocate (use config.MAX_LINE_LENGTH as cap)
+            max_pos = 0
+            for cow in cows:
+                _, col = cow.pos
+                max_pos = max(max_pos, col)
+            base_chars = [" "] * max(config.MAX_LINE_LENGTH, max_pos + 2)
+            # Insert zero-width span markers after ensuring preceding spaces exist
+            # We'll create html by iterating through characters and injecting markers where needed
+            markers_at_col: Dict[int, List[str]] = {}
+            # cache: (root, intervals tuple, bass) -> svg
+            svg_cache: Dict[tuple, str] = {}
+            for idx_cow, cow in enumerate(cows):
+                line_idx, col = cow.pos
+                marker_id = f"mk-{line_idx}-{col}"
+                markers_at_col.setdefault(col, []).append((marker_id, cow))
+            chord_line_html_parts: List[str] = []
+            for col in range(len(base_chars)):
+                if col in markers_at_col:
+                    for mid, cow in markers_at_col[col]:
+                        if cow.is_chord:
+                            chord_obj = cow.content
+                            key = (chord_obj.root, tuple(chord_obj.intervals), chord_obj.bass)
+                            if key not in svg_cache:
+                                # Build a pseudo chord dict for svg helper
+                                chord_dict = {"intervals": chord_obj.intervals}
+                                svg_cache[key] = chord_to_svg.generate_chord_svg_string(chord_obj.root, chord_dict, bass=chord_obj.bass)
+                            svg_markup = svg_cache[key]
+                            chord_line_html_parts.append(f"<span class='marker chord-marker' id='{mid}'>{svg_markup}</span>")
+                        else:
+                            chord_line_html_parts.append(f"<span class='marker chord-marker' id='{mid}'></span>")
+                chord_line_html_parts.append(base_chars[col])
+            chord_line_html = "".join(chord_line_html_parts).rstrip()
+            # Wrap in container; overlay words/chords will be separate absolutely positioned <pre>
+            out.append("<div class='chord-line-wrapper'>")
+            out.append(f"<pre class='lyrics chord-markers'>{chord_line_html}</pre>")
+            # Add overlay elements (only for words for now; chords could later have icons)
+            for cow in cows:
+                line_idx, col = cow.pos
+                marker_id = f"mk-{line_idx}-{col}"
+                if cow.is_chord:
+                    # Display nothing now, but could add icon via JS (keeping span as marker only)
                     continue
-                # Only use the token if recognizably a chord
-                if read_chord_from_word(tok) is None:
-                    continue
-                split = _split_root_and_rest(tok)
-                if split is None:
-                    continue
-                _root_str, rest_alias = split
-                # Map alias to chord definition
-                img_html = _img_for_chord(rest_alias, chord_defs)
-                if img_html is None:
-                    # Try empty alias (major) if rest is empty or unknown
-                    fallback_alias = rest_alias if rest_alias else ""
-                    img_html = _img_for_chord(fallback_alias, chord_defs)
-                if img_html is None:
-                    # If still None, skip this chord icon
-                    continue
-                marker_html = f"<span class=\"marker\">{img_html}</span>"
-                marker_inserts.append((pos, marker_html))
-
-            # Determine the lyrics line below (if any)
-            next_is_lyrics = (i + 1 < len(lines)) and (_line_type(lines[i + 1]) == "lyrics")
-            if next_is_lyrics:
-                lyrics_line = lines[i + 1]
-                updated = _insert_markers(lyrics_line, marker_inserts)
-                out.append(f"<pre>{updated}</pre>")
-                i += 2  # consume both lines
-            else:
-                # No lyrics below: create an empty baseline just for markers
-                updated = _insert_markers("", marker_inserts)
-                out.append(f"<pre>{updated}</pre>")
-                i += 1
-            continue
-
-        # Fallback: output raw line
-        out.append(f"<pre>{line}</pre>")
-        i += 1
-
-    out.append(_html_tail())
+                text = cow.content
+                safe_text = (str(text)
+                             .replace("&", "&amp;")
+                             .replace("<", "&lt;")
+                             .replace(">", "&gt;"))
+                out.append(f"<pre class='word-chord' data-marker='{marker_id}'>{safe_text}</pre>")
+            out.append("</div>")
+    out.append("</body>\n</html>")
+    # Inject JS right before tail (simple alignment script)
+    script = """
+<script>
+// Align overlay chord words above marker spans
+function alignChordWords() {
+  const items = document.querySelectorAll('.word-chord');
+  items.forEach(el => {
+    const markerId = el.getAttribute('data-marker');
+    const marker = document.getElementById(markerId);
+    if (!marker) return;
+    const markerRect = marker.getBoundingClientRect();
+    const containerRect = marker.closest('.chord-line-wrapper').getBoundingClientRect();
+    const left = markerRect.left - containerRect.left;
+    el.style.transform = `translate(${left}px, 0)`; // raise above text line
+  });
+}
+window.addEventListener('load', alignChordWords);
+window.addEventListener('resize', () => { alignChordWords(); });
+</script>
+"""
+    out.insert(-1, script)
     return "\n".join(out)
 
 
-def main(argv: List[str]) -> int:
+def main():
     # Convert all .txt files in ./input to HTML in ./output
     base_dir = os.path.dirname(os.path.abspath(__file__))
     input_dir = os.path.join(base_dir, "input")
@@ -289,5 +239,4 @@ def main(argv: List[str]) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv))
-
+    main()

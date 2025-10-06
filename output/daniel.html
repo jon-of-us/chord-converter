@@ -7,61 +7,1103 @@
     <title>daniel</title>
     <style>
 body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; line-height: 1.4; }
-pre { margin: 0.25rem 0; white-space: pre; }
+pre { margin: 0.01rem; white-space: pre; }
+.heading {font-weight: 700; }
+.subheading {font-weight: 400; }
 .section { margin: 0.75rem 0; }
 .marker { position: relative; display: inline-block; width: 0; height: 0; overflow: visible; }
-.marker > img.chord-icon { position: absolute; left: 0; bottom: calc(100% + 4px); height: 1.1em; }
+.marker > img.chord-icon, .marker > svg.chord-icon { position: absolute; left: 0; bottom: 0; height: 1.1em; }
 .subheading { font-weight: 700; }
+
+/* chord overlay system */
+.chord-line { position: relative; }
+.chord-line pre.lyrics { position: relative; z-index: 1; }
+.chord-markers { position: relative; }
+
+/* invisible markers occupying a zero-width inline-block at chord start */
+.chord-marker { width:0; height:0; display:inline-block; position:relative; overflow:visible; }
+
+/* floating chord/word labels rendered in separate absolutely positioned pre elements */
+.word-chord { position:absolute; top:0; left:0; margin:0; padding:0; font-weight:600; pointer-events:none; white-space:pre; }
+.word-layer { position:absolute; left:0; right:0; top:0; height:0; }
+
+/* allow spacing to avoid overlap with preceding section */
+.chord-line-wrapper { position:relative; margin:0; padding:0; }
+
+/* optional debug style (disabled by default) */
+.chord-marker { outline:2px solid rgba(200,0,0,0.3); } 
+
 </style>
   </head>
   <body>
 
-<h2>DANIEL</h2>
-<pre>Artist: Elton John</pre>
-<div class="section"></div>
+<div class='heading'>DANIEL</div>
+<pre class='lyrics'>Artist: Elton John</pre>
 <div class="subheading">[Intro]</div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span></pre>
-<div class="section"></div>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-3-0'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-3-2'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-3-4'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>   <span class='marker chord-marker' id='mk-3-7'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
 <div class="subheading">[Verse 1]</div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>Daniel is traveling tonight on a <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>plane </pre>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span> I can see the red tail lights <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>heading for <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>Spain </pre>
-<pre>Oh and <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>I can see <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>Daniel waving good<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>bye </pre>
-<pre>God it <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>looks like Daniel,<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>  must be the <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>clouds in my <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>eyes </pre>
-<div class="section"></div>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-5-0'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                                 <span class='marker chord-marker' id='mk-5-33'><svg class="chord-icon" width="62.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="52.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="66.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="32.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="46.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="29.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="32.0" y1="27.0" x2="46.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="32.0" y1="27.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="46.0" y1="10.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Daniel is traveling tonight on a plane </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-7-0'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                               <span class='marker chord-marker' id='mk-7-31'><svg class="chord-icon" width="116.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="78.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="92.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="106.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="69.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="72.0" y1="27.0" x2="78.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="72.0" y1="27.0" x2="92.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="78.0" y1="44.0" x2="92.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="92.0" y1="27.0" x2="106.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>            <span class='marker chord-marker' id='mk-7-43'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'> I can see the red tail lights heading for Spain </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>       <span class='marker chord-marker' id='mk-9-7'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>          <span class='marker chord-marker' id='mk-9-17'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                  <span class='marker chord-marker' id='mk-9-35'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Oh and I can see Daniel waving goodbye </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>       <span class='marker chord-marker' id='mk-11-7'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                  <span class='marker chord-marker' id='mk-11-25'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>              <span class='marker chord-marker' id='mk-11-39'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>             <span class='marker chord-marker' id='mk-11-52'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>God it looks like Daniel,  must be the clouds in my eyes </pre>
 <div class="subheading">[Bridge 1]</div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span></pre>
-<div class="section"></div>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-14-0'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-14-2'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-14-4'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
 <div class="subheading">[Verse 2]</div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>They say Spain is pretty though I've never <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>been </pre>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span> Well Daniel says it's the best place that <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>he's ever <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>seen </pre>
-<pre>Oh and <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>he should <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>know, he's been there e<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>nough </pre>
-<pre>Lord <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>I miss Daniel,<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>  oh I <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>miss him so <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>much oh oh oh</pre>
-<div class="section"></div>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-16-0'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                                           <span class='marker chord-marker' id='mk-16-43'><svg class="chord-icon" width="62.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="52.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="66.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="32.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="46.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="29.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="32.0" y1="27.0" x2="46.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="32.0" y1="27.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="46.0" y1="10.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>They say Spain is pretty though I've never been </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-18-0'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                                           <span class='marker chord-marker' id='mk-18-43'><svg class="chord-icon" width="116.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="78.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="92.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="106.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="69.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="72.0" y1="27.0" x2="78.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="72.0" y1="27.0" x2="92.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="78.0" y1="44.0" x2="92.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="92.0" y1="27.0" x2="106.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>          <span class='marker chord-marker' id='mk-18-53'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'> Well Daniel says it's the best place that he's ever seen </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>       <span class='marker chord-marker' id='mk-20-7'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>          <span class='marker chord-marker' id='mk-20-17'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                       <span class='marker chord-marker' id='mk-20-40'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Oh and he should know, he's been there enough </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>     <span class='marker chord-marker' id='mk-22-5'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>              <span class='marker chord-marker' id='mk-22-19'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>       <span class='marker chord-marker' id='mk-22-26'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>            <span class='marker chord-marker' id='mk-22-38'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Lord I miss Daniel,  oh I miss him so much oh oh oh</pre>
 <div class="subheading">[Chorus] </div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span> Daniel my brother you are<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span> older than me </pre>
-<pre>Do you still <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>feel the pain of the <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>scars that won't heal? </pre>
-<pre>Your eyes have <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>died but you see more than <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>I </pre>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>Daniel you're a <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>star <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>in the face of the <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>sky <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span></pre>
-<div class="section"></div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span></pre>
-<div class="section"></div>
-<pre>oh oh oh</pre>
-<div class="section"></div>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-25-0'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                          <span class='marker chord-marker' id='mk-25-26'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'> Daniel my brother you are older than me </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>             <span class='marker chord-marker' id='mk-27-13'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                     <span class='marker chord-marker' id='mk-27-34'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Do you still feel the pain of the scars that won't heal? </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>               <span class='marker chord-marker' id='mk-29-15'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                           <span class='marker chord-marker' id='mk-29-42'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Your eyes have died but you see more than I </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-31-0'><svg class="chord-icon" width="40.0" height="37.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="16.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="7.0" y="7.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="10.0" x2="16.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="10.0" x2="30.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="27.0" x2="30.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>                <span class='marker chord-marker' id='mk-31-16'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>     <span class='marker chord-marker' id='mk-31-21'><svg class="chord-icon" width="96.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="58.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="86.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="58.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="58.0" y1="44.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="72.0" y1="27.0" x2="86.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>                   <span class='marker chord-marker' id='mk-31-40'><svg class="chord-icon" width="62.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="52.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="66.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="32.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="46.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="29.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="32.0" y1="27.0" x2="46.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="32.0" y1="27.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="46.0" y1="10.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>    <span class='marker chord-marker' id='mk-31-44'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Daniel you're a star in the face of the sky </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-33-0'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-33-2'><svg class="chord-icon" width="62.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="52.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="66.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="32.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="46.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="29.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="32.0" y1="27.0" x2="46.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="32.0" y1="27.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="46.0" y1="10.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>    <span class='marker chord-marker' id='mk-33-6'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-33-8'><svg class="chord-icon" width="116.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="78.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="92.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="106.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="69.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="72.0" y1="27.0" x2="78.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="72.0" y1="27.0" x2="92.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="78.0" y1="44.0" x2="92.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="92.0" y1="27.0" x2="106.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>   <span class='marker chord-marker' id='mk-33-11'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>    <span class='marker chord-marker' id='mk-33-15'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-33-17'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-33-19'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>    <span class='marker chord-marker' id='mk-33-23'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-33-25'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>   <span class='marker chord-marker' id='mk-33-28'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-33-30'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>   <span class='marker chord-marker' id='mk-33-33'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>   <span class='marker chord-marker' id='mk-33-36'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-33-38'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>   <span class='marker chord-marker' id='mk-33-41'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-33-43'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>oh oh oh</pre>
 <div class="subheading">[Chorus]</div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>Daniel my brother you are <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>older than me </pre>
-<pre>Do you still <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>feel the pain of the <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>scars that won't heal? </pre>
-<pre>Your eyes have <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>died but you see more than <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>I </pre>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>Daniel you're a <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>star <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>in the face of the <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>sky <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span></pre>
-<div class="section"></div>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-36-0'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                          <span class='marker chord-marker' id='mk-36-26'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Daniel my brother you are older than me </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>             <span class='marker chord-marker' id='mk-38-13'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                     <span class='marker chord-marker' id='mk-38-34'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Do you still feel the pain of the scars that won't heal? </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>               <span class='marker chord-marker' id='mk-40-15'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                           <span class='marker chord-marker' id='mk-40-42'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Your eyes have died but you see more than I </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-42-0'><svg class="chord-icon" width="40.0" height="37.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="16.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="7.0" y="7.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="10.0" x2="16.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="10.0" x2="30.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="27.0" x2="30.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>                <span class='marker chord-marker' id='mk-42-16'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>     <span class='marker chord-marker' id='mk-42-21'><svg class="chord-icon" width="96.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="58.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="86.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="58.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="58.0" y1="44.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="72.0" y1="27.0" x2="86.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>                   <span class='marker chord-marker' id='mk-42-40'><svg class="chord-icon" width="62.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="52.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="66.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="32.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="46.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="29.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="32.0" y1="27.0" x2="46.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="32.0" y1="27.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="46.0" y1="10.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>    <span class='marker chord-marker' id='mk-42-44'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Daniel you're a star in the face of the sky </pre>
 <div class="subheading">[Verse 1]</div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>Daniel is traveling tonight on a <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>plane </pre>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span> I can see the red tail lights <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>heading for <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>Spain </pre>
-<pre>Oh and <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>I can see <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>Daniel waving good<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-3-7_0.svg" alt="m" /></span>bye </pre>
-<pre>God it <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>looks like Daniel,<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>  must be the <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>clouds in my <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>eyes<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span> </pre>
-<pre>God it <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>looks like Daniel,<span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7-10_0.svg" alt="7" /></span>  must be the <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>clouds in my <span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span>eyes </pre>
-<div class="section"></div>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-45-0'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                                 <span class='marker chord-marker' id='mk-45-33'><svg class="chord-icon" width="62.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="52.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="66.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="32.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="46.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="29.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="32.0" y1="27.0" x2="46.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="32.0" y1="27.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="46.0" y1="10.0" x2="52.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Daniel is traveling tonight on a plane </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-47-0'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                               <span class='marker chord-marker' id='mk-47-31'><svg class="chord-icon" width="116.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="78.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="92.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="106.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="69.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="72.0" y1="27.0" x2="78.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="72.0" y1="27.0" x2="92.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="78.0" y1="44.0" x2="92.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="92.0" y1="27.0" x2="106.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>            <span class='marker chord-marker' id='mk-47-43'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'> I can see the red tail lights heading for Spain </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>       <span class='marker chord-marker' id='mk-49-7'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>          <span class='marker chord-marker' id='mk-49-17'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                  <span class='marker chord-marker' id='mk-49-35'><svg class="chord-icon" width="82.0" height="88.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="72.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="86.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="52.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="66.0" cy="10.0" r="2" fill="#333333" />
+  <circle cx="72.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="49.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="52.0" y1="27.0" x2="66.0" y2="10.0" stroke="#333333" stroke-width="2" />
+  <line x1="52.0" y1="27.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="66.0" y1="10.0" x2="72.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>Oh and I can see Daniel waving goodbye </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>       <span class='marker chord-marker' id='mk-51-7'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                  <span class='marker chord-marker' id='mk-51-25'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>              <span class='marker chord-marker' id='mk-51-39'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>             <span class='marker chord-marker' id='mk-51-52'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>    <span class='marker chord-marker' id='mk-51-56'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>God it looks like Daniel,  must be the clouds in my eyes </pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'>       <span class='marker chord-marker' id='mk-53-7'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>                  <span class='marker chord-marker' id='mk-53-25'><svg class="chord-icon" width="74.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="64.0" cy="10.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="50.0" y1="27.0" x2="64.0" y2="10.0" stroke="#333333" stroke-width="2" />
+</svg></span>              <span class='marker chord-marker' id='mk-53-39'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>             <span class='marker chord-marker' id='mk-53-52'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
+<pre class='lyrics'>God it looks like Daniel,  must be the clouds in my eyes </pre>
 <div class="subheading">[Outro]</div>
-<pre><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span><span class="marker"><img class="chord-icon" src="chord_icons/chord_1_0-4-7_0.svg" alt="maj" /></span></pre>
+<div class='chord-line-wrapper'>
+<pre class='lyrics chord-markers'><span class='marker chord-marker' id='mk-56-0'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-56-2'><svg class="chord-icon" width="54.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>  <span class='marker chord-marker' id='mk-56-4'><svg class="chord-icon" width="60.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="36.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="50.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="27.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="30.0" y1="27.0" x2="36.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="30.0" y1="27.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="36.0" y1="44.0" x2="50.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span>   <span class='marker chord-marker' id='mk-56-7'><svg class="chord-icon" width="40.0" height="54.0" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="27.0" r="4" fill="gray" />
+  <circle cx="44.0" cy="10.0" r="4" fill="gray" />
+  <circle cx="10.0" cy="27.0" r="2" fill="#333333" />
+  <circle cx="16.0" cy="44.0" r="2" fill="#333333" />
+  <circle cx="30.0" cy="27.0" r="2" fill="#333333" />
+  <rect x="7.0" y="24.0" width="6" height="6" fill="#333333" />
+  <line x1="10.0" y1="27.0" x2="16.0" y2="44.0" stroke="#333333" stroke-width="2" />
+  <line x1="10.0" y1="27.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+  <line x1="16.0" y1="44.0" x2="30.0" y2="27.0" stroke="#333333" stroke-width="2" />
+</svg></span></pre>
+</div>
 
-  </body>
+<script>
+// Align overlay chord words above marker spans
+function alignChordWords() {
+  const items = document.querySelectorAll('.word-chord');
+  items.forEach(el => {
+    const markerId = el.getAttribute('data-marker');
+    const marker = document.getElementById(markerId);
+    if (!marker) return;
+    const markerRect = marker.getBoundingClientRect();
+    const containerRect = marker.closest('.chord-line-wrapper').getBoundingClientRect();
+    const left = markerRect.left - containerRect.left;
+    el.style.transform = `translate(${left}px, 0)`; // raise above text line
+  });
+}
+window.addEventListener('load', alignChordWords);
+window.addEventListener('resize', () => { alignChordWords(); });
+</script>
+
+</body>
 </html>
