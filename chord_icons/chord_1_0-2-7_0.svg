@@ -6,10 +6,10 @@
   <circle cx="430.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
   <circle cx="530.0" cy="30.0" r="90" fill="#CCCCCC" />
   <circle cx="630.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
-  <circle cx="330.0" cy="30.0" r="90" fill="#333333" />
-  <circle cx="730.0" cy="30.0" r="90" fill="#333333" />
-  <circle cx="530.0" cy="30.0" r="90" fill="#333333" />
+  <circle cx="330.0" cy="30.0" r="70" fill="#333333" />
+  <circle cx="730.0" cy="30.0" r="70" fill="#333333" />
+  <circle cx="530.0" cy="30.0" r="70" fill="#333333" />
   <rect x="330.0" y="30.0" width="0" height="0" fill="#333333" />
-  <line x1="330.0" y1="30.0" x2="530.0" y2="30.0" stroke="#333333" stroke-width="0" />
-  <line x1="730.0" y1="30.0" x2="530.0" y2="30.0" stroke="#333333" stroke-width="0" />
+  <line x1="330.0" y1="30.0" x2="530.0" y2="30.0" stroke="#333333" stroke-width="50" />
+  <line x1="730.0" y1="30.0" x2="530.0" y2="30.0" stroke="#333333" stroke-width="50" />
 </svg>

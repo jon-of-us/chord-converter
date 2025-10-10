@@ -24,8 +24,10 @@ ROW_SHIFT = -HORIZONTAL_DISTANCE / 2
 N_COLS = 11
 N_ROWS = 5
 
+# Chord icon layout
+CHORD_ICON_GAP = 10  # px minimal horizontal gap between consecutive chord icons
+
 # html 
-MAX_LINE_LENGTH = 120  
 CSS = """
 body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; line-height: 1.4; }
 pre { margin: 0.01rem; white-space: pre; }

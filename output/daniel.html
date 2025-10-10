@@ -1546,19 +1546,58 @@ pre { margin: 0.01rem; white-space: pre; }
 <script>
 // Align overlay chord words above marker spans
 function alignChordWords() {
-  const items = document.querySelectorAll('.word-chord');
-  items.forEach(el => {
-    const markerId = el.getAttribute('data-marker');
-    const marker = document.getElementById(markerId);
-    if (!marker) return;
-    const markerRect = marker.getBoundingClientRect();
-    const containerRect = marker.closest('.chord-line-wrapper').getBoundingClientRect();
-    const left = markerRect.left - containerRect.left;
-    el.style.transform = `translate(${left}px, 0)`; // raise above text line
-  });
+    const items = document.querySelectorAll('.word-chord');
+    items.forEach(el => {
+        const markerId = el.getAttribute('data-marker');
+        const marker = document.getElementById(markerId);
+        if (!marker) return;
+        const markerRect = marker.getBoundingClientRect();
+        const containerRect = marker.closest('.chord-line-wrapper').getBoundingClientRect();
+        const left = markerRect.left - containerRect.left;
+        el.style.transform = `translate(${left}px, 0)`; // horizontally align above marker
+    });
 }
-window.addEventListener('load', alignChordWords);
-window.addEventListener('resize', () => { alignChordWords(); });
+
+// Shift chord SVGs right to avoid overlap when markers are close together
+function alignChordIcons() {
+    const lines = document.querySelectorAll('.chord-line-wrapper');
+    const GAP = 10; // px minimal horizontal gap between icons (from config)
+    lines.forEach(line => {
+        const containerRect = line.getBoundingClientRect();
+        const markers = Array.from(line.querySelectorAll('.chord-markers .chord-marker'));
+        // Consider only markers that contain an SVG chord icon
+        const iconMarkers = markers.filter(m => m.querySelector('svg.chord-icon'));
+        // Sort by their natural marker position from left to right
+        iconMarkers.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+        let lastRight = -Infinity;
+        iconMarkers.forEach(m => {
+            const svg = m.querySelector('svg.chord-icon');
+            if (!svg) return;
+            // Reset any previous shift so measurement is consistent
+            svg.style.transform = 'translateX(0px)';
+            const markerLeft = m.getBoundingClientRect().left - containerRect.left;
+            const width = svg.getBoundingClientRect().width;
+            let desiredLeft = markerLeft;
+            if (markerLeft < lastRight + GAP) {
+                desiredLeft = lastRight + GAP;
+            }
+            const shift = desiredLeft - markerLeft;
+            if (shift !== 0) {
+                // Only shift horizontally; vertical alignment remains via CSS bottom:0
+                svg.style.transform = `translateX(${shift}px)`;
+            }
+            lastRight = desiredLeft + width;
+        });
+    });
+}
+
+function realignAll() {
+    alignChordWords();
+    alignChordIcons();
+}
+
+window.addEventListener('load', realignAll);
+window.addEventListener('resize', realignAll);
 </script>
 
 </body>

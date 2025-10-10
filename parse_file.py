@@ -14,7 +14,6 @@ import yaml
 # %% BASE HTML
 
 
-
 # %% PARSE TO HTML
 
 
@@ -37,7 +36,8 @@ def _line_type(line: str) -> str:
         return "chords"
     return "lyrics"
 
-class ChordOrWord():
+
+class ChordOrWord:
     def __init__(self, pos: Tuple[int, int], content: Any, is_chord: bool):
         self.pos = pos  # (line index, position in line)
         self.content = content  # either a Chord object or a string (word)
@@ -53,14 +53,21 @@ def _transpose_to_c_major(chords_or_words: List[ChordOrWord]) -> List[ChordOrWor
         for interval in chord.intervals:
             note = (chord.root + interval * 7) % 12
             note_count[note] += 1
-        note_count[(chord.root + chord.bass * 7) % 12] += 0.5  # bass less weight
-    weights = np.array([0.3, 0, 0.3, 1, 1.3, 1, 1, 1.3, 1, 0, 0, 0])
-    scores = np.convolve(np.tile(note_count, 2), weights[::-1], mode="valid")
+        note_count[(chord.root + chord.bass * 7) % 12] += 1  # base double weight
+
+    weights = np.array([ 10.,   0.,   4., 174., 265., 231., 139., 221., 180., 100.,   6., 2.])  # with base count double / from hooktheory.com analysis
+
+    # weights = np.array([ 10.,   0.,   2., 101., 197., 158., 107., 163., 153., 100.,   6., 2.])  #  without base count double / from hooktheory.com analysis
+    scores = np.convolve(np.tile(note_count, 2), weights[::-1])
+    scores = scores[11:23]
     offset_to_c = np.argmax(scores)
     for chord_or_word in chords_or_words:
         if not chord_or_word.is_chord:
             continue
-        chord_or_word.content.root = (chord_or_word.content.root - offset_to_c * 7) % 12
+        chord_or_word.content.root = (
+            chord_or_word.content.root - offset_to_c + 12
+        ) % 12
+        # print(chord_or_word.content.root)
     return chords_or_words
 
 
@@ -75,7 +82,7 @@ def parse_file_to_html(input_path: str) -> str:
     # %% extract chords, replace chord lines by whitespaces
     """also contains words in chords lines"""
     chords_or_words: List[ChordOrWord] = []
-    chords_in_line: List[List[int]]  = [[] for _ in range(len(lines))]
+    chords_in_line: List[List[int]] = [[] for _ in range(len(lines))]
     for i, (line, ltype) in enumerate(zip(lines, line_types)):
         if ltype != "chords":
             continue
@@ -104,8 +111,7 @@ def parse_file_to_html(input_path: str) -> str:
     title = os.path.splitext(os.path.basename(input_path))[0]
     out: List[str] = []
     out.append(
-
-f"""
+        f"""
 <!DOCTYPE html>
 <html>
   <head>
@@ -118,7 +124,6 @@ f"""
 """
     )
 
-
     for i, (line, ltype) in enumerate(zip(lines, line_types)):
         if i == 0:
             # Heading: first line
@@ -127,7 +132,7 @@ f"""
             out.append(f'<div class="subheading">{line}</div>')
         elif ltype == "lyrics":
             out.append(f"<pre class='lyrics'>{line}</pre>")
-        elif ltype == "chords": 
+        elif ltype == "chords":
             # Build a base line of spaces; markers inserted at chord/word start positions
             cows = [chords_or_words[idx] for idx in chords_in_line[i]]
             # Determine max length to pre-allocate (use config.MAX_LINE_LENGTH as cap)
@@ -135,10 +140,10 @@ f"""
             for cow in cows:
                 _, col = cow.pos
                 max_pos = max(max_pos, col)
-            base_chars = [" "] * max(config.MAX_LINE_LENGTH, max_pos + 2)
+            base_chars = [" "] * (max_pos + 2)
             # Insert zero-width span markers after ensuring preceding spaces exist
             # We'll create html by iterating through characters and injecting markers where needed
-            markers_at_col: Dict[int, List[str]] = {}
+            markers_at_col: Dict[int, List[Tuple[str, ChordOrWord]]] = {}
             # cache: (root, intervals tuple, bass) -> svg
             svg_cache: Dict[tuple, str] = {}
             for idx_cow, cow in enumerate(cows):
@@ -151,15 +156,25 @@ f"""
                     for mid, cow in markers_at_col[col]:
                         if cow.is_chord:
                             chord_obj = cow.content
-                            key = (chord_obj.root, tuple(chord_obj.intervals), chord_obj.bass)
+                            key = (
+                                chord_obj.root,
+                                tuple(chord_obj.intervals),
+                                chord_obj.bass,
+                            )
                             if key not in svg_cache:
                                 # Build a pseudo chord dict for svg helper
                                 chord_dict = {"intervals": chord_obj.intervals}
-                                svg_cache[key] = chord_to_svg.generate_chord_svg_string(chord_obj.root - 3, chord_dict, bass=chord_obj.bass)
+                                svg_cache[key] = chord_to_svg.generate_chord_svg_string(
+                                    chord_obj.root - 3, chord_dict, bass=chord_obj.bass
+                                )
                             svg_markup = svg_cache[key]
-                            chord_line_html_parts.append(f"<span class='marker chord-marker' id='{mid}'>{svg_markup}</span>")
+                            chord_line_html_parts.append(
+                                f"<span class='marker chord-marker' id='{mid}'>{svg_markup}</span>"
+                            )
                         else:
-                            chord_line_html_parts.append(f"<span class='marker chord-marker' id='{mid}'></span>")
+                            chord_line_html_parts.append(
+                                f"<span class='marker chord-marker' id='{mid}'></span>"
+                            )
                 chord_line_html_parts.append(base_chars[col])
             chord_line_html = "".join(chord_line_html_parts).rstrip()
             # Wrap in container; overlay words/chords will be separate absolutely positioned <pre>
@@ -173,11 +188,15 @@ f"""
                     # Display nothing now, but could add icon via JS (keeping span as marker only)
                     continue
                 text = cow.content
-                safe_text = (str(text)
-                             .replace("&", "&amp;")
-                             .replace("<", "&lt;")
-                             .replace(">", "&gt;"))
-                out.append(f"<pre class='word-chord' data-marker='{marker_id}'>{safe_text}</pre>")
+                safe_text = (
+                    str(text)
+                    .replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                )
+                out.append(
+                    f"<pre class='word-chord' data-marker='{marker_id}'>{safe_text}</pre>"
+                )
             out.append("</div>")
     out.append("</body>\n</html>")
     # Inject JS right before tail (simple alignment script)
@@ -185,21 +204,62 @@ f"""
 <script>
 // Align overlay chord words above marker spans
 function alignChordWords() {
-  const items = document.querySelectorAll('.word-chord');
-  items.forEach(el => {
-    const markerId = el.getAttribute('data-marker');
-    const marker = document.getElementById(markerId);
-    if (!marker) return;
-    const markerRect = marker.getBoundingClientRect();
-    const containerRect = marker.closest('.chord-line-wrapper').getBoundingClientRect();
-    const left = markerRect.left - containerRect.left;
-    el.style.transform = `translate(${left}px, 0)`; // raise above text line
-  });
+    const items = document.querySelectorAll('.word-chord');
+    items.forEach(el => {
+        const markerId = el.getAttribute('data-marker');
+        const marker = document.getElementById(markerId);
+        if (!marker) return;
+        const markerRect = marker.getBoundingClientRect();
+        const containerRect = marker.closest('.chord-line-wrapper').getBoundingClientRect();
+        const left = markerRect.left - containerRect.left;
+        el.style.transform = `translate(${left}px, 0)`; // horizontally align above marker
+    });
 }
-window.addEventListener('load', alignChordWords);
-window.addEventListener('resize', () => { alignChordWords(); });
+
+// Shift chord SVGs right to avoid overlap when markers are close together
+function alignChordIcons() {
+    const lines = document.querySelectorAll('.chord-line-wrapper');
+    const GAP = %d; // px minimal horizontal gap between icons (from config)
+    lines.forEach(line => {
+        const containerRect = line.getBoundingClientRect();
+        const markers = Array.from(line.querySelectorAll('.chord-markers .chord-marker'));
+        // Consider only markers that contain an SVG chord icon
+        const iconMarkers = markers.filter(m => m.querySelector('svg.chord-icon'));
+        // Sort by their natural marker position from left to right
+        iconMarkers.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+        let lastRight = -Infinity;
+        iconMarkers.forEach(m => {
+            const svg = m.querySelector('svg.chord-icon');
+            if (!svg) return;
+            // Reset any previous shift so measurement is consistent
+            svg.style.transform = 'translateX(0px)';
+            const markerLeft = m.getBoundingClientRect().left - containerRect.left;
+            const width = svg.getBoundingClientRect().width;
+            let desiredLeft = markerLeft;
+            if (markerLeft < lastRight + GAP) {
+                desiredLeft = lastRight + GAP;
+            }
+            const shift = desiredLeft - markerLeft;
+            if (shift !== 0) {
+                // Only shift horizontally; vertical alignment remains via CSS bottom:0
+                svg.style.transform = `translateX(${shift}px)`;
+            }
+            lastRight = desiredLeft + width;
+        });
+    });
+}
+
+function realignAll() {
+    alignChordWords();
+    alignChordIcons();
+}
+
+window.addEventListener('load', realignAll);
+window.addEventListener('resize', realignAll);
 </script>
-"""
+""" % (
+        config.CHORD_ICON_GAP
+    )
     out.insert(-1, script)
     return "\n".join(out)
 

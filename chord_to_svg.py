@@ -42,7 +42,7 @@ def generate_chord_svg_string(root, chord, bass=0):
     ]
     provided_bass_index = chord.get("bass_coord")
     bass_index = [provided_bass_index or interval_to_index(bass)]
-    root_index = interval_to_index(root * 7)
+    root_index = interval_to_index(root*7)
     for i in range(len(chord_point_indices)):
         chord_point_indices[i] = add(chord_point_indices[i], root_index)
     for i in range(len(bass_index)):
