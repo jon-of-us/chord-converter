@@ -28,7 +28,10 @@ def generate_chord_filename(root, chord, bass=0):
 
 
 def generate_chord_svg_string(root, chord, bass=0):
-    """Return SVG markup (string) for a chord icon."""
+    """
+    Return SVG markup (string) for a chord icon.
+    Will be displayed in key 1 M
+    """
     row_idx, col_idx = np.indices((30, 30), dtype=float)
     row_coords = c.PADDING + c.VERTICAL_DISTANCE * row_idx
     col_coords = c.PADDING + c.HORIZONTAL_DISTANCE * col_idx + c.ROW_SHIFT * row_idx
@@ -44,7 +47,7 @@ def generate_chord_svg_string(root, chord, bass=0):
         chord_point_indices[i] = add(chord_point_indices[i], root_index)
     for i in range(len(bass_index)):
         bass_index[i] = add(bass_index[i], root_index)
-    tonic_point_indices = [(1, 1), (0, 1)]
+    tonic_point_indices = [(1, 0), (0, 0), (1, 1), (0, 1), (1, 2), (0, 2), (1, 3)]
     drawn_point_indices = [bass_index, chord_point_indices, tonic_point_indices]
     drawn_points = sum(drawn_point_indices, [])
     min_row_idx, min_col_idx = min(r for r, _c in drawn_points), min(
@@ -65,7 +68,12 @@ def generate_chord_svg_string(root, chord, bass=0):
     row_coords += -min_row + c.PADDING
     col_coords += -min_col + c.PADDING
 
-    svg_content = f'<svg class="chord-icon" width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">\n'
+    # Include a viewBox so external CSS scaling keeps (0,0) anchored at the marker's bottom-left.
+    # Only use viewBox; omit explicit width/height so CSS height sets scale and width auto-scales via aspect ratio
+    svg_content = (
+        f'<svg class="chord-icon" viewBox="0 0 {width} {height}" '
+        f'data-w="{width}" data-h="{height}" xmlns="http://www.w3.org/2000/svg">\n'
+    )
 
     def draw_circle(svg_content, point_idx, rad, color):
         cx = col_coords[*point_idx]

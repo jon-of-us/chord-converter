@@ -1,11 +1,16 @@
-<svg class="chord-icon" width="40.0" height="23.0" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="3.0" cy="20.0" r="4" fill="gray" />
-  <circle cx="17.0" cy="3.0" r="4" fill="gray" />
-  <circle cx="17.0" cy="3.0" r="2" fill="#333333" />
-  <circle cx="23.0" cy="20.0" r="2" fill="#333333" />
-  <circle cx="37.0" cy="3.0" r="2" fill="#333333" />
-  <rect x="14.0" y="0.0" width="6" height="6" fill="#333333" />
-  <line x1="17.0" y1="3.0" x2="23.0" y2="20.0" stroke="#333333" stroke-width="2" />
-  <line x1="17.0" y1="3.0" x2="37.0" y2="3.0" stroke="#333333" stroke-width="2" />
-  <line x1="23.0" y1="20.0" x2="37.0" y2="3.0" stroke="#333333" stroke-width="2" />
+<svg class="chord-icon" viewBox="0 0 660.0 233.20508075688772" data-w="660.0" data-h="233.20508075688772" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
+  <circle cx="130.0" cy="30.0" r="90" fill="#CCCCCC" />
+  <circle cx="230.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
+  <circle cx="330.0" cy="30.0" r="90" fill="#CCCCCC" />
+  <circle cx="430.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
+  <circle cx="530.0" cy="30.0" r="90" fill="#CCCCCC" />
+  <circle cx="630.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
+  <circle cx="330.0" cy="30.0" r="90" fill="#333333" />
+  <circle cx="430.0" cy="203.20508075688772" r="90" fill="#333333" />
+  <circle cx="530.0" cy="30.0" r="90" fill="#333333" />
+  <rect x="330.0" y="30.0" width="0" height="0" fill="#333333" />
+  <line x1="330.0" y1="30.0" x2="430.0" y2="203.20508075688772" stroke="#333333" stroke-width="0" />
+  <line x1="330.0" y1="30.0" x2="530.0" y2="30.0" stroke="#333333" stroke-width="0" />
+  <line x1="430.0" y1="203.20508075688772" x2="530.0" y2="30.0" stroke="#333333" stroke-width="0" />
 </svg>

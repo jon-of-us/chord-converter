@@ -155,7 +155,7 @@ f"""
                             if key not in svg_cache:
                                 # Build a pseudo chord dict for svg helper
                                 chord_dict = {"intervals": chord_obj.intervals}
-                                svg_cache[key] = chord_to_svg.generate_chord_svg_string(chord_obj.root, chord_dict, bass=chord_obj.bass)
+                                svg_cache[key] = chord_to_svg.generate_chord_svg_string(chord_obj.root - 3, chord_dict, bass=chord_obj.bass)
                             svg_markup = svg_cache[key]
                             chord_line_html_parts.append(f"<span class='marker chord-marker' id='{mid}'>{svg_markup}</span>")
                         else:
