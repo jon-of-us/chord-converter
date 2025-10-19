@@ -22,10 +22,12 @@ chords:
   - name: Diminished
     aliases: ["dim", "°"]
     intervals: [0, 3, 6]
+    coords: [[0,0], [-1, 0], [-2, 0]]
 
   - name: Diminished 7th
     aliases: ["dim7", "°7"]
     intervals: [0, 3, 6, 9]
+    coords: [[0,0], [-1, 0], [-2, 0], [-3, 0]]
 
   - name: Half-diminished 7th
     aliases: ["m7b5", "ø7"]

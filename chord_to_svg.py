@@ -33,9 +33,11 @@ def generate_chord_svg_string(chord: Chord):
     Return SVG markup (string) for a chord icon.
     Will be displayed in key 1 M
     """
+    # %% set up grid coordinates
     row_idx, col_idx = np.indices((30, 30), dtype=float)
     row_coords = c.VERTICAL_DISTANCE * row_idx
     col_coords = c.HORIZONTAL_DISTANCE * col_idx + c.ROW_SHIFT * row_idx
+    # %% determine which points to draw
     chord_intervals = list(chord.type.get("intervals", []))
     provided_coords = chord.type.get("coords")
     chord_point_indices = [tuple(c) for c in provided_coords] if provided_coords else [
@@ -48,6 +50,37 @@ def generate_chord_svg_string(chord: Chord):
         chord_point_indices[i] = add(chord_point_indices[i], root_index)
     for i in range(len(bass_index)):
         bass_index[i] = add(bass_index[i], root_index)
+    
+    # %% determine octave of points 
+    octave_shifts = [(0, 0), (-1, 3), (1, -3)]
+    reward_root = (1, 2)
+    rewards = np.array([
+        [0.0, 0.0, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0],
+        [0.3, 0.5, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0],
+        [0.0, 0.5, 1.0, 1.0, 1.0, 0.7, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ])
+    best_ocatave = None
+    brest_reward = -1
+    for octave_shift in octave_shifts:
+        shifted_coords = [
+            add(add(idx, octave_shift), reward_root)
+            for idx in chord_point_indices
+        ]
+        reward = sum(
+            rewards[r, c] 
+            for r, c in shifted_coords
+            if 0 <= r < rewards.shape[0] and 0 <= c < rewards.shape[1]
+        )
+        if reward > brest_reward:
+            brest_reward = reward
+            best_ocatave = octave_shift
+    for i in range(len(chord_point_indices)):
+        chord_point_indices[i] = add(chord_point_indices[i], best_ocatave)
+    for i in range(len(bass_index)):
+        bass_index[i] = add(bass_index[i], best_ocatave)
+    
+    # %% shift all point indices to start from (0,0)
     tonic_point_indices = [idx for idx in c.TONIC_POINT_INDICES]
     drawn_point_indices = [bass_index, chord_point_indices, tonic_point_indices]
     drawn_points = sum(drawn_point_indices, [])
@@ -57,22 +90,18 @@ def generate_chord_svg_string(chord: Chord):
     for point_class in drawn_point_indices:
         for j in range(len(point_class)):
             point_class[j] = add(point_class[j], (-min_row_idx, -min_col_idx))
-    new_root_index = add(root_index, (-min_row_idx, -min_col_idx))
     drawn_points = sum(drawn_point_indices, [])
 
-    # used_row_coords = [row_coords[r, c] for r, c in drawn_points]
-    # min_row, max_row = min(used_row_coords), max(used_row_coords)
+    # %% shift coordinates to fit drawn points
     used_col_coords = [col_coords[r, c] for r, c in drawn_points]
     min_col, max_col = min(used_col_coords), max(used_col_coords)
     
     width = max_col - min_col + 2 * c.PADDING
-
     height = c.VERTICAL_DISTANCE * 5 + 2 * c.PADDING
     row_coords += -(tonic_point_indices[0][0]-2)*c.VERTICAL_DISTANCE + c.PADDING
-    # height = max_row - min_row + 2 * c.PADDING
-
     col_coords += -min_col + c.PADDING
 
+    # %% generate svg content
     # Include a viewBox so external CSS scaling keeps (0,0) anchored at the marker's bottom-left.
     # Only use viewBox; omit explicit width/height so CSS height sets scale and width auto-scales via aspect ratio
     svg_content = (
