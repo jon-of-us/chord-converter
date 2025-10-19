@@ -26,20 +26,19 @@ N_COLS = 11
 N_ROWS = 5
 
 # Chord icon layout
-CHORD_ICON_GAP = 15  # px minimal horizontal gap between consecutive chord icons
-TONIC_POINT_INDICES = [(1, 0), (0, 0), (1, 1), (0, 1), (1, 2), (0, 2)]
-# TONIC_POINT_INDICES = [(1, 1), (0, 1) ]
+CHORD_ICON_GAP = 10  # px minimal horizontal gap between consecutive chord icons
+TONIC_POINT_INDICES = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)] # first tonic pioint is used to center the svg vertically
+# TONIC_POINT_INDICES = [(0, 1) (1, 1)]
 
 # html 
 CSS = """
 body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; line-height: 1.4; }
 pre { margin: 0.01rem; white-space: pre; }
-.heading {font-weight: 700; }
-.subheading {font-weight: 400; }
+.heading {font-weight: 700; padding-top: 1rem; padding-bottom: 0.5rem; }
+.subheading {font-weight: 400; padding-top: 1rem; }
 .section { margin: 0.75rem 0; }
 .marker { position: relative; display: inline-block; width: 0; height: 0; overflow: visible; }
-.marker > img.chord-icon, .marker > svg.chord-icon { position: absolute; left: 0; bottom: 0; height: 1.1em; }
-.marker > svg.chord-icon { position: absolute; left:0; bottom:0; overflow:visible; }
+.marker > img.chord-icon, .marker > svg.chord-icon { position: absolute; left: 0; bottom: -1em; height: 2.5em; overflow: visible; }
 .subheading { font-weight: 700; }
 
 /* chord overlay system */

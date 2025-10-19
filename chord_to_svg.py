@@ -67,7 +67,7 @@ def generate_chord_svg_string(root, chord, bass=0):
     width = max_col - min_col + 2 * c.PADDING
 
     height = c.VERTICAL_DISTANCE * 5 + 2 * c.PADDING
-    row_coords += -(new_root_index[0]-2)*c.VERTICAL_DISTANCE + c.PADDING
+    row_coords += -(tonic_point_indices[0][0]-2)*c.VERTICAL_DISTANCE + c.PADDING
     # height = max_row - min_row + 2 * c.PADDING
 
     col_coords += -min_col + c.PADDING
