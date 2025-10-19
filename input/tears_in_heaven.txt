@@ -2,7 +2,7 @@ TEARS IN HEAVEN
 
 [Intro]
 
-A   E/G#  F#m   A/E  D/F#   E7sus4 E7 A
+A   E/G#  F#m   A/E  D/F#  E7 A
 
  
 
@@ -48,7 +48,7 @@ Here in heaven
 
 [Link]
 
-(A)  E/G#  F#m   A/E  D/F#   E7sus E7 A
+E/G#  F#m   A/E  D/F#  E7 A
 
  
 
@@ -94,7 +94,7 @@ Here in heaven
 
 [Link]
 
-(A)  E/G#  F#m   A/E  D/F#   E7sus4 E7 A
+E/G#  F#m   A/E  D/F#  E7 A
 
  
 
@@ -150,7 +150,7 @@ Tears in heaven
 
 [Link]
 
-(A)  E/G#  F#m   A/E  D/F#   E7sus4 E7 A
+E/G#  F#m   A/E  D/F#  E7 A
 
  
 
@@ -196,5 +196,5 @@ Here in heaven
 
 [Outro]
 
-A   E/G#  F#m   A/E  D/F#   E7sus4 E7 A
+A   E/G#  F#m   A/E  D/F#  E7 A
 

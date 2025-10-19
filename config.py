@@ -38,7 +38,7 @@ pre { margin: 0.01rem; white-space: pre; }
 .subheading {font-weight: 400; padding-top: 1rem; }
 .section { margin: 0.75rem 0; }
 .marker { position: relative; display: inline-block; width: 0; height: 0; overflow: visible; }
-.marker > img.chord-icon, .marker > svg.chord-icon { position: absolute; left: 0; bottom: -1em; height: 2.5em; overflow: visible; }
+.marker > img.chord-icon, .marker > svg.chord-icon { position: absolute; left: 0; bottom: -1.4em; height: 3.2em; overflow: visible; }
 .subheading { font-weight: 700; }
 
 /* chord overlay system */
