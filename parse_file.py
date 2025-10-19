@@ -50,7 +50,7 @@ def _transpose_to_c_major(chords_or_words: List[ChordOrWord]) -> List[ChordOrWor
         if not chord.is_chord:
             continue
         chord = chord.content
-        for interval in chord.intervals:
+        for interval in chord.type["intervals"]:
             note = (chord.root + interval * 7) % 12
             note_count[note] += 1
         note_count[(chord.root + chord.bass * 7) % 12] += 1  # base double weight
@@ -95,6 +95,8 @@ def parse_file_to_html(input_path: str) -> str:
             # add chord
             parsed = read_chord.from_word(tok)
             content = parsed or tok
+            if parsed is not None: 
+                pass
 
             chords_in_line[i].append(len(chords_or_words))
             chords_or_words.append(
@@ -158,14 +160,16 @@ def parse_file_to_html(input_path: str) -> str:
                             chord_obj = cow.content
                             key = (
                                 chord_obj.root,
-                                tuple(chord_obj.intervals),
+                                tuple(chord_obj.type["intervals"]),
                                 chord_obj.bass,
                             )
                             if key not in svg_cache:
                                 # Build a pseudo chord dict for svg helper
-                                chord_dict = {"intervals": chord_obj.intervals}
+                                chord_obj.root -= 3  # transpose to C major for display
+                                if chord_obj.type.get("name") == "Suspended 4th":
+                                    pass
                                 svg_cache[key] = chord_to_svg.generate_chord_svg_string(
-                                    chord_obj.root - 3, chord_dict, bass=chord_obj.bass
+                                    chord_obj
                                 )
                             svg_markup = svg_cache[key]
                             chord_line_html_parts.append(

@@ -1,10 +1,10 @@
 import yaml
 
 class Chord():
-    def __init__(self, root, intervals, bass):
+    def __init__(self, root, chord_type, bass = 0):
         self.root = root # absolute number
-        self.intervals = intervals # relative to root 
         self.bass = bass # interval relative to root
+        self.type= chord_type # same as in chord yaml
 
 # %% CHORD TABLE
 c1 = ["A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab"]
@@ -49,6 +49,6 @@ def from_word(str):
                 else:
                     bass = 0
                 return Chord(
-                    root, chord_type.get("intervals", []), bass
+                    root, chord_type, bass
                 )
     return None 

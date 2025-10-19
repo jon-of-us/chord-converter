@@ -1,0 +1,13 @@
+<svg class="chord-icon" viewBox="0 0 690.0 1056.0254037844386" data-w="690.0" data-h="1056.0254037844386" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="195.0" cy="441.4101615137754" r="90" fill="#CCCCCC" />
+  <circle cx="95.0" cy="614.6152422706632" r="90" fill="#CCCCCC" />
+  <circle cx="395.0" cy="441.4101615137754" r="90" fill="#CCCCCC" />
+  <circle cx="295.0" cy="614.6152422706632" r="90" fill="#CCCCCC" />
+  <circle cx="595.0" cy="441.4101615137754" r="90" fill="#CCCCCC" />
+  <circle cx="495.0" cy="614.6152422706632" r="90" fill="#CCCCCC" />
+  <circle cx="195.0" cy="441.4101615137754" r="70" fill="#333333" />
+  <circle cx="295.0" cy="268.2050807568877" r="70" fill="#333333" />
+  <circle cx="395.0" cy="787.8203230275509" r="70" fill="#333333" />
+  <rect x="195.0" y="441.4101615137754" width="0" height="0" fill="#333333" />
+  <line x1="195.0" y1="441.4101615137754" x2="295.0" y2="268.2050807568877" stroke="#333333" stroke-width="50" />
+</svg>

@@ -2,6 +2,7 @@ import os
 import yaml
 import numpy as np
 import config as c
+from read_chord import Chord
 
 
 def add(tup1, tup2):
@@ -27,7 +28,7 @@ def generate_chord_filename(root, chord, bass=0):
     return f"chord_{root}_{intervals_str}_{bass}.svg"
 
 
-def generate_chord_svg_string(root, chord, bass=0):
+def generate_chord_svg_string(chord: Chord):
     """
     Return SVG markup (string) for a chord icon.
     Will be displayed in key 1 M
@@ -35,14 +36,14 @@ def generate_chord_svg_string(root, chord, bass=0):
     row_idx, col_idx = np.indices((30, 30), dtype=float)
     row_coords = c.VERTICAL_DISTANCE * row_idx
     col_coords = c.HORIZONTAL_DISTANCE * col_idx + c.ROW_SHIFT * row_idx
-    chord_intervals = list(chord.get("intervals", []))
-    provided_coords = chord.get("coords")
-    chord_point_indices = provided_coords or [
+    chord_intervals = list(chord.type.get("intervals", []))
+    provided_coords = chord.type.get("coords")
+    chord_point_indices = [tuple(c) for c in provided_coords] if provided_coords else [
         interval_to_index(i) for i in chord_intervals
     ]
-    provided_bass_index = chord.get("bass_coord")
-    bass_index = [provided_bass_index or interval_to_index(bass)]
-    root_index = interval_to_index(root*7)
+    provided_bass_index = chord.type.get("bass_coord")
+    bass_index = [provided_bass_index or interval_to_index(chord.bass)]
+    root_index = interval_to_index(chord.root * 7)
     for i in range(len(chord_point_indices)):
         chord_point_indices[i] = add(chord_point_indices[i], root_index)
     for i in range(len(bass_index)):
@@ -108,12 +109,12 @@ def generate_chord_svg_string(root, chord, bass=0):
     return svg_content
 
 
-def generate_chord_svg(root, chord, bass=0):
+def generate_chord_svg(chord: Chord):
     """Generate SVG file for chord by delegating to string function (no duplicated logic)."""
-    svg_content = generate_chord_svg_string(root, chord, bass)
+    svg_content = generate_chord_svg_string(chord)
     output_dir = "chord_icons"
     os.makedirs(output_dir, exist_ok=True)
-    filename = generate_chord_filename(root, chord, bass)
+    filename = generate_chord_filename(chord.root, chord.type, chord.bass)
     filepath = os.path.join(output_dir, filename)
     with open(filepath, "w") as f:
         f.write(svg_content)
@@ -134,9 +135,10 @@ if __name__ == "__main__":
         all_chords = []
 
     if all_chords:
-        for chord in all_chords:
-            generate_chord_svg(root=1, chord=chord)
-            print(f"Generated SVG for {chord['name']}")
+        for chord_type in all_chords:
+            chord = Chord(root=0, chord_type=chord_type, bass=0)
+            generate_chord_svg(chord)
+            print(f"Generated SVG for {chord_type['name']}")
 
     else:
         print("Could not run examples due to missing chords.yaml.")

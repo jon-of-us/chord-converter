@@ -64,8 +64,9 @@ chords:
     coords: [[0, 0], [-1, 0], [2, 2]]
 
   - name: Seven Sus 4
-    aliases: ["7sus4"]
+    aliases: ["7sus4", "7sus"]
     intervals: [0, 5, 7, 10]
+    coords: [[0,0], [0, -1], [0, 1], [-1, 1]]
 
   - name: Manual Coordinates Example
     aliases: ["manual", "coords"]
