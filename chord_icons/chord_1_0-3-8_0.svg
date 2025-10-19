@@ -1,14 +1,13 @@
-<svg class="chord-icon" viewBox="0 0 660.0 579.6152422706632" data-w="660.0" data-h="579.6152422706632" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="30.0" cy="376.41016151377545" r="90" fill="#CCCCCC" />
-  <circle cx="130.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
-  <circle cx="230.0" cy="376.41016151377545" r="90" fill="#CCCCCC" />
-  <circle cx="330.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
-  <circle cx="430.0" cy="376.41016151377545" r="90" fill="#CCCCCC" />
-  <circle cx="530.0" cy="203.20508075688772" r="90" fill="#CCCCCC" />
-  <circle cx="630.0" cy="376.41016151377545" r="90" fill="#CCCCCC" />
-  <circle cx="330.0" cy="203.20508075688772" r="70" fill="#333333" />
-  <circle cx="430.0" cy="30.0" r="70" fill="#333333" />
-  <circle cx="530.0" cy="549.6152422706632" r="70" fill="#333333" />
-  <rect x="330.0" y="203.20508075688772" width="0" height="0" fill="#333333" />
-  <line x1="330.0" y1="203.20508075688772" x2="430.0" y2="30.0" stroke="#333333" stroke-width="50" />
+<svg class="chord-icon" viewBox="0 0 690.0 1056.0254037844386" data-w="690.0" data-h="1056.0254037844386" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="95.0" cy="614.6152422706632" r="90" fill="#CCCCCC" />
+  <circle cx="195.0" cy="441.4101615137754" r="90" fill="#CCCCCC" />
+  <circle cx="295.0" cy="614.6152422706632" r="90" fill="#CCCCCC" />
+  <circle cx="395.0" cy="441.4101615137754" r="90" fill="#CCCCCC" />
+  <circle cx="495.0" cy="614.6152422706632" r="90" fill="#CCCCCC" />
+  <circle cx="595.0" cy="441.4101615137754" r="90" fill="#CCCCCC" />
+  <circle cx="395.0" cy="441.4101615137754" r="70" fill="#333333" />
+  <circle cx="495.0" cy="268.2050807568877" r="70" fill="#333333" />
+  <circle cx="595.0" cy="787.8203230275509" r="70" fill="#333333" />
+  <rect x="395.0" y="441.4101615137754" width="0" height="0" fill="#333333" />
+  <line x1="395.0" y1="441.4101615137754" x2="495.0" y2="268.2050807568877" stroke="#333333" stroke-width="50" />
 </svg>

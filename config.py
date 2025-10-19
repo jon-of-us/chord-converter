@@ -1,7 +1,5 @@
 import numpy as np
 
-# SVG Dimensions and Layout
-PADDING = 30
 
 # Points
 GRID_COLOR = "white"
@@ -12,6 +10,9 @@ TONIC_COLOR = "#CCCCCC"
 TONIC_RAD = 90
 # BASS_SIDELENGTH = CHORD_RAD * 2 + 20
 BASS_SIDELENGTH = 0
+
+# SVG Dimensions and Layout
+PADDING = 5 + max(CHORD_RAD, TONIC_RAD)
 
 # Lines
 LINE_WIDTH = 50
@@ -25,7 +26,9 @@ N_COLS = 11
 N_ROWS = 5
 
 # Chord icon layout
-CHORD_ICON_GAP = 10  # px minimal horizontal gap between consecutive chord icons
+CHORD_ICON_GAP = 15  # px minimal horizontal gap between consecutive chord icons
+TONIC_POINT_INDICES = [(1, 0), (0, 0), (1, 1), (0, 1), (1, 2), (0, 2)]
+# TONIC_POINT_INDICES = [(1, 1), (0, 1) ]
 
 # html 
 CSS = """
@@ -55,6 +58,6 @@ pre { margin: 0.01rem; white-space: pre; }
 .chord-line-wrapper { position:relative; margin:0; padding:0; }
 
 /* optional debug style (disabled by default) */
-.chord-marker { outline:2px solid rgba(200,0,0,0.3); } 
+/* .chord-marker { outline:2px solid rgba(200,0,0,0.3); } */
 
 """

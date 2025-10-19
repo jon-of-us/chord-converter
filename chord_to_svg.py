@@ -11,7 +11,7 @@ def add(tup1, tup2):
 
 def interval_to_index(interval):
     """Convert an interval to a point index on the grid."""
-    offset = 6
+    offset = 3
     qi = (7 * interval + offset) % 12 - offset
     row = qi // 3
     col = qi % 3
@@ -33,8 +33,8 @@ def generate_chord_svg_string(root, chord, bass=0):
     Will be displayed in key 1 M
     """
     row_idx, col_idx = np.indices((30, 30), dtype=float)
-    row_coords = c.PADDING + c.VERTICAL_DISTANCE * row_idx
-    col_coords = c.PADDING + c.HORIZONTAL_DISTANCE * col_idx + c.ROW_SHIFT * row_idx
+    row_coords = c.VERTICAL_DISTANCE * row_idx
+    col_coords = c.HORIZONTAL_DISTANCE * col_idx + c.ROW_SHIFT * row_idx
     chord_intervals = list(chord.get("intervals", []))
     provided_coords = chord.get("coords")
     chord_point_indices = provided_coords or [
@@ -47,7 +47,7 @@ def generate_chord_svg_string(root, chord, bass=0):
         chord_point_indices[i] = add(chord_point_indices[i], root_index)
     for i in range(len(bass_index)):
         bass_index[i] = add(bass_index[i], root_index)
-    tonic_point_indices = [(1, 0), (0, 0), (1, 1), (0, 1), (1, 2), (0, 2), (1, 3)]
+    tonic_point_indices = [idx for idx in c.TONIC_POINT_INDICES]
     drawn_point_indices = [bass_index, chord_point_indices, tonic_point_indices]
     drawn_points = sum(drawn_point_indices, [])
     min_row_idx, min_col_idx = min(r for r, _c in drawn_points), min(
@@ -56,16 +56,20 @@ def generate_chord_svg_string(root, chord, bass=0):
     for point_class in drawn_point_indices:
         for j in range(len(point_class)):
             point_class[j] = add(point_class[j], (-min_row_idx, -min_col_idx))
+    new_root_index = add(root_index, (-min_row_idx, -min_col_idx))
     drawn_points = sum(drawn_point_indices, [])
 
-    used_row_coords = [row_coords[r, c] for r, c in drawn_points]
+    # used_row_coords = [row_coords[r, c] for r, c in drawn_points]
+    # min_row, max_row = min(used_row_coords), max(used_row_coords)
     used_col_coords = [col_coords[r, c] for r, c in drawn_points]
-    min_row, max_row = min(used_row_coords), max(used_row_coords)
     min_col, max_col = min(used_col_coords), max(used_col_coords)
     
     width = max_col - min_col + 2 * c.PADDING
-    height = max_row - min_row + 2 * c.PADDING
-    row_coords += -min_row + c.PADDING
+
+    height = c.VERTICAL_DISTANCE * 5 + 2 * c.PADDING
+    row_coords += -(new_root_index[0]-2)*c.VERTICAL_DISTANCE + c.PADDING
+    # height = max_row - min_row + 2 * c.PADDING
+
     col_coords += -min_col + c.PADDING
 
     # Include a viewBox so external CSS scaling keeps (0,0) anchored at the marker's bottom-left.
