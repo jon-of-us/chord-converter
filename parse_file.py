@@ -8,10 +8,6 @@ import read_chord
 import chord_to_svg
 import numpy as np
 
-import yaml
-
-
-# %% BASE HTML
 
 
 # %% PARSE TO HTML
@@ -267,12 +263,13 @@ window.addEventListener('resize', realignAll);
     out.insert(-1, script)
     return "\n".join(out)
 
-
+# %% MAIN
 def main():
     # Convert all .txt files in ./input to HTML in ./output
     base_dir = os.path.dirname(os.path.abspath(__file__))
     input_dir = os.path.join(base_dir, "input")
-    output_dir = os.path.join(base_dir, "output")
+    # output_dir = os.path.join(base_dir, "output")
+    output_dir = "/mnt/c/Users/Jonas/Desktop/akkorde_tonnetz"
     os.makedirs(output_dir, exist_ok=True)
 
     if not os.path.isdir(input_dir):

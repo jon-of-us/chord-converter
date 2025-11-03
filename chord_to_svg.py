@@ -19,6 +19,25 @@ def interval_to_index(interval):
     return (row, col)
 
 
+def bass_to_index(bass, chord_indices):
+    # choose closest to the chord
+    idx = interval_to_index(bass)
+    octave_shifts = [(0, 0), (-1, 3), (1, -3)]
+    best_idx = None
+    best_dist = float("inf")
+    for octave_shift in octave_shifts:
+        shifted_idx = add(idx, octave_shift)
+        for chord_idx in chord_indices:
+            dist = np.sqrt(
+                (shifted_idx[0] - chord_idx[0]) ** 2
+                + (shifted_idx[1] - chord_idx[1]) ** 2
+            )
+            if dist < best_dist:
+                best_dist = dist
+                best_idx = shifted_idx
+    return best_idx
+
+
 def generate_chord_filename(root, chord, bass=0):
     """
     - bass is realtive to the chord,
@@ -40,35 +59,38 @@ def generate_chord_svg_string(chord: Chord):
     # %% determine which points to draw
     chord_intervals = list(chord.type.get("intervals", []))
     provided_coords = chord.type.get("coords")
-    chord_point_indices = [tuple(c) for c in provided_coords] if provided_coords else [
-        interval_to_index(i) for i in chord_intervals
-    ]
+    chord_point_indices = (
+        [tuple(c) for c in provided_coords]
+        if provided_coords
+        else [interval_to_index(i) for i in chord_intervals]
+    )
     provided_bass_index = chord.type.get("bass_coord")
-    bass_index = [provided_bass_index or interval_to_index(chord.bass)]
+    bass_index = [provided_bass_index or bass_to_index(chord.bass, chord_point_indices)]
     root_index = interval_to_index(chord.root * 7)
     for i in range(len(chord_point_indices)):
         chord_point_indices[i] = add(chord_point_indices[i], root_index)
     for i in range(len(bass_index)):
         bass_index[i] = add(bass_index[i], root_index)
-    
-    # %% determine octave of points 
+
+    # %% determine octave of points
     octave_shifts = [(0, 0), (-1, 3), (1, -3)]
     reward_root = (1, 2)
-    rewards = np.array([
-        [0.0, 0.0, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0],
-        [0.3, 0.5, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0],
-        [0.0, 0.5, 1.0, 1.0, 1.0, 0.7, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    ])
+    rewards = np.array(
+        [
+            [0.0, 0.0, 0.2, 0.2, 0.2, 0.3, 0.0, 0.0],
+            [0.3, 0.5, 1.0, 1.0, 1.0, 0.8, 0.0, 0.0],
+            [0.0, 0.5, 1.0, 1.0, 1.0, 0.7, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ]
+    )
     best_ocatave = None
     brest_reward = -1
     for octave_shift in octave_shifts:
         shifted_coords = [
-            add(add(idx, octave_shift), reward_root)
-            for idx in chord_point_indices
+            add(add(idx, octave_shift), reward_root) for idx in chord_point_indices
         ]
         reward = sum(
-            rewards[r, c] 
+            rewards[r, c]
             for r, c in shifted_coords
             if 0 <= r < rewards.shape[0] and 0 <= c < rewards.shape[1]
         )
@@ -79,7 +101,7 @@ def generate_chord_svg_string(chord: Chord):
         chord_point_indices[i] = add(chord_point_indices[i], best_ocatave)
     for i in range(len(bass_index)):
         bass_index[i] = add(bass_index[i], best_ocatave)
-    
+
     # %% shift all point indices to start from (0,0)
     tonic_point_indices = [idx for idx in c.TONIC_POINT_INDICES]
     drawn_point_indices = [bass_index, chord_point_indices, tonic_point_indices]
@@ -95,10 +117,10 @@ def generate_chord_svg_string(chord: Chord):
     # %% shift coordinates to fit drawn points
     used_col_coords = [col_coords[r, c] for r, c in drawn_points]
     min_col, max_col = min(used_col_coords), max(used_col_coords)
-    
+
     width = max_col - min_col + 2 * c.PADDING
     height = c.VERTICAL_DISTANCE * 5 + 2 * c.PADDING
-    row_coords += -(tonic_point_indices[0][0]-2)*c.VERTICAL_DISTANCE + c.PADDING
+    row_coords += -(tonic_point_indices[0][0] - 2) * c.VERTICAL_DISTANCE + c.PADDING
     col_coords += -min_col + c.PADDING
 
     # %% generate svg content
@@ -118,11 +140,6 @@ def generate_chord_svg_string(chord: Chord):
 
     for point_idx in tonic_point_indices:
         svg_content = draw_circle(svg_content, point_idx, c.TONIC_RAD, c.TONIC_COLOR)
-    for point_idx in chord_point_indices:
-        svg_content = draw_circle(svg_content, point_idx, c.CHORD_RAD, c.CHORD_COLOR)
-    cx = col_coords[*bass_index[0]]
-    cy = row_coords[*bass_index[0]]
-    svg_content += f'  <rect x="{cx - c.BASS_SIDELENGTH/2}" y="{cy - c.BASS_SIDELENGTH/2}" width="{c.BASS_SIDELENGTH}" height="{c.BASS_SIDELENGTH}" fill="{c.CHORD_COLOR}" />\n'
     for i in range(len(chord_point_indices)):
         r1, c1 = chord_point_indices[i]
         x1 = col_coords[r1, c1]
@@ -133,7 +150,24 @@ def generate_chord_svg_string(chord: Chord):
             y2 = row_coords[r2, c2]
             dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
             if dist < 1.5 * c.HORIZONTAL_DISTANCE:
-                svg_content += f'  <line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{c.CHORD_COLOR}" stroke-width="{c.LINE_WIDTH}" />\n'
+                svg_content += f'  <line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{c.CHORD_COLOR}" stroke-width="{c.LINE_WIDTH}" z-index="1" />\n'
+    for point_idx in chord_point_indices:
+        svg_content = draw_circle(svg_content, point_idx, c.CHORD_RAD, c.CHORD_COLOR)
+    # draw bass (only if its not the leftmost point)
+
+    for bass_idx in bass_index:
+        if col_coords[*bass_idx] == min(
+            col_coords[*idx] for idx in chord_point_indices
+        ):
+            continue
+        # cx = col_coords[*bass_idx]
+        # cy = row_coords[*bass_idx]
+        # svg_content += f'  <rect x="{cx - c.BASS_SIDELENGTH/2}" y="{cy - c.BASS_SIDELENGTH/2}" width="{c.BASS_SIDELENGTH}" height="{c.BASS_SIDELENGTH}" fill="{c.CHORD_COLOR}" />\n'
+        svg_content = draw_circle(svg_content, bass_idx, c.CHORD_RAD, c.CHORD_COLOR)
+        svg_content = draw_circle(
+            svg_content, bass_idx, c.BASS_INNER_RAD, c.BASS_INNER_COLOR
+        )
+
     svg_content += "</svg>"
     return svg_content
 
