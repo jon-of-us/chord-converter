@@ -269,7 +269,7 @@ def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     input_dir = os.path.join(base_dir, "input")
     # output_dir = os.path.join(base_dir, "output")
-    output_dir = "/mnt/c/Users/Jonas/Desktop/akkorde_tonnetz"
+    output_dir = config.OUTPUT_FOLDER
     os.makedirs(output_dir, exist_ok=True)
 
     if not os.path.isdir(input_dir):
