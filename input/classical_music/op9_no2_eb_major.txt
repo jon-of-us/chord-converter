@@ -1,0 +1,28 @@
+NOCTURNE OP. 9 NO. 2 (E♭ MAJOR)
+Author: Frederic Chopin
+
+[INTRO]
+Eb     | Bb/D  | Cm     | G7     |
+Cm     | Fm     | Bb7    | Eb     |
+
+[SECTION A]
+Eb     | Bb/D  | Cm     | G7     |
+Cm     | Fm     | Bb7    | Eb     |
+Ab     | Eb/G  | Fm     | Bb7    |
+Eb     | Bb7   | Eb     | Eb     |
+
+[SECTION B]
+Gb     | Db/F  | Ebm    | Bb7    |
+Ebm    | Abm    | Db7    | Gb     |
+Cb     | Gb/Bb | Abm    | Db7    |
+Gb     | Db7   | Gb     | Gb     |
+
+[SECTION A’]
+Eb     | Bb/D  | Cm     | G7     |
+Cm     | Fm     | Bb7    | Eb     |
+Ab     | Eb/G  | Fm     | Bb7    |
+Eb     | Bb7   | Eb     | Eb     |
+
+[CODA]
+Eb     | Ab/Eb | Eb     | Bb7    |
+Eb     | Eb    | Eb     | Eb     |

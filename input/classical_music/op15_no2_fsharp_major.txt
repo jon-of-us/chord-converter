@@ -1,0 +1,28 @@
+NOCTURNE OP. 15 NO. 2 (F♯ MAJOR)
+Author: Frederic Chopin
+
+[INTRO]
+F#     | C#/F  | D#m    | A#7    |
+D#m    | B      | C#7    | F#     |
+
+[SECTION A]
+F#     | C#/F  | D#m    | A#7    |
+D#m    | B      | C#7    | F#     |
+B      | F#/A# | G#m    | C#7    |
+F#     | C#7   | F#     | F#     |
+
+[SECTION B]
+A      | E/G#  | F#m    | C#7    |
+F#m    | D      | E7     | A      |
+D      | A/C#  | Bm     | E7     |
+A      | E7    | A      | A      |
+
+[SECTION A’]
+F#     | C#/F  | D#m    | A#7    |
+D#m    | B      | C#7    | F#     |
+B      | F#/A# | G#m    | C#7    |
+F#     | C#7   | F#     | F#     |
+
+[CODA]
+F#     | B/F#  | F#     | C#7    |
+F#     | F#    | F#     | F#     |

@@ -1,0 +1,22 @@
+TRANSCENDENTAL ETUDE NO. 10
+Author: Franz Liszt
+
+[INTRO]
+Fmin   | Fmin   | C7/E   | Fmin   |
+
+[THEME]
+Fmin   | Db     | Eb7    | Ab     |
+Bb7    | Eb7    | Ab     | Ab     |
+C7     | C7     | Fmin   | Fmin   |
+
+[DEVELOPMENT]
+Db     | Db     | Gb     | Gb     |
+Eb7    | Eb7    | Ab     | Ab     |
+C7     | C7     | Fmin   | Fmin   |
+
+[CLIMAX]
+Fmin   | Bb7    | Eb7    | Ab     |
+Db     | C7     | Fmin   | Fmin   |
+
+[CODA]
+Fmin   | Fmin   | C7     | Fmin   |

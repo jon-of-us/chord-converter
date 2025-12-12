@@ -1,0 +1,28 @@
+NOCTURNE OP. 48 NO. 1 (C MINOR)
+Author: Frederic Chopin
+
+[INTRO]
+Cm     | G/B   | Ab     | Eb/G   |
+Fm     | Cm/Eb | G7     | Cm     |
+
+[SECTION A]
+Cm     | G/B   | Ab     | Eb/G   |
+Fm     | Cm/Eb | G7     | Cm     |
+Fm     | Cm/Eb | Ab     | G7     |
+Cm     | G7    | Cm     | Cm     |
+
+[SECTION B]
+Eb     | Bb/D  | Cm     | G7     |
+Cm     | Fm     | Bb7    | Eb     |
+Ab     | Eb/G  | Fm     | G7     |
+Cm     | G7    | Cm     | Cm     |
+
+[SECTION A’]
+Cm     | G/B   | Ab     | Eb/G   |
+Fm     | Cm/Eb | G7     | Cm     |
+Fm     | Cm/Eb | Ab     | G7     |
+Cm     | G7    | Cm     | Cm     |
+
+[CODA]
+Cm     | Ab/C  | Cm     | G7     |
+Cm     | Cm    | Cm     | Cm     |

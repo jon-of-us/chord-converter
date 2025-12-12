@@ -1,0 +1,20 @@
+ETUDE OP. 10 NO. 3
+Author: Frederic Chopin
+
+[SECTION A]
+E      | Emaj7   | G#m7   | C#m     |
+F#m7   | B7      | E      | E       |
+Amaj7  | G#7     | C#m    | C#m     |
+F#m7   | B7      | E      | E       |
+
+[SECTION B]
+C#m    | C#m     | A      | G#7     |
+C#m    | C#m     | A      | G#7     |
+F#m    | F#m     | D#dim7 | G#7     |
+C#m    | C#m     | F#m    | B7      |
+
+[SECTION A’]
+E      | Emaj7   | G#m7   | C#m     |
+F#m7   | B7      | E      | E       |
+Amaj7  | G#7     | C#m    | C#m     |
+F#m7   | B7      | E      | E       |

@@ -1,0 +1,28 @@
+NOCTURNE OP. 55 NO. 1 (F MINOR)
+Author: Frederic Chopin
+
+[INTRO]
+Fmin   | C/Eb  | Db     | Ab/C   |
+Bb7    | Fmin   | C7     | Fmin   |
+
+[SECTION A]
+Fmin   | C/Eb  | Db     | Ab/C   |
+Bb7    | Fmin   | C7     | Fmin   |
+Db     | Fmin/C | Eb     | Bb7    |
+Fmin   | C7    | Fmin   | Fmin   |
+
+[SECTION B]
+Ab     | Eb/G  | Fmin   | C7     |
+Fmin   | Db     | Eb7    | Ab     |
+Db     | Ab/C  | Bbmin  | Eb7    |
+Ab     | Eb7   | Ab     | Ab     |
+
+[SECTION A’]
+Fmin   | C/Eb  | Db     | Ab/C   |
+Bb7    | Fmin   | C7     | Fmin   |
+Db     | Fmin/C | Eb     | Bb7    |
+Fmin   | C7    | Fmin   | Fmin   |
+
+[CODA]
+Fmin   | Db/F  | Fmin   | C7     |
+Fmin   | Fmin  | Fmin   | Fmin   |

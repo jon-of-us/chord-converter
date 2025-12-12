@@ -1,0 +1,28 @@
+NOCTURNE OP. 27 NO. 2 (D♭ MAJOR)
+Author: Frederic Chopin
+
+[INTRO]
+Db     | Ab/C  | Bbm    | F7     |
+Bbm    | Gb     | Ab7    | Db     |
+
+[SECTION A]
+Db     | Ab/C  | Bbm    | F7     |
+Bbm    | Gb     | Ab7    | Db     |
+Gb     | Db/F  | Ebm    | Ab7    |
+Db     | Ab7   | Db     | Db     |
+
+[SECTION B]
+E      | B/D#  | C#m    | G#7    |
+C#m    | A      | B7     | E      |
+A      | E/G#  | F#m    | B7     |
+E      | B7    | E      | E      |
+
+[SECTION A’]
+Db     | Ab/C  | Bbm    | F7     |
+Bbm    | Gb     | Ab7    | Db     |
+Gb     | Db/F  | Ebm    | Ab7    |
+Db     | Ab7   | Db     | Db     |
+
+[CODA]
+Db     | Gb/Db | Db     | Ab7    |
+Db     | Db    | Db     | Db     |

@@ -7,10 +7,22 @@ class Chord():
         self.type= chord_type # same as in chord yaml
 
 # %% CHORD TABLE
+"""
+Supported note names including enharmonics.
+The numeric mapping corresponds to internal pitch classes used elsewhere.
+"""
 c1 = ["A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab"]
 c2 = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
-old_chords = c1 + c2
-new_chords = [7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5, 0] * 2
+# Add common enharmonic spellings used in classical keys
+enharmonics = ["Cb", "E#", "Fb", "B#"]
+
+old_chords = c1 + c2 + enharmonics
+new_chords = ([7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5, 0] * 2) + [
+    9,  # Cb -> B
+    3,  # E# -> F
+    8,  # Fb -> E
+    4,  # B# -> C
+]
 chord_table = zip(old_chords, new_chords)
 #sort to catch flats and sharps before chord without
 chord_table = sorted(chord_table, key=lambda x: len(x[0]), reverse=True)

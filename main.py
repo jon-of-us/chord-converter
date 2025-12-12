@@ -265,7 +265,7 @@ window.addEventListener('resize', realignAll);
 
 # %% MAIN
 def main():
-    # Convert all .txt files in ./input to HTML in ./output
+    # Convert all .txt files in ./input (including subfolders) to HTML in ./output
     base_dir = os.path.dirname(os.path.abspath(__file__))
     input_dir = os.path.join(base_dir, "input")
     # output_dir = os.path.join(base_dir, "output")
@@ -276,21 +276,25 @@ def main():
         print(f"Input folder not found: {input_dir}")
         return 2
 
-    entries = sorted(os.listdir(input_dir))
     any_done = False
-    for name in entries:
-        in_path = os.path.join(input_dir, name)
-        if not os.path.isfile(in_path):
-            continue
-        if not name.lower().endswith(".txt"):
-            continue
-        html = parse_file_to_html(in_path)
-        base = os.path.splitext(name)[0]
-        out_path = os.path.join(output_dir, f"{base}.html")
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(html)
-        print(f"Wrote {out_path}")
-        any_done = True
+    # Walk input directory tree and mirror relative paths into output
+    for root, dirs, files in os.walk(input_dir):
+        rel_root = os.path.relpath(root, input_dir)
+        # Ensure corresponding output subfolder exists
+        out_subdir = os.path.join(output_dir, rel_root) if rel_root != "." else output_dir
+        os.makedirs(out_subdir, exist_ok=True)
+
+        for name in sorted(files):
+            if not name.lower().endswith(".txt"):
+                continue
+            in_path = os.path.join(root, name)
+            html = parse_file_to_html(in_path)
+            base = os.path.splitext(name)[0]
+            out_path = os.path.join(out_subdir, f"{base}.html")
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(html)
+            print(f"Wrote {out_path}")
+            any_done = True
 
     if not any_done:
         print(f"No .txt files found in {input_dir}")
