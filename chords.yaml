@@ -19,6 +19,30 @@ chords:
     aliases: ["m7", "min7"]
     intervals: [0, 3, 7, 10]
 
+  - name: Dominant 9th
+    aliases: ["9"]
+    intervals: [0, 4, 7, 10, 14]
+
+  - name: Major 9th
+    aliases: ["maj9", "M9"]
+    intervals: [0, 4, 7, 11, 14]
+
+  - name: Minor 9th
+    aliases: ["m9", "min9"]
+    intervals: [0, 3, 7, 10, 14]
+
+  - name: Dominant 11th
+    aliases: ["11"]
+    intervals: [0, 4, 7, 10, 14, 17]
+
+  - name: Major 11th
+    aliases: ["maj11", "M11"]
+    intervals: [0, 4, 7, 11, 14, 17]
+
+  - name: Minor 11th
+    aliases: ["m11", "min11"]
+    intervals: [0, 3, 7, 10, 14, 17]
+
   - name: Diminished
     aliases: ["dim", "°"]
     intervals: [0, 3, 6]
@@ -55,6 +79,18 @@ chords:
   - name: Minor 6th
     aliases: ["m6", "min6"]
     intervals: [0, 3, 7, 9]
+
+  - name: Dominant 13th
+    aliases: ["13"]
+    intervals: [0, 4, 7, 10, 14, 17, 21]
+
+  - name: Major 13th
+    aliases: ["maj13", "M13"]
+    intervals: [0, 4, 7, 11, 14, 17, 21]
+
+  - name: Minor 13th
+    aliases: ["m13", "min13"]
+    intervals: [0, 3, 7, 10, 14, 17, 21]
 
   - name: Power Chord
     aliases: ["5"]

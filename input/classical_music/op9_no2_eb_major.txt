@@ -1,28 +1,38 @@
-NOCTURNE OP. 9 NO. 2 (E♭ MAJOR)
-Author: Frederic Chopin
-
-[INTRO]
-Eb     | Bb/D  | Cm     | G7     |
-Cm     | Fm     | Bb7    | Eb     |
+NOCTURNE OP. 9 NO. 2
+Author: CHOPIN
 
 [SECTION A]
-Eb     | Bb/D  | Cm     | G7     |
-Cm     | Fm     | Bb7    | Eb     |
-Ab     | Eb/G  | Fm     | Bb7    |
-Eb     | Bb7   | Eb     | Eb     |
-
-[SECTION B]
-Gb     | Db/F  | Ebm    | Bb7    |
-Ebm    | Abm    | Db7    | Gb     |
-Cb     | Gb/Bb | Abm    | Db7    |
-Gb     | Db7   | Gb     | Gb     |
+Eb | Bb/Eb | Eb | Eb/D |
+C | Bb/F | Fm | Bb/F |
+Bb | G/B | Cm | Adim |
+Bb | Bb | Eb | Eb |
 
 [SECTION A’]
-Eb     | Bb/D  | Cm     | G7     |
-Cm     | Fm     | Bb7    | Eb     |
-Ab     | Eb/G  | Fm     | Bb7    |
-Eb     | Bb7   | Eb     | Eb     |
+Eb | Bb/Eb | Eb | Eb/D |
+C | Bb/F | Fm | Bb/F |
+Bb | G/B | Cm | Adim |
+Bb | Bb | Eb | F/A |
 
-[CODA]
-Eb     | Ab/Eb | Eb     | Bb7    |
-Eb     | Eb    | Eb     | Eb     |
+[SECTION B]
+Bb | Bb | F/A | F/A |
+Ab | Abm6 | Eb | Eb |
+Edim | C/E | F | Gm |
+Cm | F | Bb | Bdim/A |
+Eb/G | C/G | F | Bb |
+
+[SECTION C]
+Eb | Bb/Eb | Eb | Eb/D |
+C | Bb/F | Fm | Bb/F |
+Bb | G/B | Cm | Adim |
+Bb | Bb | Eb | Eb |
+Bb | Bb | F/A | F/A |
+Abm6 | Abm6 | Eb | Eb |
+
+[SECTION D]
+Bdim/Eb | Eb | Eb | F/A |
+Bb | Bb | Eb | Eb |
+Abm6 | Abm6 | Eb | F/A |
+Bb | G/B | Cm | F/A |
+Bb | Bb | Eb |
+
+Ab Ab Ab Ab Ab Ab Ab Ab Ab 

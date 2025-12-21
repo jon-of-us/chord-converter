@@ -26,7 +26,7 @@ def _line_type(line: str) -> str:
         return "empty"
     words_no_slash = [w.split("/")[0] for w in split]
     n_words = len(words_no_slash)
-    is_chord = [read_chord.from_word(w) is not None for w in words_no_slash]
+    is_chord = [read_chord.from_word(w) is not None or w == "|" for w in words_no_slash]
     n_chords = sum(is_chord)
     if n_chords / max(1, n_words) > 0.4:
         return "chords"
@@ -216,34 +216,69 @@ function alignChordWords() {
     });
 }
 
-// Shift chord SVGs right to avoid overlap when markers are close together
+// Shift chord SVGs and words right to avoid overlap
 function alignChordIcons() {
     const lines = document.querySelectorAll('.chord-line-wrapper');
-    const GAP = %d; // px minimal horizontal gap between icons (from config)
+    const GAP = %d; // px minimal horizontal gap between items (from config)
     lines.forEach(line => {
         const containerRect = line.getBoundingClientRect();
         const markers = Array.from(line.querySelectorAll('.chord-markers .chord-marker'));
-        // Consider only markers that contain an SVG chord icon
-        const iconMarkers = markers.filter(m => m.querySelector('svg.chord-icon'));
-        // Sort by their natural marker position from left to right
-        iconMarkers.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-        let lastRight = -Infinity;
-        iconMarkers.forEach(m => {
+        
+        // Build array of items (both chords and words) with their natural positions
+        const items = [];
+        markers.forEach(m => {
             const svg = m.querySelector('svg.chord-icon');
-            if (!svg) return;
+            const markerId = m.id;
+            const wordEl = line.querySelector(`.word-chord[data-marker='${markerId}']`);
+            
+            if (svg) {
+                items.push({
+                    type: 'chord',
+                    marker: m,
+                    element: svg,
+                    naturalLeft: m.getBoundingClientRect().left - containerRect.left
+                });
+            }
+            if (wordEl) {
+                items.push({
+                    type: 'word',
+                    marker: m,
+                    element: wordEl,
+                    naturalLeft: m.getBoundingClientRect().left - containerRect.left
+                });
+            }
+        });
+        
+        // Sort by their natural marker position from left to right
+        items.sort((a, b) => a.naturalLeft - b.naturalLeft);
+        
+        let lastRight = -Infinity;
+        items.forEach(item => {
+            const element = item.element;
             // Reset any previous shift so measurement is consistent
-            svg.style.transform = 'translateX(0px)';
-            const markerLeft = m.getBoundingClientRect().left - containerRect.left;
-            const width = svg.getBoundingClientRect().width;
-            let desiredLeft = markerLeft;
-            if (markerLeft < lastRight + GAP) {
+            if (item.type === 'chord') {
+                element.style.transform = 'translateX(0px)';
+            } else {
+                element.style.transform = `translate(${item.naturalLeft}px, 0)`;
+            }
+            
+            const rect = element.getBoundingClientRect();
+            const width = rect.width;
+            let desiredLeft = item.naturalLeft;
+            
+            if (item.naturalLeft < lastRight + GAP) {
                 desiredLeft = lastRight + GAP;
             }
-            const shift = desiredLeft - markerLeft;
-            if (shift !== 0) {
-                // Only shift horizontally; vertical alignment remains via CSS bottom:0
-                svg.style.transform = `translateX(${shift}px)`;
+            
+            const shift = desiredLeft - item.naturalLeft;
+            if (item.type === 'chord') {
+                if (shift !== 0) {
+                    element.style.transform = `translateX(${shift}px)`;
+                }
+            } else {
+                element.style.transform = `translate(${desiredLeft}px, 0)`;
             }
+            
             lastRight = desiredLeft + width;
         });
     });
