@@ -21,6 +21,8 @@
   import { fileStore } from './fileStore';
   import { saveBrowserFile } from './indexedDB';
   import ChordView from './chord-visualization/ChordView.svelte';
+  import { themeStore } from './themeStore';
+  import { editorConfig } from './config';
 
   let { controls = $bindable() }: { controls?: EditorControls } = $props();
 
@@ -29,9 +31,9 @@
   let saveSuccess = $state(false);
   let lastLoadedContent = $state('');
   let viewMode = $state<'text' | 'chords'>('text');
-  let zoomLevel = $state(100);
+  let zoomLevel = $state(editorConfig.defaultZoom);
   let isAutoscrolling = $state(false);
-  let autoscrollSpeed = $state(1); // pixels per frame
+  let autoscrollSpeed = $state(editorConfig.defaultAutoscrollSpeed);
   let autoscrollIntervalId: number | null = null;
   let textareaRef = $state<HTMLTextAreaElement>();
 
@@ -125,11 +127,11 @@
   }
 
   function zoomIn() {
-    zoomLevel = Math.min(zoomLevel + 10, 200);
+    zoomLevel = Math.min(zoomLevel + 10, editorConfig.maxZoom);
   }
 
   function zoomOut() {
-    zoomLevel = Math.max(zoomLevel - 10, 50);
+    zoomLevel = Math.max(zoomLevel - 10, editorConfig.minZoom);
   }
 
   function toggleAutoscroll() {
@@ -150,11 +152,11 @@
   }
 
   function increaseAutoscrollSpeed() {
-    autoscrollSpeed = Math.min(autoscrollSpeed + 0.2, 5);
+    autoscrollSpeed = Math.min(autoscrollSpeed + editorConfig.autoscrollStepSize, editorConfig.maxAutoscrollSpeed);
   }
 
   function decreaseAutoscrollSpeed() {
-    autoscrollSpeed = Math.max(autoscrollSpeed - 0.2, 0.2);
+    autoscrollSpeed = Math.max(autoscrollSpeed - editorConfig.autoscrollStepSize, editorConfig.minAutoscrollSpeed);
   }
 </script>
 
@@ -167,11 +169,17 @@
         onkeydown={handleKeydown}
         spellcheck="false"
         placeholder="File content..."
-        style="font-size: {zoomLevel}%"
+        style="font-size: {zoomLevel}%; background-color: {$themeStore === 'light' ? '#ffffff' : '#1e1e1e'}; color: {$themeStore === 'light' ? '#333333' : '#e0e0e0'};"
       ></textarea>
     {:else}
       <div class="chord-view-container">
-        <ChordView content={editedContent} />
+        <ChordView 
+          content={editedContent} 
+          zoomLevel={zoomLevel}
+          isAutoscrolling={isAutoscrolling}
+          autoscrollSpeed={autoscrollSpeed}
+          theme={$themeStore}
+        />
       </div>
     {/if}
   {:else}

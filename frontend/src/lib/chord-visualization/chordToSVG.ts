@@ -1,18 +1,29 @@
 import type { Chord } from './chordTypes';
 
 // Configuration constants from Python config.py
-const CHORD_COLOR = "#333333";
-const CHORD_RAD = 70;
-const TONIC_COLOR = "#BDBDBD";
 const TONIC_RAD = 90;
 const BASS_INNER_RAD = TONIC_RAD * 0.3;
-const BASS_INNER_COLOR = "white";
-const PADDING = 5 + Math.max(CHORD_RAD, TONIC_RAD);
+const PADDING = 5 + Math.max(70, TONIC_RAD);
 const LINE_WIDTH = 50;
 const HORIZONTAL_DISTANCE = 200;
 const VERTICAL_DISTANCE = HORIZONTAL_DISTANCE * Math.sqrt(3) / 2;
 const ROW_SHIFT = -HORIZONTAL_DISTANCE / 2;
 const TONIC_POINT_INDICES: [number, number][] = [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [1, 2]];
+
+// Color schemes
+const LIGHT_MODE = {
+  CHORD_COLOR: "#333333",
+  CHORD_RAD: 70,
+  TONIC_COLOR: "#BDBDBD",
+  BASS_INNER_COLOR: "white"
+};
+
+const DARK_MODE = {
+  CHORD_COLOR: "#d7d7d7ff",
+  CHORD_RAD: 70,
+  TONIC_COLOR: "#646464ff",
+  BASS_INNER_COLOR: "#1e1e1e"
+};
 
 type Point = [number, number];
 
@@ -51,7 +62,14 @@ function bassToIndex(bass: number, chordIndices: Point[]): Point {
   return bestIdx!;
 }
 
-export function generateChordSVG(chord: Chord): string {
+export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark'): string {
+  // Select color scheme based on theme
+  const colors = theme === 'light' ? LIGHT_MODE : DARK_MODE;
+  const CHORD_RAD = colors.CHORD_RAD;
+  const CHORD_COLOR = colors.CHORD_COLOR;
+  const TONIC_COLOR = colors.TONIC_COLOR;
+  const BASS_INNER_COLOR = colors.BASS_INNER_COLOR;
+  
   // Create grid coordinates
   const rowCoords: number[][] = [];
   const colCoords: number[][] = [];

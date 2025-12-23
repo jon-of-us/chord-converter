@@ -43,3 +43,22 @@ Key:
 `,
 };
 
+// Editor controls settings
+export const editorConfig = {
+  // Zoom levels
+  minZoom: 50,
+  maxZoom: 200,
+  defaultZoom: 100,
+  
+  // Autoscroll settings
+  minAutoscrollSpeed: 0.2,
+  maxAutoscrollSpeed: 5,
+  defaultAutoscrollSpeed: 1,
+  autoscrollStepSize: 0.3, // Increment/decrement amount
+};
+
+// Theme settings
+export const themeConfig = {
+  defaultTheme: 'dark' as 'dark' | 'light',
+  storageKey: 'chord-converter-theme',
+};

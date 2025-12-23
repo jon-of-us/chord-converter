@@ -1,5 +1,7 @@
 <script lang="ts">
   import { fileStore } from './fileStore';
+  import { themeStore } from './themeStore';
+  import { editorConfig } from './config';
   
   interface ControlsSidebarProps {
     viewMode: 'text' | 'chords';
@@ -34,6 +36,8 @@
     onDecreaseSpeed,
     onSave
   }: ControlsSidebarProps = $props();
+
+  let theme = $derived($themeStore);
 </script>
 
 <div class="controls-sidebar">
@@ -57,59 +61,67 @@
       </button>
     </div>
 
-    {#if viewMode === 'text'}
-      <div class="control-section">
-        <h3>Zoom</h3>
-        <div class="control-row">
-          <button 
-            onclick={onZoomOut}
-            title="Zoom out (Ctrl/-)"
-            class="small-btn"
-          >
-            −
-          </button>
-          <span class="value">{zoomLevel}%</span>
-          <button 
-            onclick={onZoomIn}
-            title="Zoom in (Ctrl/+)"
-            class="small-btn"
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-      <div class="control-section">
-        <h3>Speed</h3>
+    <div class="control-section">
+      <h3>Zoom</h3>
+      <div class="control-row">
         <button 
-          onclick={onToggleAutoscroll}
-          class="control-button"
-          class:active={isAutoscrolling}
-          title="Toggle autoscroll"
+          onclick={onZoomOut}
+          title="Zoom out (Ctrl/-)"
+          class="small-btn"
         >
-          {isAutoscrolling ? 'Pause' : 'Play'}
+          −
         </button>
-        <div class="control-row">
-          <button 
-            onclick={onDecreaseSpeed}
-            title="Decrease speed"
-            class="small-btn"
-            disabled={autoscrollSpeed <= 0.5}
-          >
-            −
-          </button>
-          <span class="value">{autoscrollSpeed.toFixed(1)}x</span>
-          <button 
-            onclick={onIncreaseSpeed}
-            title="Increase speed"
-            class="small-btn"
-            disabled={autoscrollSpeed >= 10}
-          >
-            +
-          </button>
-        </div>
+        <span class="value">{zoomLevel}%</span>
+        <button 
+          onclick={onZoomIn}
+          title="Zoom in (Ctrl/+)"
+          class="small-btn"
+        >
+          +
+        </button>
       </div>
-    {/if}
+    </div>
+
+    <div class="control-section">
+      <h3>Speed</h3>
+      <button 
+        onclick={onToggleAutoscroll}
+        class="control-button"
+        class:active={isAutoscrolling}
+        title="Toggle autoscroll"
+      >
+        {isAutoscrolling ? 'Pause' : 'Play'}
+      </button>
+      <div class="control-row">
+        <button 
+          onclick={onDecreaseSpeed}
+          title="Decrease speed"
+          class="small-btn"
+          disabled={autoscrollSpeed <= editorConfig.minAutoscrollSpeed}
+        >
+          −
+        </button>
+        <span class="value">{autoscrollSpeed.toFixed(1)}x</span>
+        <button 
+          onclick={onIncreaseSpeed}
+          title="Increase speed"
+          class="small-btn"
+          disabled={autoscrollSpeed >= editorConfig.maxAutoscrollSpeed}
+        >
+          +
+        </button>
+      </div>
+    </div>
+
+    <div class="control-section">
+      <button 
+        onclick={() => themeStore.toggle()}
+        class="control-button"
+        title="Toggle dark/light mode"
+      >
+        {theme === 'dark' ? '☀' : '🌙'}
+      </button>
+    </div>
 
     <div class="control-section save-section">
       {#if saveSuccess}

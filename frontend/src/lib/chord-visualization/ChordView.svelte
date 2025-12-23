@@ -12,8 +12,10 @@
     isChord: boolean;
   }
 
-  let { content = '' }: { content: string } = $props();
+  let { content = '', zoomLevel = 100, isAutoscrolling = false, autoscrollSpeed = 1, theme = 'dark' }: 
+    { content: string; zoomLevel?: number; isAutoscrolling?: boolean; autoscrollSpeed?: number; theme?: 'dark' | 'light' } = $props();
   let viewContainer: HTMLDivElement;
+  let scrollOffset = $state(0);
 
   function lineType(line: string): 'empty' | 'subheading' | 'chords' | 'lyrics' {
     const s = line.trim();
@@ -82,7 +84,7 @@
     maxPos?: number;
   }
 
-  function processContent(text: string): ProcessedLine[] {
+  function processContent(text: string, themeMode: 'dark' | 'light'): ProcessedLine[] {
     const lines = text.split('\n').map(ln => ln.trimEnd());
     const nonEmptyLines = lines.filter(line => line.trim() !== '');
     const lineTypes = nonEmptyLines.map(lineType);
@@ -149,11 +151,11 @@
           
           if (cow.isChord) {
             const chord = cow.content as Chord;
-            const key = `${chord.root}-${chord.type.intervals.join(',')}-${chord.bass}`;
+            const key = `${chord.root}-${chord.type.intervals.join(',')}-${chord.bass}-${themeMode}`;
             
             if (!svgCache.has(key)) {
               const adjustedChord = { ...chord, root: chord.root - 3 }; // transpose to C major for display
-              svgCache.set(key, generateChordSVG(adjustedChord));
+              svgCache.set(key, generateChordSVG(adjustedChord, themeMode));
             }
             
             return {
@@ -257,7 +259,7 @@
     });
   }
 
-  let processedLines = $derived(processContent(content));
+  let processedLines = $derived(processContent(content, theme));
 
   onMount(() => {
     alignChordIcons();
@@ -273,9 +275,38 @@
     processedLines;
     setTimeout(alignChordIcons, 0);
   });
+
+  let animationFrameId: number | null = null;
+
+  $effect(() => {
+    // Autoscroll effect
+    if (!isAutoscrolling || !viewContainer) {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      return;
+    }
+
+    const scroll = () => {
+      if (viewContainer) {
+        viewContainer.scrollTop += autoscrollSpeed * 0.5; // Adjust speed multiplier as needed
+      }
+      animationFrameId = requestAnimationFrame(scroll);
+    };
+
+    animationFrameId = requestAnimationFrame(scroll);
+
+    return () => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    };
+  });
 </script>
 
-<div class="chord-view" bind:this={viewContainer}>
+<div class="chord-view" bind:this={viewContainer} style="font-size: {zoomLevel}%; background-color: {theme === 'light' ? '#ffffff' : '#1e1e1e'}; color: {theme === 'light' ? '#333333' : '#e0e0e0'};">
   {#each processedLines as line}
     {#if line.type === 'heading'}
       <div class="heading">{line.content}</div>
@@ -299,6 +330,9 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     line-height: 1.4;
     padding: 2rem;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   pre {
