@@ -1,4 +1,8 @@
-import { CHORD_TYPES, type Chord, type ChordType } from './chordTypes';
+import { CHORD_TYPES, type Chord } from './chordTypes.ts';
+
+function mod(n: number, m: number): number {
+  return ((n % m) + m) % m;
+}
 
 const c1 = ["A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab"];
 const c2 = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
@@ -45,7 +49,7 @@ export function parseChord(str: string): Chord | null {
           for (const [old, newVal] of chord_table) {
             if (bassStr === old) {
               bass = newVal;
-              bass = ((bass - root) * 7) % 12;
+              bass = mod((bass - root) * 7, 12);
               break;
             }
           }

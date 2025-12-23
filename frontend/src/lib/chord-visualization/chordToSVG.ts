@@ -27,15 +27,19 @@ const DARK_MODE = {
 
 type Point = [number, number];
 
+function mod(n: number, m: number): number {
+  return ((n % m) + m) % m;
+}
+
 function add(tup1: Point, tup2: Point): Point {
   return [tup1[0] + tup2[0], tup1[1] + tup2[1]];
 }
 
 function intervalToIndex(interval: number): Point {
   const offset = 3;
-  const qi = ((7 * interval + offset) % 12) - offset;
+  const qi = mod(7 * interval + offset, 12) - offset;
   const row = Math.floor(qi / 3);
-  const col = qi % 3;
+  const col = mod(qi, 3);
   return [row, col];
 }
 
