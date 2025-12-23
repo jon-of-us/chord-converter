@@ -218,13 +218,6 @@
 </script>
 
 <div class="file-list">
-  <div class="file-list-header">
-    <strong>Files</strong>
-    <button class="add-file-btn" on:click={addNewFile} disabled={$fileStore.loading} title="Add new file">
-      +
-    </button>
-  </div>
-  
   {#if $fileStore.files.length === 0}
     <div class="empty-state">
       {#if $fileStore.storageMode === 'filesystem'}
@@ -278,39 +271,41 @@
       {/each}
     </ul>
   {/if}
+  
+  <div class="file-list-footer">
+    <button class="add-file-btn" on:click={addNewFile} disabled={$fileStore.loading} title="Add new file">
+      +
+    </button>
+  </div>
 </div>
 
 <style>
   .file-list {
     display: flex;
     flex-direction: column;
-    width: 300px;
+    flex: 1;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.03);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    overflow-y: auto;
+    overflow: hidden;
   }
 
-  .file-list-header {
-    padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    position: sticky;
-    top: 0;
+  .file-list-footer {
+    padding: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(255, 255, 255, 0.05);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
   }
 
   .add-file-btn {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     background-color: #646cff;
     color: white;
     border: none;
-    border-radius: 4px;
-    font-size: 20px;
+    border-radius: 3px;
+    font-size: 16px;
     line-height: 1;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -332,12 +327,18 @@
     padding: 2rem 1rem;
     text-align: center;
     color: rgba(255, 255, 255, 0.5);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   ul {
     list-style: none;
     padding: 0;
     margin: 0;
+    flex: 1;
+    overflow-y: auto;
   }
 
   li {
