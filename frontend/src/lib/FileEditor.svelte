@@ -1,11 +1,13 @@
 <script lang="ts">
   import { fileStore } from './fileStore';
   import { saveBrowserFile } from './indexedDB';
+  import ChordView from './chord-visualization/ChordView.svelte';
 
   let editedContent = '';
   let isSaving = false;
   let saveSuccess = false;
   let lastLoadedContent = '';
+  let viewMode: 'text' | 'chords' = 'text';
 
   // Only sync when currentContent actually changes (new file loaded or saved)
   $: if ($fileStore.currentContent !== lastLoadedContent) {
@@ -76,6 +78,22 @@
       </div>
       
       <div class="editor-actions">
+        <div class="view-toggle">
+          <button 
+            class:active={viewMode === 'text'}
+            on:click={() => viewMode = 'text'}
+            title="Text view"
+          >
+            Text
+          </button>
+          <button 
+            class:active={viewMode === 'chords'}
+            on:click={() => viewMode = 'chords'}
+            title="Chord view"
+          >
+            Chords
+          </button>
+        </div>
         {#if saveSuccess}
           <span class="success-message">Saved!</span>
         {/if}
@@ -89,12 +107,18 @@
       </div>
     </div>
 
-    <textarea
-      bind:value={editedContent}
-      on:keydown={handleKeydown}
-      spellcheck="false"
-      placeholder="File content..."
-    ></textarea>
+    {#if viewMode === 'text'}
+      <textarea
+        bind:value={editedContent}
+        on:keydown={handleKeydown}
+        spellcheck="false"
+        placeholder="File content..."
+      ></textarea>
+    {:else}
+      <div class="chord-view-container">
+        <ChordView content={editedContent} />
+      </div>
+    {/if}
 
     <div class="editor-footer">
       <span class="hint">Press Ctrl+S (or Cmd+S) to save</span>
@@ -150,6 +174,36 @@
     gap: 1rem;
   }
 
+  .view-toggle {
+    display: flex;
+    gap: 0;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 2px;
+  }
+
+  .view-toggle button {
+    padding: 0.4rem 1rem;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .view-toggle button:hover {
+    color: rgba(255, 255, 255, 0.87);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .view-toggle button.active {
+    background-color: #646cff;
+    color: white;
+  }
+
   .success-message {
     color: #4caf50;
     font-size: 14px;
@@ -198,6 +252,12 @@
 
   textarea::placeholder {
     color: rgba(255, 255, 255, 0.3);
+  }
+
+  .chord-view-container {
+    flex: 1;
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.2);
   }
 
   .editor-footer {

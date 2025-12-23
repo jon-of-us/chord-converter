@@ -1,5 +1,7 @@
 import numpy as np
 
+OUTPUT_FOLDER =  "/mnt/c/Users/Jonas/Desktop/akkorde_tonnetz"
+# OUTPUT_FOLDER =  "output"
 
 # Points
 GRID_COLOR = "white"
