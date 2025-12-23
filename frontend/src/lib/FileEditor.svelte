@@ -1,0 +1,269 @@
+<script lang="ts">
+  import { fileStore } from './fileStore';
+  import { saveBrowserFile } from './indexedDB';
+
+  let editedContent = '';
+  let isSaving = false;
+  let saveSuccess = false;
+  let lastLoadedContent = '';
+
+  // Only sync when currentContent actually changes (new file loaded or saved)
+  $: if ($fileStore.currentContent !== lastLoadedContent) {
+    editedContent = $fileStore.currentContent;
+    lastLoadedContent = $fileStore.currentContent;
+  }
+
+  $: hasChanges = editedContent !== $fileStore.currentContent;
+
+  async function saveFile() {
+    if (!$fileStore.currentFile || !hasChanges) return;
+
+    try {
+      isSaving = true;
+      fileStore.setError(null);
+      saveSuccess = false;
+
+      if ($fileStore.storageMode === 'filesystem' && $fileStore.currentFile.handle) {
+        // Save to filesystem
+        const writable = await $fileStore.currentFile.handle.createWritable();
+        await writable.write(editedContent);
+        await writable.close();
+      } else {
+        // Save to browser storage
+        await saveBrowserFile($fileStore.currentFile.name, editedContent);
+        
+        // Update file entry in store
+        fileStore.updateFile($fileStore.currentFile.name, {
+          ...$fileStore.currentFile,
+          content: editedContent
+        });
+      }
+      
+      // Update store with new content
+      fileStore.setCurrentContent(editedContent);
+      lastLoadedContent = editedContent;
+      
+      // Show success message briefly
+      saveSuccess = true;
+      setTimeout(() => {
+        saveSuccess = false;
+      }, 2000);
+      
+    } catch (error: any) {
+      fileStore.setError(`Error saving file: ${error.message}`);
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  function handleKeydown(event: KeyboardEvent) {
+    // Ctrl/Cmd + S to save
+    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+      event.preventDefault();
+      saveFile();
+    }
+  }
+</script>
+
+<div class="file-editor">
+  {#if $fileStore.currentFile}
+    <div class="editor-header">
+      <div class="file-info">
+        <strong>{$fileStore.currentFile.name}</strong>
+        {#if hasChanges}
+          <span class="modified-indicator">●</span>
+        {/if}
+      </div>
+      
+      <div class="editor-actions">
+        {#if saveSuccess}
+          <span class="success-message">Saved!</span>
+        {/if}
+        <button 
+          on:click={saveFile} 
+          disabled={!hasChanges || isSaving}
+          class="save-button"
+        >
+          {isSaving ? 'Saving...' : 'Save'}
+        </button>
+      </div>
+    </div>
+
+    <textarea
+      bind:value={editedContent}
+      on:keydown={handleKeydown}
+      spellcheck="false"
+      placeholder="File content..."
+    ></textarea>
+
+    <div class="editor-footer">
+      <span class="hint">Press Ctrl+S (or Cmd+S) to save</span>
+      <span class="char-count">{editedContent.length} characters</span>
+    </div>
+  {:else}
+    <div class="no-file-selected">
+      <p>Select a file to start editing</p>
+    </div>
+  {/if}
+
+  {#if $fileStore.error}
+    <div class="error-message">
+      {$fileStore.error}
+      <button on:click={() => fileStore.setError(null)}>Dismiss</button>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .file-editor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    position: relative;
+  }
+
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .modified-indicator {
+    color: #646cff;
+    font-size: 20px;
+    line-height: 0;
+  }
+
+  .editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .success-message {
+    color: #4caf50;
+    font-size: 14px;
+    animation: fadeIn 0.2s;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .save-button {
+    padding: 0.5rem 1.25rem;
+    background-color: #646cff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  .save-button:hover:not(:disabled) {
+    background-color: #535bf2;
+  }
+
+  .save-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  textarea {
+    flex: 1;
+    width: 100%;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: rgba(255, 255, 255, 0.87);
+    border: none;
+    resize: none;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    outline: none;
+  }
+
+  textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .editor-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .hint {
+    font-style: italic;
+  }
+
+  .no-file-selected {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 16px;
+  }
+
+  .error-message {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(244, 67, 54, 0.9);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 80%;
+    animation: slideUp 0.3s;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .error-message button {
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+  }
+
+  .error-message button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+</style>
