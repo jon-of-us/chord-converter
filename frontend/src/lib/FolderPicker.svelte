@@ -181,18 +181,21 @@
 </script>
 
 <div class="folder-picker">
-  {#if isSupported}
-    <button on:click={selectFolder} disabled={$fileStore.loading}>
-      {$fileStore.folderHandle ? 'Change Folder' : 'Connect Folder'}
+  <button 
+    on:click={selectFolder} 
+    disabled={$fileStore.loading || !isSupported}
+    title={isSupported ? '' : 'File System Access is only supported in Chrome, Edge, and Opera. Please use one of these browsers to connect a folder.'}
+    class:unsupported={!isSupported}
+  >
+    {$fileStore.folderHandle ? 'Change Folder' : 'Connect Folder'}
+  </button>
+  
+  {#if $fileStore.folderHandle}
+    <span class="folder-name">{$fileStore.folderHandle.name}</span>
+    <span class="file-count">({$fileStore.files.length} files)</span>
+    <button on:click={disconnectFolder} class="disconnect-btn" disabled={$fileStore.loading}>
+      Disconnect
     </button>
-    
-    {#if $fileStore.folderHandle}
-      <span class="folder-name">{$fileStore.folderHandle.name}</span>
-      <span class="file-count">({$fileStore.files.length} files)</span>
-      <button on:click={disconnectFolder} class="disconnect-btn" disabled={$fileStore.loading}>
-        Disconnect
-      </button>
-    {/if}
   {/if}
   
   <DownloadButton />
@@ -227,6 +230,10 @@
   button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  button.unsupported {
+    background-color: #888;
   }
 
   .folder-name {

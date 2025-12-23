@@ -39,6 +39,7 @@ export const fileConfig = {
   newFileTemplate: `Title: 
 Artist: 
 Key: 
+
 `,
 };
 

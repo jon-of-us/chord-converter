@@ -253,24 +253,26 @@
             >
               {file.name}
             </button>
-            <div class="file-actions">
-              <button
-                class="rename-button"
-                on:click={() => startEditingFileName(file)}
-                title="Rename file"
-                disabled={$fileStore.loading}
-              >
-                ✎
-              </button>
-              <button
-                class="delete-button"
-                on:click={() => deleteFile(file)}
-                title="Delete file"
-                disabled={$fileStore.loading}
-              >
-                🗑
-              </button>
-            </div>
+            {#if isSelected(file)}
+              <div class="file-actions">
+                <button
+                  class="rename-button"
+                  on:click={() => startEditingFileName(file)}
+                  title="Rename file"
+                  disabled={$fileStore.loading}
+                >
+                  ✎
+                </button>
+                <button
+                  class="delete-button"
+                  on:click={() => deleteFile(file)}
+                  title="Delete file"
+                  disabled={$fileStore.loading}
+                >
+                  🗑
+                </button>
+              </div>
+            {/if}
           {/if}
         </li>
       {/each}
