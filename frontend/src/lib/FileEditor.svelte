@@ -34,7 +34,8 @@
   let zoomLevel = $state(editorConfig.defaultZoom);
   let isAutoscrolling = $state(false);
   let autoscrollSpeed = $state(editorConfig.defaultAutoscrollSpeed);
-  let autoscrollIntervalId: number | null = null;
+  let autoscrollAnimationId: number | null = null;
+  let scrollAccumulator = 0;
   let textareaRef = $state<HTMLTextAreaElement>();
 
   // Only sync when currentContent actually changes (new file loaded or saved)
@@ -138,15 +139,28 @@
     isAutoscrolling = !isAutoscrolling;
     
     if (isAutoscrolling) {
-      autoscrollIntervalId = window.setInterval(() => {
-        if (textareaRef) {
-          textareaRef.scrollTop += autoscrollSpeed;
+      scrollAccumulator = 0; // Reset accumulator when starting
+      const scroll = () => {
+        if (!isAutoscrolling || !textareaRef) return;
+        
+        // Convert speed multiplier to pixels per frame (at 60fps)
+        const pixelsPerFrame = (autoscrollSpeed * editorConfig.autoscrollPixelsPerSecond) / 60;
+        scrollAccumulator += pixelsPerFrame;
+        
+        // Only apply integer pixels to scrollTop
+        const pixelsToScroll = Math.floor(scrollAccumulator);
+        if (pixelsToScroll > 0) {
+          textareaRef.scrollTop += pixelsToScroll;
+          scrollAccumulator -= pixelsToScroll;
         }
-      }, 50);
+        
+        autoscrollAnimationId = requestAnimationFrame(scroll);
+      };
+      autoscrollAnimationId = requestAnimationFrame(scroll);
     } else {
-      if (autoscrollIntervalId !== null) {
-        clearInterval(autoscrollIntervalId);
-        autoscrollIntervalId = null;
+      if (autoscrollAnimationId !== null) {
+        cancelAnimationFrame(autoscrollAnimationId);
+        autoscrollAnimationId = null;
       }
     }
   }

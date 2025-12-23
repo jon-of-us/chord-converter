@@ -47,14 +47,15 @@ Key:
 export const editorConfig = {
   // Zoom levels
   minZoom: 50,
-  maxZoom: 200,
+  maxZoom: 250,
   defaultZoom: 100,
   
   // Autoscroll settings
-  minAutoscrollSpeed: 0.2,
+  minAutoscrollSpeed: 0.1,
   maxAutoscrollSpeed: 5,
   defaultAutoscrollSpeed: 1,
-  autoscrollStepSize: 0.3, // Increment/decrement amount
+  autoscrollStepSize: 0.1,
+  autoscrollPixelsPerSecond: 5, // Base scroll speed at 1.0x 
 };
 
 // Theme settings

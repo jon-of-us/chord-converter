@@ -3,6 +3,7 @@
   import { generateChordSVG } from './chordToSVG';
   import type { Chord } from './chordTypes';
   import { onMount } from 'svelte';
+  import { editorConfig } from '../config';
 
   const CHORD_ICON_GAP = 10; // px minimal horizontal gap between consecutive chord icons
 
@@ -277,6 +278,7 @@
   });
 
   let animationFrameId: number | null = null;
+  let scrollAccumulator = 0;
 
   $effect(() => {
     // Autoscroll effect
@@ -288,10 +290,21 @@
       return;
     }
 
+    scrollAccumulator = 0; // Reset accumulator when starting
     const scroll = () => {
-      if (viewContainer) {
-        viewContainer.scrollTop += autoscrollSpeed * 0.5; // Adjust speed multiplier as needed
+      if (!isAutoscrolling || !viewContainer) return;
+      
+      // Convert speed multiplier to pixels per frame (at 60fps)
+      const pixelsPerFrame = (autoscrollSpeed * editorConfig.autoscrollPixelsPerSecond) / 60;
+      scrollAccumulator += pixelsPerFrame;
+      
+      // Only apply integer pixels to scrollTop
+      const pixelsToScroll = Math.floor(scrollAccumulator);
+      if (pixelsToScroll > 0) {
+        viewContainer.scrollTop += pixelsToScroll;
+        scrollAccumulator -= pixelsToScroll;
       }
+      
       animationFrameId = requestAnimationFrame(scroll);
     };
 
