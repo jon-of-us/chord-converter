@@ -8,6 +8,11 @@
   let saveSuccess = false;
   let lastLoadedContent = '';
   let viewMode: 'text' | 'chords' = 'text';
+  let zoomLevel = 100;
+  let isAutoscrolling = false;
+  let autoscrollSpeed = 1; // pixels per frame
+  let autoscrollIntervalId: number | null = null;
+  let textareaRef: HTMLTextAreaElement;
 
   // Only sync when currentContent actually changes (new file loaded or saved)
   $: if ($fileStore.currentContent !== lastLoadedContent) {
@@ -64,6 +69,49 @@
       event.preventDefault();
       saveFile();
     }
+    // Ctrl/Cmd + Plus to zoom in
+    if ((event.ctrlKey || event.metaKey) && (event.key === '+' || event.key === '=')) {
+      event.preventDefault();
+      zoomIn();
+    }
+    // Ctrl/Cmd + Minus to zoom out
+    if ((event.ctrlKey || event.metaKey) && event.key === '-') {
+      event.preventDefault();
+      zoomOut();
+    }
+  }
+
+  function zoomIn() {
+    zoomLevel = Math.min(zoomLevel + 10, 200);
+  }
+
+  function zoomOut() {
+    zoomLevel = Math.max(zoomLevel - 10, 50);
+  }
+
+  function toggleAutoscroll() {
+    isAutoscrolling = !isAutoscrolling;
+    
+    if (isAutoscrolling) {
+      autoscrollIntervalId = window.setInterval(() => {
+        if (textareaRef) {
+          textareaRef.scrollTop += autoscrollSpeed;
+        }
+      }, 50);
+    } else {
+      if (autoscrollIntervalId !== null) {
+        clearInterval(autoscrollIntervalId);
+        autoscrollIntervalId = null;
+      }
+    }
+  }
+
+  function increaseAutoscrollSpeed() {
+    autoscrollSpeed = Math.min(autoscrollSpeed + 0.5, 10);
+  }
+
+  function decreaseAutoscrollSpeed() {
+    autoscrollSpeed = Math.max(autoscrollSpeed - 0.5, 0.5);
   }
 </script>
 
@@ -94,6 +142,56 @@
             Chords
           </button>
         </div>
+
+        {#if viewMode === 'text'}
+          <div class="text-controls">
+            <div class="zoom-control">
+              <button 
+                on:click={zoomOut}
+                title="Zoom out (Ctrl/-)"
+                class="small-button"
+              >
+                −
+              </button>
+              <span class="zoom-display">{zoomLevel}%</span>
+              <button 
+                on:click={zoomIn}
+                title="Zoom in (Ctrl/+)"
+                class="small-button"
+              >
+                +
+              </button>
+            </div>
+
+            <div class="autoscroll-control">
+              <button 
+                on:click={toggleAutoscroll}
+                class:active={isAutoscrolling}
+                title="Toggle autoscroll"
+              >
+                {isAutoscrolling ? '⏸' : '▶'}
+              </button>
+              <button 
+                on:click={decreaseAutoscrollSpeed}
+                title="Decrease speed"
+                class="small-button"
+                disabled={autoscrollSpeed <= 0.5}
+              >
+                −
+              </button>
+              <span class="speed-display">{autoscrollSpeed.toFixed(1)}x</span>
+              <button 
+                on:click={increaseAutoscrollSpeed}
+                title="Increase speed"
+                class="small-button"
+                disabled={autoscrollSpeed >= 10}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        {/if}
+
         {#if saveSuccess}
           <span class="success-message">Saved!</span>
         {/if}
@@ -109,10 +207,12 @@
 
     {#if viewMode === 'text'}
       <textarea
+        bind:this={textareaRef}
         bind:value={editedContent}
         on:keydown={handleKeydown}
         spellcheck="false"
         placeholder="File content..."
+        style="font-size: {zoomLevel}%"
       ></textarea>
     {:else}
       <div class="chord-view-container">
@@ -202,6 +302,88 @@
   .view-toggle button.active {
     background-color: #646cff;
     color: white;
+  }
+
+  .text-controls {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .zoom-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+  }
+
+  .zoom-display,
+  .speed-display {
+    min-width: 45px;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+  }
+
+  .autoscroll-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+  }
+
+  .autoscroll-control button:first-child {
+    min-width: 32px;
+  }
+
+  .small-button {
+    padding: 0.3rem 0.6rem;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .small-button:hover:not(:disabled) {
+    color: rgba(255, 255, 255, 0.87);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .small-button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .autoscroll-control button:not(.small-button) {
+    padding: 0.3rem 0.8rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .autoscroll-control button:not(.small-button):hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .autoscroll-control button:not(.small-button).active {
+    background-color: #4caf50;
+    color: white;
+    border-color: #4caf50;
   }
 
   .success-message {

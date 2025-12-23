@@ -43,10 +43,3 @@ Key:
 `,
 };
 
-// Metadata field names
-export const metadataFields = {
-  title: 'Title',
-  artist: 'Artist',
-  key: 'Key',
-  info: 'Info',
-} as const;
