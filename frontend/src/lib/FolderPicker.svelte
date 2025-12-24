@@ -136,7 +136,8 @@
       if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.chords')) {
         console.log('Found file:', entryPath);
         files.push({
-          name: entryPath,
+          name: entry.name,
+          path: entryPath,
           handle: entry as FileSystemFileHandle,
         });
       } else if (entry.kind === 'directory') {
@@ -157,6 +158,7 @@
       if (browserFiles.length > 0) {
         const files: FileEntry[] = browserFiles.map(f => ({
           name: f.name,
+          path: f.name,
           content: f.content
         }));
         

@@ -7,6 +7,8 @@
   import { fileStore, type FileEntry } from './lib/fileStore';
   import { loadAllBrowserFiles } from './lib/indexedDB';
 
+  let fileListRef: any = $state();
+
   let editorControls: EditorControls = $state({
     viewMode: 'text',
     zoomLevel: 100,
@@ -32,6 +34,7 @@
       if (browserFiles.length > 0) {
         const files: FileEntry[] = browserFiles.map(f => ({
           name: f.name,
+          path: f.name,
           content: f.content
         }));
         
@@ -46,6 +49,12 @@
       console.error('Error loading browser files:', error);
     }
   });
+
+  function handleEditorClick() {
+    if (fileListRef?.clearSelection) {
+      fileListRef.clearSelection();
+    }
+  }
 </script>
 
 <div class="app-container">
@@ -53,11 +62,13 @@
     <aside class="left-sidebar">
       <h1>Chord Converter</h1>
       <FolderPicker />
-      <FileList />
+      <FileList bind:this={fileListRef} />
     </aside>
     
     <main class="editor-area">
-      <FileEditor bind:controls={editorControls} />
+      <div class="editor-click-area" role="button" tabindex="0" onclick={handleEditorClick} onkeydown={(e) => e.key === 'Enter' && handleEditorClick()}>
+        <FileEditor bind:controls={editorControls} />
+      </div>
     </main>
     
     <aside class="right-sidebar">
@@ -117,6 +128,13 @@
     flex: 1;
     display: flex;
     overflow: hidden;
+  }
+
+  .editor-click-area {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    outline: none;
   }
 
   .right-sidebar {

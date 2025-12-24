@@ -4,6 +4,7 @@ export type StorageMode = 'browser' | 'filesystem';
 
 export interface FileEntry {
   name: string;
+  path: string; // Full path relative to root (e.g., "subfolder/file.chords")
   handle?: FileSystemFileHandle; // Optional for browser mode
   content?: string; // Used in browser mode
 }
@@ -60,12 +61,12 @@ function createFileStore() {
         currentFile: state.currentFile?.name === oldName ? newFile : state.currentFile
       }));
     },
-    deleteFile: (name: string) => {
+    deleteFile: (path: string) => {
       update(state => ({
         ...state,
-        files: state.files.filter(f => f.name !== name),
-        currentFile: state.currentFile?.name === name ? null : state.currentFile,
-        currentContent: state.currentFile?.name === name ? '' : state.currentContent
+        files: state.files.filter(f => f.path !== path),
+        currentFile: state.currentFile?.path === path ? null : state.currentFile,
+        currentContent: state.currentFile?.path === path ? '' : state.currentContent
       }));
     },
     setCurrentFile: (file: FileEntry | null) => {

@@ -1,15 +1,116 @@
+<script lang="ts" module>
+  export interface TreeNode {
+    name: string;
+    path: string;
+    isFolder: boolean;
+    file?: any;
+    children: TreeNode[];
+    expanded: boolean;
+  }
+</script>
+
 <script lang="ts">
   import { fileStore, type FileEntry } from './fileStore';
   import { loadBrowserFile, saveBrowserFile, renameBrowserFile, deleteBrowserFile } from './indexedDB';
   import { fileConfig } from './config';
+  import FileListTree from './FileListTree.svelte';
+  import FileListFooter from './FileListFooter.svelte';
 
-  let editingFileName: string | null = null;
-  let editingValue = '';
+  let editingFilePath = $state<string | null>(null);
+  let editingValue = $state('');
+  let expandedFolders = $state<Set<string>>(new Set());
+  let allFolders = $state<Set<string>>(new Set());
+  let currentFolderPath = $state<string>(''); // Current folder based on selection
+  let selectedFolderPath = $state<string | null>(null); // Currently selected folder for actions
+
+  // Build tree structure from flat file list and folder list
+  function buildTree(files: FileEntry[]): TreeNode[] {
+    const root: TreeNode[] = [];
+    const folderMap = new Map<string, TreeNode>();
+
+    // First, create all folder nodes from allFolders
+    for (const folderPath of allFolders) {
+      const parts = folderPath.split('/');
+      let currentLevel = root;
+      let currentPath = '';
+
+      for (let i = 0; i < parts.length; i++) {
+        currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+        
+        if (!folderMap.has(currentPath)) {
+          const folderNode: TreeNode = {
+            name: parts[i],
+            path: currentPath,
+            isFolder: true,
+            children: [],
+            expanded: expandedFolders.has(currentPath),
+          };
+          
+          folderMap.set(currentPath, folderNode);
+          currentLevel.push(folderNode);
+        } else {
+          // Update expanded state for existing folder
+          folderMap.get(currentPath)!.expanded = expandedFolders.has(currentPath);
+        }
+        
+        currentLevel = folderMap.get(currentPath)!.children;
+      }
+    }
+
+    // Then add files
+    for (const file of files) {
+      const parts = file.path.split('/');
+      let currentLevel = root;
+      let currentPath = '';
+
+      // Create folder nodes for file path
+      for (let i = 0; i < parts.length - 1; i++) {
+        currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+        
+        if (!folderMap.has(currentPath)) {
+          const folderNode: TreeNode = {
+            name: parts[i],
+            path: currentPath,
+            isFolder: true,
+            children: [],
+            expanded: expandedFolders.has(currentPath),
+          };
+          
+          folderMap.set(currentPath, folderNode);
+          currentLevel.push(folderNode);
+        } else {
+          // Update expanded state for existing folder
+          folderMap.get(currentPath)!.expanded = expandedFolders.has(currentPath);
+        }
+        
+        currentLevel = folderMap.get(currentPath)!.children;
+      }
+
+      // Add file node
+      currentLevel.push({
+        name: file.name,
+        path: file.path,
+        isFolder: false,
+        file: file,
+        children: [],
+        expanded: false,
+      });
+    }
+
+    return root;
+  }
+
+  let tree = $derived(buildTree($fileStore.files));
 
   async function selectFile(file: FileEntry) {
+    selectedFolderPath = null; // Clear folder selection when selecting a file
     try {
       fileStore.setLoading(true);
       fileStore.setError(null);
+      
+      // Update current folder based on file's parent directory
+      const pathParts = file.path.split('/');
+      currentFolderPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : '';
       
       let content = '';
       
@@ -33,16 +134,120 @@
     }
   }
 
-  async function addNewFile() {
+  function toggleFolder(path: string) {
+    currentFolderPath = path; // Set as current folder when toggling
+    selectedFolderPath = path; // Set as selected folder
+    fileStore.setCurrentFile(null); // Clear file selection
+    if (expandedFolders.has(path)) {
+      expandedFolders.delete(path);
+    } else {
+      expandedFolders.add(path);
+    }
+    expandedFolders = new Set(expandedFolders);
+  }
+
+  async function createFolder(parentPath: string = '') {
+    // Use current folder if no parent specified
+    if (!parentPath) {
+      parentPath = currentFolderPath;
+    }
+    
+    const folderName = prompt('Enter folder name:');
+    if (!folderName) return;
+
+    // Remove any slashes from folder name
+    const cleanFolderName = folderName.replace(/\//g, '');
+    if (!cleanFolderName) {
+      fileStore.setError('Invalid folder name');
+      return;
+    }
+
+    const folderPath = parentPath ? `${parentPath}/${cleanFolderName}` : cleanFolderName;
+
+    try {
+      fileStore.setLoading(true);
+      fileStore.setError(null);
+
+      if ($fileStore.storageMode === 'filesystem' && $fileStore.folderHandle) {
+        // Navigate to the parent folder and create new directory
+        let targetFolder = $fileStore.folderHandle;
+        
+        if (parentPath) {
+          const parts = parentPath.split('/');
+          for (const part of parts) {
+            targetFolder = await targetFolder.getDirectoryHandle(part, { create: false });
+          }
+        }
+
+        await targetFolder.getDirectoryHandle(cleanFolderName, { create: true });
+        
+        // Add to folders set
+        allFolders.add(folderPath);
+        allFolders = new Set(allFolders);
+        
+        // Expand parent folder if creating subfolder
+        if (parentPath) {
+          expandedFolders.add(parentPath);
+        }
+        expandedFolders.add(folderPath);
+        expandedFolders = new Set(expandedFolders);
+        
+        currentFolderPath = folderPath; // Set as current folder
+      } else {
+        fileStore.setError('Folder creation is only available in filesystem mode');
+      }
+
+    } catch (error: any) {
+      fileStore.setError(`Error creating folder: ${error.message}`);
+    } finally {
+      fileStore.setLoading(false);
+    }
+  }
+
+  async function rescanFiles() {
+    if (!$fileStore.folderHandle) return;
+    
+    const files: FileEntry[] = [];
+    const folders = new Set<string>();
+    await scanDirectory($fileStore.folderHandle, '', files, folders);
+    files.sort((a, b) => a.path.localeCompare(b.path));
+    fileStore.setFiles(files);
+    allFolders = folders;
+  }
+
+  async function scanDirectory(dirHandle: FileSystemDirectoryHandle, path: string, files: FileEntry[], folders: Set<string>) {
+    for await (const entry of dirHandle.values()) {
+      const entryPath = path ? `${path}/${entry.name}` : entry.name;
+      
+      if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.chords')) {
+        files.push({
+          name: entry.name,
+          path: entryPath,
+          handle: entry as FileSystemFileHandle,
+        });
+      } else if (entry.kind === 'directory') {
+        folders.add(entryPath);
+        await scanDirectory(entry as FileSystemDirectoryHandle, entryPath, files, folders);
+      }
+    }
+  }
+
+  async function addNewFile(folderPath: string = '') {
+    // Use current folder if no folder specified
+    if (!folderPath) {
+      folderPath = currentFolderPath;
+    }
+    
     const fileName = prompt('Enter file name (will be saved as .chords):');
     if (!fileName) return;
 
     // Ensure .chords extension
     const fullFileName = fileName.endsWith('.chords') ? fileName : `${fileName}.chords`;
+    const filePath = folderPath ? `${folderPath}/${fullFileName}` : fullFileName;
 
     // Check if file already exists
-    if ($fileStore.files.some(f => f.name === fullFileName)) {
-      fileStore.setError(`File "${fullFileName}" already exists`);
+    if ($fileStore.files.some(f => f.path === filePath)) {
+      fileStore.setError(`File "${filePath}" already exists`);
       return;
     }
 
@@ -51,26 +256,43 @@
       fileStore.setError(null);
 
       if ($fileStore.storageMode === 'filesystem' && $fileStore.folderHandle) {
-        // Create file in filesystem
-        const fileHandle = await $fileStore.folderHandle.getFileHandle(fullFileName, { create: true });
+        // Navigate to the folder and create file
+        let targetFolder = $fileStore.folderHandle;
+        
+        if (folderPath) {
+          const parts = folderPath.split('/');
+          for (const part of parts) {
+            targetFolder = await targetFolder.getDirectoryHandle(part, { create: false });
+          }
+        }
+
+        const fileHandle = await targetFolder.getFileHandle(fullFileName, { create: true });
         const writable = await fileHandle.createWritable();
         await writable.write(fileConfig.newFileTemplate);
         await writable.close();
 
         const newFile: FileEntry = {
           name: fullFileName,
+          path: filePath,
           handle: fileHandle,
         };
 
         fileStore.addFile(newFile);
         fileStore.setCurrentFile(newFile);
         fileStore.setCurrentContent(fileConfig.newFileTemplate);
+        
+        // Expand the folder if we added a file to a subfolder
+        if (folderPath) {
+          expandedFolders.add(folderPath);
+          expandedFolders = new Set(expandedFolders);
+        }
       } else {
-        // Create file in browser storage
+        // Create file in browser storage (no subfolders in browser mode)
         await saveBrowserFile(fullFileName, fileConfig.newFileTemplate);
         
         const newFile: FileEntry = {
           name: fullFileName,
+          path: fullFileName,
           content: fileConfig.newFileTemplate,
         };
 
@@ -78,7 +300,7 @@
         fileStore.setCurrentFile(newFile);
         fileStore.setCurrentContent(fileConfig.newFileTemplate);
       }
-      
+
     } catch (error: any) {
       fileStore.setError(`Error creating file: ${error.message}`);
     } finally {
@@ -86,28 +308,45 @@
     }
   }
 
-  function startEditingFileName(file: FileEntry) {
-    editingFileName = file.name;
-    editingValue = file.name.replace(/\.chords$/, '');
+  function startRename(file: FileEntry) {
+    editingFilePath = file.path;
+    editingValue = file.name;
   }
 
-  async function saveFileName(oldName: string) {
-    if (!editingValue.trim()) {
-      editingFileName = null;
+  function handleKeydown(e: KeyboardEvent, oldPath: string) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveFileName(oldPath);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      editingFilePath = null;
+      editingValue = '';
+    }
+  }
+
+  async function saveFileName(oldPath: string) {
+    if (!editingValue.trim() || editingValue === oldPath) {
+      editingFilePath = null;
       return;
     }
 
     const newName = editingValue.endsWith('.chords') ? editingValue : `${editingValue}.chords`;
+    const oldFile = $fileStore.files.find(f => f.path === oldPath);
     
-    if (newName === oldName) {
-      editingFileName = null;
+    if (!oldFile) {
+      editingFilePath = null;
       return;
     }
 
+    // Calculate new path
+    const pathParts = oldPath.split('/');
+    pathParts[pathParts.length - 1] = newName;
+    const newPath = pathParts.join('/');
+
     // Check if new name already exists
-    if ($fileStore.files.some(f => f.name === newName)) {
-      fileStore.setError(`File "${newName}" already exists`);
-      editingFileName = null;
+    if ($fileStore.files.some(f => f.path === newPath)) {
+      fileStore.setError(`File "${newPath}" already exists`);
+      editingFilePath = null;
       return;
     }
 
@@ -115,95 +354,103 @@
       fileStore.setLoading(true);
       fileStore.setError(null);
 
-      if ($fileStore.storageMode === 'filesystem') {
-        // In filesystem mode, we need to create new file and delete old one
-        const oldFile = $fileStore.files.find(f => f.name === oldName);
-        if (!oldFile || !oldFile.handle) return;
+      if ($fileStore.storageMode === 'filesystem' && oldFile.handle) {
+        // For filesystem, we need to create new file and delete old one
+        const oldFileData = await oldFile.handle.getFile();
+        const content = await oldFileData.text();
 
-        // Read old content
-        const fileData = await oldFile.handle.getFile();
-        const content = await fileData.text();
+        // Get folder path
+        const folderPath = pathParts.slice(0, -1).join('/');
+        let targetFolder = $fileStore.folderHandle!;
+        
+        if (folderPath) {
+          const parts = folderPath.split('/');
+          for (const part of parts) {
+            targetFolder = await targetFolder.getDirectoryHandle(part, { create: false });
+          }
+        }
 
         // Create new file
-        if (!$fileStore.folderHandle) return;
-        const newHandle = await $fileStore.folderHandle.getFileHandle(newName, { create: true });
+        const newHandle = await targetFolder.getFileHandle(newName, { create: true });
         const writable = await newHandle.createWritable();
         await writable.write(content);
         await writable.close();
 
-        // Remove old file (Note: can't actually delete from filesystem with this API)
-        // Just update the list
+        // Delete old file
+        await targetFolder.removeEntry(oldFile.name);
+
+        // Update store
         const newFile: FileEntry = {
           name: newName,
+          path: newPath,
           handle: newHandle,
         };
 
-        fileStore.updateFile(oldName, newFile);
-        if ($fileStore.currentFile?.name === oldName) {
+        fileStore.deleteFile(oldPath);
+        fileStore.addFile(newFile);
+
+        if ($fileStore.currentFile?.path === oldPath) {
           fileStore.setCurrentFile(newFile);
+          fileStore.setCurrentContent(content);
         }
       } else {
-        // Rename in browser storage
-        await renameBrowserFile(oldName, newName);
+        // Browser mode
+        await renameBrowserFile(oldFile.name, newName);
         
-        const oldFile = $fileStore.files.find(f => f.name === oldName);
         const newFile: FileEntry = {
           name: newName,
-          content: oldFile?.content || '',
+          path: newPath,
+          content: oldFile.content,
         };
 
-        fileStore.updateFile(oldName, newFile);
-        if ($fileStore.currentFile?.name === oldName) {
+        fileStore.deleteFile(oldPath);
+        fileStore.addFile(newFile);
+
+        if ($fileStore.currentFile?.path === oldPath) {
           fileStore.setCurrentFile(newFile);
         }
       }
 
-      editingFileName = null;
+      editingFilePath = null;
+      editingValue = '';
+
     } catch (error: any) {
       fileStore.setError(`Error renaming file: ${error.message}`);
+      editingFilePath = null;
     } finally {
       fileStore.setLoading(false);
     }
   }
 
-  function cancelEditing() {
-    editingFileName = null;
-    editingValue = '';
-  }
-
-  function handleKeydown(event: KeyboardEvent, oldName: string) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      saveFileName(oldName);
-    } else if (event.key === 'Escape') {
-      cancelEditing();
-    }
-  }
-
   async function deleteFile(file: FileEntry) {
-    const confirmDelete = confirm(`Are you sure you want to delete "${file.name}"?`);
-    if (!confirmDelete) return;
+    const confirmed = confirm(`Are you sure you want to delete "${file.path}"?`);
+    if (!confirmed) return;
 
     try {
       fileStore.setLoading(true);
       fileStore.setError(null);
 
-      if ($fileStore.storageMode === 'filesystem' && file.handle && $fileStore.folderHandle) {
-        // Note: File System Access API doesn't support deleting files directly
-        // We can only remove it from the folder handle
-        try {
-          await $fileStore.folderHandle.removeEntry(file.name);
-        } catch (error: any) {
-          // If removeEntry fails, just remove from our list
-          console.warn('Could not remove file from filesystem:', error);
+      if ($fileStore.storageMode === 'filesystem' && file.handle) {
+        // Get folder path
+        const pathParts = file.path.split('/');
+        const folderPath = pathParts.slice(0, -1).join('/');
+        let targetFolder = $fileStore.folderHandle!;
+        
+        if (folderPath) {
+          const parts = folderPath.split('/');
+          for (const part of parts) {
+            targetFolder = await targetFolder.getDirectoryHandle(part, { create: false });
+          }
         }
+
+        await targetFolder.removeEntry(file.name);
       } else {
         // Delete from browser storage
         await deleteBrowserFile(file.name);
       }
 
       // Remove from store
-      fileStore.deleteFile(file.name);
+      fileStore.deleteFile(file.path);
 
     } catch (error: any) {
       fileStore.setError(`Error deleting file: ${error.message}`);
@@ -213,7 +460,163 @@
   }
 
   function isSelected(file: FileEntry): boolean {
-    return $fileStore.currentFile?.name === file.name;
+    return $fileStore.currentFile?.path === file.path;
+  }
+
+  function startRenameFolder(folderPath: string) {
+    editingFilePath = folderPath;
+    const parts = folderPath.split('/');
+    editingValue = parts[parts.length - 1];
+  }
+
+  async function saveFolderName(oldPath: string) {
+    if (!editingValue.trim() || editingValue === oldPath.split('/').pop()) {
+      editingFilePath = null;
+      return;
+    }
+
+    const newName = editingValue.replace(/\//g, ''); // Remove slashes
+    if (!newName) {
+      fileStore.setError('Invalid folder name');
+      editingFilePath = null;
+      return;
+    }
+
+    // Calculate new path
+    const pathParts = oldPath.split('/');
+    const parentPath = pathParts.slice(0, -1).join('/');
+    const newPath = parentPath ? `${parentPath}/${newName}` : newName;
+
+    // Check if new name already exists
+    if (allFolders.has(newPath)) {
+      fileStore.setError(`Folder "${newPath}" already exists`);
+      editingFilePath = null;
+      return;
+    }
+
+    try {
+      fileStore.setLoading(true);
+      fileStore.setError(null);
+
+      if ($fileStore.storageMode === 'filesystem' && $fileStore.folderHandle) {
+        // Get parent folder
+        let parentFolder = $fileStore.folderHandle;
+        if (parentPath) {
+          const parts = parentPath.split('/');
+          for (const part of parts) {
+            parentFolder = await parentFolder.getDirectoryHandle(part, { create: false });
+          }
+        }
+
+        // Get old folder handle
+        const oldFolder = await parentFolder.getDirectoryHandle(pathParts[pathParts.length - 1], { create: false });
+        
+        // Create new folder
+        const newFolder = await parentFolder.getDirectoryHandle(newName, { create: true });
+        
+        // Move all contents recursively
+        await copyDirectoryContents(oldFolder, newFolder);
+        
+        // Delete old folder
+        await parentFolder.removeEntry(pathParts[pathParts.length - 1], { recursive: true });
+        
+        // Update folders set
+        allFolders.delete(oldPath);
+        allFolders.add(newPath);
+        
+        // Update expanded folders
+        if (expandedFolders.has(oldPath)) {
+          expandedFolders.delete(oldPath);
+          expandedFolders.add(newPath);
+        }
+        
+        // Rescan to update file paths
+        await rescanFiles();
+        
+        currentFolderPath = newPath;
+      }
+
+      editingFilePath = null;
+      editingValue = '';
+
+    } catch (error: any) {
+      fileStore.setError(`Error renaming folder: ${error.message}`);
+      editingFilePath = null;
+    } finally {
+      fileStore.setLoading(false);
+    }
+  }
+
+  async function copyDirectoryContents(sourceDir: FileSystemDirectoryHandle, destDir: FileSystemDirectoryHandle) {
+    for await (const entry of sourceDir.values()) {
+      if (entry.kind === 'file') {
+        const file = await (entry as FileSystemFileHandle).getFile();
+        const destFile = await destDir.getFileHandle(entry.name, { create: true });
+        const writable = await destFile.createWritable();
+        await writable.write(await file.arrayBuffer());
+        await writable.close();
+      } else if (entry.kind === 'directory') {
+        const subDir = await destDir.getDirectoryHandle(entry.name, { create: true });
+        await copyDirectoryContents(entry as FileSystemDirectoryHandle, subDir);
+      }
+    }
+  }
+
+  async function deleteFolder(folderPath: string) {
+    const confirmed = confirm(`Are you sure you want to delete the folder "${folderPath}" and all its contents?`);
+    if (!confirmed) return;
+
+    try {
+      fileStore.setLoading(true);
+      fileStore.setError(null);
+
+      if ($fileStore.storageMode === 'filesystem' && $fileStore.folderHandle) {
+        // Get parent folder
+        const pathParts = folderPath.split('/');
+        const parentPath = pathParts.slice(0, -1).join('/');
+        let parentFolder = $fileStore.folderHandle;
+        
+        if (parentPath) {
+          const parts = parentPath.split('/');
+          for (const part of parts) {
+            parentFolder = await parentFolder.getDirectoryHandle(part, { create: false });
+          }
+        }
+
+        // Delete folder recursively
+        await parentFolder.removeEntry(pathParts[pathParts.length - 1], { recursive: true });
+        
+        // Update folders set
+        allFolders.delete(folderPath);
+        // Also remove any subfolders
+        for (const folder of allFolders) {
+          if (folder.startsWith(folderPath + '/')) {
+            allFolders.delete(folder);
+          }
+        }
+        allFolders = new Set(allFolders);
+        
+        // Rescan to update file list
+        await rescanFiles();
+        
+        currentFolderPath = parentPath;
+      }
+
+    } catch (error: any) {
+      fileStore.setError(`Error deleting folder: ${error.message}`);
+    } finally {
+      fileStore.setLoading(false);
+    }
+  }
+
+  export function clearSelection() {
+    selectedFolderPath = null;
+    fileStore.setCurrentFile(null);
+  }
+
+  function renderFileItem(node: TreeNode, nested: boolean) {
+    // Helper to render individual file
+    return;
   }
 </script>
 
@@ -227,199 +630,44 @@
       {/if}
     </div>
   {:else}
-    <ul>
-      {#each $fileStore.files as file}
-        <li class:selected={isSelected(file)}>
-          {#if editingFileName === file.name}
-            <input
-              type="text"
-              class="filename-input"
-              bind:value={editingValue}
-              on:keydown={(e) => handleKeydown(e, file.name)}
-              on:blur={() => saveFileName(file.name)}
-            />
-          {:else}
-            <button
-              class="file-button"
-              on:click={() => selectFile(file)}
-              disabled={$fileStore.loading}
-            >
-              {file.name}
-            </button>
-            {#if isSelected(file)}
-              <div class="file-actions">
-                <button
-                  class="rename-button"
-                  on:click={() => startEditingFileName(file)}
-                  title="Rename file"
-                  disabled={$fileStore.loading}
-                >
-                  ✎
-                </button>
-                <button
-                  class="delete-button"
-                  on:click={() => deleteFile(file)}
-                  title="Delete file"
-                  disabled={$fileStore.loading}
-                >
-                  🗑
-                </button>
-              </div>
-            {/if}
-          {/if}
-        </li>
-      {/each}
-    </ul>
+    <FileListTree
+      {tree}
+      {expandedFolders}
+      {editingFilePath}
+      {editingValue}
+      {selectedFolderPath}
+      currentFile={$fileStore.currentFile}
+      onToggleFolder={toggleFolder}
+      onSelectFile={selectFile}
+      onStartRename={startRename}
+      onStartRenameFolder={startRenameFolder}
+      onDeleteFile={deleteFile}
+      onDeleteFolder={deleteFolder}
+      onSaveFileName={saveFileName}
+      onSaveFolderName={saveFolderName}
+      onKeydown={handleKeydown}
+    />
   {/if}
   
-  <div class="file-list-footer">
-    <button class="add-file-btn" on:click={addNewFile} disabled={$fileStore.loading} title="Add new file">
-      +
-    </button>
-  </div>
+  <FileListFooter
+    currentFolderPath={selectedFolderPath || ''}
+    onCreateFolder={createFolder}
+    onAddFile={addNewFile}
+  />
 </div>
 
 <style>
   .file-list {
     display: flex;
     flex-direction: column;
-    flex: 1;
     height: 100%;
-    overflow: hidden;
-  }
-
-  .file-list-footer {
-    padding: 0.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(255, 255, 255, 0.05);
-    display: flex;
-    justify-content: flex-end;
-    flex-shrink: 0;
-  }
-
-  .add-file-btn {
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    background-color: #646cff;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .add-file-btn:hover:not(:disabled) {
-    background-color: #535bf2;
-  }
-
-  .add-file-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    background-color: rgba(0, 0, 0, 0.2);
   }
 
   .empty-state {
     padding: 2rem 1rem;
     text-align: center;
     color: rgba(255, 255, 255, 0.5);
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  li {
-    display: flex;
-    align-items: center;
-    border-left: 3px solid transparent;
-    transition: all 0.2s;
-  }
-
-  li.selected {
-    background-color: rgba(100, 108, 255, 0.15);
-    border-left-color: #646cff;
-  }
-
-  li:hover:not(.selected) {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-left-color: rgba(100, 108, 255, 0.5);
-  }
-
-  .file-button {
-    flex: 1;
-    padding: 0.75rem 0.5rem 0.75rem 1rem;
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.87);
-    text-align: left;
-    cursor: pointer;
     font-size: 14px;
-    transition: all 0.2s;
-  }
-
-  li.selected .file-button {
-    font-weight: 500;
-  }
-
-  .file-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  .file-actions {
-    display: flex;
-    gap: 0.25rem;
-    margin-right: 0.5rem;
-  }
-
-  .rename-button,
-  .delete-button {
-    padding: 0.5rem;
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-    font-size: 16px;
-    transition: color 0.2s;
-  }
-
-  .rename-button:hover:not(:disabled) {
-    color: #646cff;
-  }
-
-  .delete-button:hover:not(:disabled) {
-    color: #ff6b6b;
-  }
-
-  .rename-button:disabled,
-  .delete-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  .filename-input {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid #646cff;
-    color: rgba(255, 255, 255, 0.87);
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-    margin: 0.25rem 0.5rem;
-    border-radius: 3px;
   }
 </style>

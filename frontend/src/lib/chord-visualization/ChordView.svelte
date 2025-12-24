@@ -133,7 +133,15 @@
       const ltype = lineTypes[i];
 
       if (i === 0) {
-        result.push({ type: 'heading', content: line, lineIdx: i });
+        // First non-empty line is the title
+        let titleContent = line;
+        // Remove "Title: " prefix if it exists (case-insensitive)
+        if (titleContent.toLowerCase().startsWith('title:')) {
+          titleContent = titleContent.substring(6).trim();
+        }
+        // Convert to uppercase
+        titleContent = titleContent.toUpperCase();
+        result.push({ type: 'heading', content: titleContent, lineIdx: i });
       } else if (ltype === 'subheading') {
         result.push({ type: 'subheading', content: line, lineIdx: i });
       } else if (ltype === 'lyrics') {
