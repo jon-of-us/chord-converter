@@ -2,33 +2,18 @@
   import { fileStore } from './fileStore';
 
   interface Props {
-    currentFolderPath: string;
-    onCreateFolder: (parentPath?: string) => void | Promise<void>;
     onAddFile: (folderPath?: string) => void | Promise<void>;
   }
 
-  let { currentFolderPath, onCreateFolder, onAddFile }: Props = $props();
+  let { onAddFile }: Props = $props();
 </script>
 
 <div class="footer">
-  <!-- <div class="current-folder">
-  {currentFolderPath || 'Root'}
-  </div> -->
-  {#if $fileStore.storageMode === 'filesystem'}
-    <button 
-      class="add-button" 
-      onclick={() => onCreateFolder()}
-      disabled={$fileStore.loading}
-      title="Create new folder in current location"
-    >
-    + New Folder
-    </button>
-  {/if}
   <button 
     class="add-button" 
     onclick={() => onAddFile()}
     disabled={$fileStore.loading}
-    title="Add new file to current location"
+    title="Add new file (use folder/file for subfolders, folder/ for empty folder)"
   >
     + New File
   </button>

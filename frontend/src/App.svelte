@@ -35,7 +35,7 @@
         const files: FileEntry[] = browserFiles.map(f => ({
           name: f.name,
           path: f.name,
-          content: f.content
+          content: String(f.content) // Create a copy to avoid reference issues
         }));
         
         fileStore.setFiles(files);
@@ -43,7 +43,7 @@
         // Auto-open first file
         const firstFile = files[0];
         fileStore.setCurrentFile(firstFile);
-        fileStore.setCurrentContent(firstFile.content || '');
+        fileStore.setCurrentContent(String(firstFile.content || '')); // Create a copy
       }
     } catch (error) {
       console.error('Error loading browser files:', error);

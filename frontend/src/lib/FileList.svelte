@@ -119,8 +119,8 @@
         const fileData = await file.handle.getFile();
         content = await fileData.text();
       } else {
-        // Read from browser storage
-        content = file.content || '';
+        // Read from browser storage - create a copy to avoid reference issues
+        content = String(file.content || '');
       }
       
       // Update store
@@ -146,10 +146,46 @@
     expandedFolders = new Set(expandedFolders);
   }
 
+  async function createFolderFromPath(folderPath: string) {
+    try {
+      fileStore.setLoading(true);
+      fileStore.setError(null);
+
+      if ($fileStore.storageMode === 'filesystem' && $fileStore.folderHandle) {
+        let targetFolder = $fileStore.folderHandle;
+        
+        const folderParts = folderPath.split('/');
+        for (const part of folderParts) {
+          targetFolder = await targetFolder.getDirectoryHandle(part, { create: true });
+        }
+        
+        // Add to folders set
+        allFolders.add(folderPath);
+        allFolders = new Set(allFolders);
+        
+        // Expand parent folders and the new folder
+        const parts = folderPath.split('/');
+        for (let i = 1; i <= parts.length; i++) {
+          expandedFolders.add(parts.slice(0, i).join('/'));
+        }
+        expandedFolders = new Set(expandedFolders);
+        
+        selectedFolderPath = folderPath;
+      } else {
+        fileStore.setError('Folder creation is only available in filesystem mode');
+      }
+
+    } catch (error: any) {
+      fileStore.setError(`Error creating folder: ${error.message}`);
+    } finally {
+      fileStore.setLoading(false);
+    }
+  }
+
   async function createFolder(parentPath: string = '') {
-    // Use current folder if no parent specified
+    // Use selected folder if no parent specified
     if (!parentPath) {
-      parentPath = currentFolderPath;
+      parentPath = selectedFolderPath || '';
     }
     
     const folderName = prompt('Enter folder name:');
@@ -193,6 +229,7 @@
         expandedFolders = new Set(expandedFolders);
         
         currentFolderPath = folderPath; // Set as current folder
+        selectedFolderPath = folderPath; // Set as selected folder
       } else {
         fileStore.setError('Folder creation is only available in filesystem mode');
       }
@@ -233,17 +270,42 @@
   }
 
   async function addNewFile(folderPath: string = '') {
-    // Use current folder if no folder specified
-    if (!folderPath) {
-      folderPath = currentFolderPath;
-    }
+    const prompt_message = $fileStore.storageMode === 'filesystem' 
+      ? 'Enter file name (folder/file for folders, folder/ for empty folder):'
+      : 'Enter file name (will be saved as .chords):';
     
-    const fileName = prompt('Enter file name (will be saved as .chords):');
-    if (!fileName) return;
+    const input = prompt(prompt_message);
+    if (!input) return;
+
+    // Check if this is just a folder creation (ends with /)
+    if (input.endsWith('/')) {
+      if ($fileStore.storageMode !== 'filesystem') {
+        fileStore.setError('Folder creation is only available in filesystem mode');
+        return;
+      }
+      const folderPath = input.slice(0, -1);
+      if (!folderPath) {
+        fileStore.setError('Invalid folder name');
+        return;
+      }
+      await createFolderFromPath(folderPath);
+      return;
+    }
+
+    // Parse the input to extract folder path and file name
+    const parts = input.split('/');
+    const fileName = parts[parts.length - 1];
+    const targetFolderPath = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+
+    // Check if trying to use folders in browser mode
+    if (targetFolderPath && $fileStore.storageMode !== 'filesystem') {
+      fileStore.setError('Subfolders are only available in filesystem mode');
+      return;
+    }
 
     // Ensure .chords extension
     const fullFileName = fileName.endsWith('.chords') ? fileName : `${fileName}.chords`;
-    const filePath = folderPath ? `${folderPath}/${fullFileName}` : fullFileName;
+    const filePath = targetFolderPath ? `${targetFolderPath}/${fullFileName}` : fullFileName;
 
     // Check if file already exists
     if ($fileStore.files.some(f => f.path === filePath)) {
@@ -256,13 +318,26 @@
       fileStore.setError(null);
 
       if ($fileStore.storageMode === 'filesystem' && $fileStore.folderHandle) {
-        // Navigate to the folder and create file
+        // Navigate to the folder and create it if needed
         let targetFolder = $fileStore.folderHandle;
         
-        if (folderPath) {
-          const parts = folderPath.split('/');
-          for (const part of parts) {
-            targetFolder = await targetFolder.getDirectoryHandle(part, { create: false });
+        if (targetFolderPath) {
+          const folderParts = targetFolderPath.split('/');
+          for (const part of folderParts) {
+            targetFolder = await targetFolder.getDirectoryHandle(part, { create: true });
+            // Add folder to allFolders set if it's new
+            const currentPath = folderParts.slice(0, folderParts.indexOf(part) + 1).join('/');
+            if (!allFolders.has(currentPath)) {
+              allFolders.add(currentPath);
+            }
+          }
+          // Update allFolders
+          allFolders = new Set(allFolders);
+          
+          // Expand parent folders
+          if (targetFolderPath) {
+            expandedFolders.add(targetFolderPath);
+            expandedFolders = new Set(expandedFolders);
           }
         }
 
@@ -288,17 +363,19 @@
         }
       } else {
         // Create file in browser storage (no subfolders in browser mode)
-        await saveBrowserFile(fullFileName, fileConfig.newFileTemplate);
+        // Create a copy of the template to avoid reference issues
+        const templateContent = String(fileConfig.newFileTemplate);
+        await saveBrowserFile(fullFileName, templateContent);
         
         const newFile: FileEntry = {
           name: fullFileName,
           path: fullFileName,
-          content: fileConfig.newFileTemplate,
+          content: templateContent,
         };
 
         fileStore.addFile(newFile);
         fileStore.setCurrentFile(newFile);
-        fileStore.setCurrentContent(fileConfig.newFileTemplate);
+        fileStore.setCurrentContent(templateContent);
       }
 
     } catch (error: any) {
@@ -609,15 +686,7 @@
     }
   }
 
-  export function clearSelection() {
-    selectedFolderPath = null;
-    fileStore.setCurrentFile(null);
-  }
 
-  function renderFileItem(node: TreeNode, nested: boolean) {
-    // Helper to render individual file
-    return;
-  }
 </script>
 
 <div class="file-list">
@@ -650,8 +719,6 @@
   {/if}
   
   <FileListFooter
-    currentFolderPath={selectedFolderPath || ''}
-    onCreateFolder={createFolder}
     onAddFile={addNewFile}
   />
 </div>
