@@ -22,11 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-
-
-.venv/
-__pycache__/
-mnt/c/
-chord_icons/
-ignore/

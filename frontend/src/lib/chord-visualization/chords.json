@@ -1,0 +1,136 @@
+{
+  "chords": [
+    {
+      "name": "Major",
+      "aliases": ["", "M", "maj"],
+      "intervals": [0, 4, 7]
+    },
+    {
+      "name": "Minor",
+      "aliases": ["m", "min"],
+      "intervals": [0, 3, 7]
+    },
+    {
+      "name": "Dominant 7th",
+      "aliases": ["7", "dom7"],
+      "intervals": [0, 4, 7, 10]
+    },
+    {
+      "name": "Major 7th",
+      "aliases": ["maj7", "M7"],
+      "intervals": [0, 4, 7, 11]
+    },
+    {
+      "name": "Minor 7th",
+      "aliases": ["m7", "min7"],
+      "intervals": [0, 3, 7, 10]
+    },
+    {
+      "name": "Dominant 9th",
+      "aliases": ["9"],
+      "intervals": [0, 4, 7, 10, 14]
+    },
+    {
+      "name": "Major 9th",
+      "aliases": ["maj9", "M9"],
+      "intervals": [0, 4, 7, 11, 14]
+    },
+    {
+      "name": "Minor 9th",
+      "aliases": ["m9", "min9"],
+      "intervals": [0, 3, 7, 10, 14]
+    },
+    {
+      "name": "Dominant 11th",
+      "aliases": ["11"],
+      "intervals": [0, 4, 7, 10, 14, 17]
+    },
+    {
+      "name": "Major 11th",
+      "aliases": ["maj11", "M11"],
+      "intervals": [0, 4, 7, 11, 14, 17]
+    },
+    {
+      "name": "Minor 11th",
+      "aliases": ["m11", "min11"],
+      "intervals": [0, 3, 7, 10, 14, 17]
+    },
+    {
+      "name": "Diminished",
+      "aliases": ["dim", "°"],
+      "intervals": [0, 3, 6],
+      "coords": [[0, 0], [-1, 0], [-2, 0]]
+    },
+    {
+      "name": "Diminished 7th",
+      "aliases": ["dim7", "°7"],
+      "intervals": [0, 3, 6, 9],
+      "coords": [[0, 0], [-1, 0], [-2, 0], [-3, 0]]
+    },
+    {
+      "name": "Half-diminished 7th",
+      "aliases": ["m7b5", "ø7"],
+      "intervals": [0, 3, 6, 10],
+      "coords": [[0, 0], [-1, 0], [-2, 0], [-1, 1]]
+    },
+    {
+      "name": "Augmented",
+      "aliases": ["aug", "+"],
+      "intervals": [0, 4, 8],
+      "coords": [[0, 0], [1, 1], [2, 2]]
+    },
+    {
+      "name": "Suspended 2nd",
+      "aliases": ["sus2"],
+      "intervals": [0, 2, 7]
+    },
+    {
+      "name": "Suspended 4th",
+      "aliases": ["sus4", "sus"],
+      "intervals": [0, 5, 7],
+      "coords": [[0, 0], [0, -1], [0, 1]]
+    },
+    {
+      "name": "Major 6th",
+      "aliases": ["6", "M6", "maj6"],
+      "intervals": [0, 4, 7, 9]
+    },
+    {
+      "name": "Minor 6th",
+      "aliases": ["m6", "min6"],
+      "intervals": [0, 3, 7, 9]
+    },
+    {
+      "name": "Dominant 13th",
+      "aliases": ["13"],
+      "intervals": [0, 4, 7, 10, 14, 17, 21]
+    },
+    {
+      "name": "Major 13th",
+      "aliases": ["maj13", "M13"],
+      "intervals": [0, 4, 7, 11, 14, 17, 21]
+    },
+    {
+      "name": "Minor 13th",
+      "aliases": ["m13", "min13"],
+      "intervals": [0, 3, 7, 10, 14, 17, 21]
+    },
+    {
+      "name": "Power Chord",
+      "aliases": ["5"],
+      "intervals": [0, 7]
+    },
+    {
+      "name": "Minor Augmented",
+      "aliases": ["m#5"],
+      "intervals": [0, 3, 8],
+      "coords": [[0, 0], [-1, 0], [2, 2]]
+    },
+    {
+      "name": "Seven Sus 4",
+      "aliases": ["7sus4", "7sus"],
+      "intervals": [0, 5, 7, 10],
+      "coords": [[0, 0], [0, -1], [0, 1], [-1, 1]]
+    }
+  ]
+}
