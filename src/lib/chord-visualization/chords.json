@@ -81,7 +81,7 @@
     },
     {
       "name": "Suspended 2nd",
-      "aliases": ["sus2"],
+      "aliases": ["sus2", "add9"],
       "intervals": [0, 2, 7]
     },
     {
