@@ -31,7 +31,7 @@
     const isChord = wordsNoSlash.map(w => parseChord(w) !== null || w === '|');
     const nChords = isChord.filter(Boolean).length;
 
-    if (nChords / Math.max(1, nWords) > 0.4) return 'chords';
+    if (nChords / Math.max(1, nWords) > 0.35) return 'chords';
     return 'lyrics';
   }
 
@@ -174,10 +174,12 @@
               markerId,
             };
           } else {
+            // For words, show full word
+            const wordStr = cow.content as string;
             return {
               pos: cow.pos[1],
               svg: '',
-              word: cow.content as string,
+              word: wordStr,
               markerId,
             };
           }
@@ -280,8 +282,9 @@
   });
 
   $effect(() => {
-    // Re-align when content changes
+    // Re-align when content or zoom changes
     processedLines;
+    zoomLevel;
     setTimeout(alignChordIcons, 0);
   });
 

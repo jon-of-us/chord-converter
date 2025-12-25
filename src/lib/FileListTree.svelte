@@ -278,9 +278,6 @@
 
 <style>
   .tree {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
     padding: 0;
     margin: 0;
     list-style: none;

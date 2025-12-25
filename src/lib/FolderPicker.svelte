@@ -117,7 +117,7 @@
       
       await scanDirectory(handle, '', files);
       
-      console.log('Total .txt files found:', files.length);
+      console.log('Total files found:', files.length);
       
       // Sort files alphabetically by path
       files.sort((a, b) => a.name.localeCompare(b.name));
@@ -133,7 +133,7 @@
     for await (const entry of dirHandle.values()) {
       const entryPath = path ? `${path}/${entry.name}` : entry.name;
       
-      if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.chords')) {
+      if (entry.kind === 'file' && (entry.name.toLowerCase().endsWith('.chords') || entry.name.toLowerCase().endsWith('.txt'))) {
         console.log('Found file:', entryPath);
         files.push({
           name: entry.name,
@@ -291,18 +291,20 @@
   .folder-action-btn {
     flex: 1;
     padding: 0.4rem 0.75rem;
-    background-color: #646cff;
-    color: white;
-    border: none;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     cursor: pointer;
     font-size: 11px;
     font-weight: 500;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
   }
 
   .folder-action-btn:hover:not(:disabled) {
-    background-color: #535bf2;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .folder-action-btn:disabled {
@@ -313,9 +315,9 @@
   .disconnect-btn {
     flex: 1;
     padding: 0.4rem 0.75rem;
-    background-color: rgba(255, 50, 50, 0.2);
-    color: #ff6b6b;
-    border: 1px solid #ff6b6b;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     cursor: pointer;
     font-size: 11px;
@@ -324,7 +326,9 @@
   }
 
   .disconnect-btn:hover:not(:disabled) {
-    background-color: rgba(255, 50, 50, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .disconnect-btn:disabled {

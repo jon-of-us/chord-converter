@@ -102,6 +102,20 @@
 
   let tree = $derived(buildTree($fileStore.files));
 
+  // Extract all folders from file paths when files change
+  $effect(() => {
+    const folders = new Set<string>();
+    for (const file of $fileStore.files) {
+      const parts = file.path.split('/');
+      // Add all parent folders
+      for (let i = 1; i < parts.length; i++) {
+        const folderPath = parts.slice(0, i).join('/');
+        folders.add(folderPath);
+      }
+    }
+    allFolders = folders;
+  });
+
   async function selectFile(file: FileEntry) {
     selectedFolderPath = null; // Clear folder selection when selecting a file
     try {
@@ -690,33 +704,35 @@
 </script>
 
 <div class="file-list">
-  {#if $fileStore.files.length === 0}
-    <div class="empty-state">
-      {#if $fileStore.storageMode === 'filesystem'}
-        No .chords files found in this folder
-      {:else}
-        No files yet. Click + to create one!
-      {/if}
-    </div>
-  {:else}
-    <FileListTree
-      {tree}
-      {expandedFolders}
-      {editingFilePath}
-      {editingValue}
-      {selectedFolderPath}
-      currentFile={$fileStore.currentFile}
-      onToggleFolder={toggleFolder}
-      onSelectFile={selectFile}
-      onStartRename={startRename}
-      onStartRenameFolder={startRenameFolder}
-      onDeleteFile={deleteFile}
-      onDeleteFolder={deleteFolder}
-      onSaveFileName={saveFileName}
-      onSaveFolderName={saveFolderName}
-      onKeydown={handleKeydown}
-    />
-  {/if}
+  <div class="file-list-content">
+    {#if $fileStore.files.length === 0}
+      <div class="empty-state">
+        {#if $fileStore.storageMode === 'filesystem'}
+          No .chords files found in this folder
+        {:else}
+          No files yet. Click + to create one!
+        {/if}
+      </div>
+    {:else}
+      <FileListTree
+        {tree}
+        {expandedFolders}
+        {editingFilePath}
+        {editingValue}
+        {selectedFolderPath}
+        currentFile={$fileStore.currentFile}
+        onToggleFolder={toggleFolder}
+        onSelectFile={selectFile}
+        onStartRename={startRename}
+        onStartRenameFolder={startRenameFolder}
+        onDeleteFile={deleteFile}
+        onDeleteFolder={deleteFolder}
+        onSaveFileName={saveFileName}
+        onSaveFolderName={saveFolderName}
+        onKeydown={handleKeydown}
+      />
+    {/if}
+  </div>
   
   <FileListFooter
     onAddFile={addNewFile}
@@ -727,8 +743,16 @@
   .file-list {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .file-list-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
   }
 
   .empty-state {
