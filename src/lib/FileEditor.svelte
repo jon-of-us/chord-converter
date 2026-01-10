@@ -20,9 +20,11 @@
 <script lang="ts">
   import { fileStore } from './fileStore';
   import { saveBrowserFile } from './indexedDB';
-  import ChordView from './chord-visualization/ChordView.svelte';
+  import ChordView from './chords/ChordView.svelte';
   import { themeStore } from './themeStore';
   import { editorConfig } from './config';
+  import { parseMetadata, serializeWithMetadata } from './chordFileUtils';
+  import {  } from './chords/keyUtils';
 
   let { controls = $bindable() }: { controls?: EditorControls } = $props();
 
@@ -37,6 +39,7 @@
   let autoscrollAnimationId: number | null = null;
   let scrollAccumulator = 0;
   let textareaRef = $state<HTMLTextAreaElement>();
+  let previousViewMode = $state<'text' | 'chords'>('text');
 
   // Only sync when currentContent actually changes (new file loaded or saved)
   $effect(() => {
@@ -67,6 +70,52 @@
       controls.saveFile = saveFile;
     }
   });
+
+  // When switching to chords view, update key metadata if needed
+  $effect(() => {
+    if (viewMode === 'chords' && previousViewMode === 'text' && $fileStore.currentFile) {
+      updateKeyMetadataIfNeeded();
+    }
+    previousViewMode = viewMode;
+  });
+
+  async function updateKeyMetadataIfNeeded() {
+    if (!$fileStore.currentFile || !editedContent) return;
+
+    try {
+      const result = parseMetadata(editedContent);
+      let shouldUpdate = false;
+      let updatedContent = editedContent;
+
+      // If no key is specified, use the detected key
+      if (result.specifiedKey === null && result.detectedKey !== null) {
+        const numericKey = result.detectedKey.toString();
+        result.metadata.key = numericKey;
+        updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
+        shouldUpdate = true;
+      }
+      // If key is specified but in non-numeric format, convert it
+      else if (result.specifiedKey !== null && result.metadata.key && result.metadata.key.trim() !== '') {
+        // Check if it's already in numeric format (0-11)
+        const numericKey = result.specifiedKey.toString();
+        if (result.metadata.key !== numericKey) {
+          result.metadata.key = numericKey;
+          updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
+          shouldUpdate = true;
+        }
+      }
+
+      // Update the content if changes were made
+      if (shouldUpdate) {
+        editedContent = updatedContent;
+        lastLoadedContent = updatedContent;
+        // Note: We don't call fileStore.setCurrentContent here to avoid triggering effects
+        // The content will be saved when the user explicitly saves the file
+      }
+    } catch (error: any) {
+      console.error('Error updating key metadata:', error);
+    }
+  }
 
   async function saveFile() {
     if (!$fileStore.currentFile || !hasChanges) return;

@@ -1,21 +1,29 @@
-import { fileConfig, metadataFields } from './config';
+import { fileConfig } from './config';
+import { parseKeyString } from './chords/keyUtils';
+import { detectKeyFromChords } from './chords/keyDetection';
 
 export interface ChordFileMetadata {
   title: string;
   artist: string;
-  key: string;
+  key: string; // The key specified in metadata (can be various formats)
   info: string;
+}
+
+export interface ChordFileWithKeys {
+  metadata: ChordFileMetadata;
+  specifiedKey: number | null; // Parsed numeric key from metadata
+  detectedKey: number | null; // Key detected from chords
+  contentWithoutMetadata: string;
 }
 
 /**
  * Parse metadata from the beginning of a .chords file
- * Expected format:
- * Title: ...
- * Artist: ...
- * Key: ...
- * Info: ...
+ * Ensures first non-empty line has "Title:" prefix
+ * 
+ * Returns both specified key (from metadata) and detected key (from chords)
+ * These are tracked independently
  */
-export function parseMetadata(content: string): { metadata: ChordFileMetadata; contentWithoutMetadata: string } {
+export function parseMetadata(content: string): ChordFileWithKeys {
   const lines = content.split('\n');
   const metadata: ChordFileMetadata = {
     title: fileConfig.defaultTitle,
@@ -25,48 +33,111 @@ export function parseMetadata(content: string): { metadata: ChordFileMetadata; c
   };
 
   let metadataEndIndex = 0;
+  let firstNonEmptyLineIdx = -1;
+  let hasTitle = false;
+  let specifiedKeyStr = '';
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    const line = lines[i];
+    const trimmedLine = line.trim();
     
-    if (line.startsWith('Title:')) {
-      metadata.title = line.substring(6).trim();
-      metadataEndIndex = i + 1;
-    } else if (line.startsWith('Artist:')) {
-      metadata.artist = line.substring(7).trim();
-      metadataEndIndex = i + 1;
-    } else if (line.startsWith('Key:')) {
-      metadata.key = line.substring(4).trim();
-      metadataEndIndex = i + 1;
-    } else if (line.startsWith('Info:')) {
-      metadata.info = line.substring(5).trim();
-      metadataEndIndex = i + 1;
-    } else if (line !== '' && !line.startsWith('Title:') && !line.startsWith('Artist:') && !line.startsWith('Key:') && !line.startsWith('Info:')) {
-      // Stop parsing when we hit content that's not metadata
-      break;
+    // Skip empty lines at beginning
+    if (trimmedLine === '') {
+      if (metadataEndIndex === 0) continue;
     }
+    
+    const lowerTrimmed = trimmedLine.toLowerCase();
+    
+    if (lowerTrimmed.startsWith('title:')) {
+      metadata.title = trimmedLine.substring(6).trim();
+      metadataEndIndex = i + 1;
+      hasTitle = true;
+    } else if (lowerTrimmed.startsWith('artist:')) {
+      metadata.artist = trimmedLine.substring(7).trim();
+      metadataEndIndex = i + 1;
+    } else if (lowerTrimmed.startsWith('key:')) {
+      specifiedKeyStr = trimmedLine.substring(4).trim();
+      metadata.key = specifiedKeyStr;
+      metadataEndIndex = i + 1;
+    } else if (lowerTrimmed.startsWith('info:')) {
+      metadata.info = trimmedLine.substring(5).trim();
+      metadataEndIndex = i + 1;
+    } else if (trimmedLine !== '') {
+      // Found first non-metadata line
+      if (firstNonEmptyLineIdx === -1) {
+        firstNonEmptyLineIdx = i;
+      }
+      
+      if (!hasTitle) {
+        break;
+      }
+      
+      if (!lowerTrimmed.startsWith('title:') && 
+          !lowerTrimmed.startsWith('artist:') && 
+          !lowerTrimmed.startsWith('key:') && 
+          !lowerTrimmed.startsWith('info:')) {
+        break;
+      }
+    }
+  }
+
+  // Handle first non-empty line if no Title was found
+  if (!hasTitle && firstNonEmptyLineIdx >= 0) {
+    const firstLine = lines[firstNonEmptyLineIdx].trim();
+    // Add "Title: " prefix if not already present
+    if (!firstLine.toLowerCase().startsWith('title:')) {
+      metadata.title = firstLine;
+    } else {
+      metadata.title = firstLine.substring(6).trim();
+    }
+    metadataEndIndex = firstNonEmptyLineIdx + 1;
   }
 
   const contentWithoutMetadata = lines.slice(metadataEndIndex).join('\n').trim();
 
-  return { metadata, contentWithoutMetadata };
+  // Parse specified key (from metadata)
+  let specifiedKey: number | null = null;
+  if (specifiedKeyStr) {
+    specifiedKey = parseKeyString(specifiedKeyStr);
+  }
+
+  // Detect key from chords (independent of specified key)
+  const detectedKey = detectKeyFromChords(content);
+
+  return {
+    metadata,
+    specifiedKey,
+    detectedKey,
+    contentWithoutMetadata
+  };
 }
 
 /**
  * Serialize metadata and content back into a .chords file format
+ * Converts key to numeric format (1-12) if possible
  */
 export function serializeWithMetadata(metadata: ChordFileMetadata, content: string): string {
   const parts: string[] = [];
 
-  if (metadata.title) {
-    parts.push(`Title: ${metadata.title}`);
-  }
+  // Always include title
+  const title = metadata.title || fileConfig.defaultTitle;
+  parts.push(`Title: ${title}`);
+  
   if (metadata.artist) {
     parts.push(`Artist: ${metadata.artist}`);
   }
-  if (metadata.key) {
-    parts.push(`Key: ${metadata.key}`);
+  
+  // Convert key to numeric format if valid
+  if (metadata.key && metadata.key.trim() !== '') {
+    const keyNum = parseKeyString(metadata.key);
+    if (keyNum !== null) {
+      parts.push(`Key: ${keyNum.toString()}`);
+    } else {
+      // Keep original if parsing fails
+      parts.push(`Key: ${metadata.key}`);
+    }
   }
+  
   if (metadata.info) {
     parts.push(`Info: ${metadata.info}`);
   }
