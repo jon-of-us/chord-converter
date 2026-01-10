@@ -2,7 +2,8 @@
 
 A web-based application for viewing, editing, and managing chord sheets with advanced visualization capabilities.
 
-Chord Converter is a Svelte-based progressive web app that allows musicians to view and edit chord sheets in `.chords` format with synchronized text and chord visualization, transpose chords automatically with intelligent key detection, visualize chords as SVG diagrams positioned above lyrics, manage files locally or in-browser storage, organize sheets in folder structures, and control playback with autoscroll and adjustable zoom levels.
+Chord Converter is a Svelte-based progressive web app that allows musicians to view and edit chord sheets in `.chords` format with synchronized text and chord visualization, transpose chords automatically with intelligent key detection, visualize chords as SVG diagrams inspired by the tonnetz, manage files locally or in-browser storage and control playback with autoscroll and adjustable zoom levels.
+
 
 ## Technical Stack
 
@@ -50,3 +51,20 @@ Chorus lyrics
 ```
 
 Lines are classified as chords (>35% chord density) or lyrics, with automatic formatting and alignment.
+
+# New Chord System
+Each note is represented by a number from 0-11, corresponding to the circle of fifths:
+```
+0 = G#
+1 = D#
+2 = A#
+3 = F
+4 = C 
+5 = G
+6 = D
+7 = A
+8 = E
+9 = B
+10 = F#
+11 = C#
+```

@@ -142,8 +142,9 @@ export function serializeWithMetadata(metadata: ChordFileMetadata, content: stri
     parts.push(`Info: ${metadata.info}`);
   }
 
-  // Add empty line between metadata and content if there's content
+  // Add empty lines between metadata and content if there's content
   if (parts.length > 0 && content.trim()) {
+    parts.push('');
     parts.push('');
   }
 

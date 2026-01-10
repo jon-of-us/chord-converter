@@ -87,23 +87,30 @@
       let shouldUpdate = false;
       let updatedContent = editedContent;
 
-      // If no key is specified, use the detected key
-      if (result.specifiedKey === null && result.detectedKey !== null) {
-        const numericKey = result.detectedKey.toString();
-        result.metadata.key = numericKey;
-        updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
-        shouldUpdate = true;
-      }
-      // If key is specified but in non-numeric format, convert it
-      else if (result.specifiedKey !== null && result.metadata.key && result.metadata.key.trim() !== '') {
-        // Check if it's already in numeric format (0-11)
-        const numericKey = result.specifiedKey.toString();
-        if (result.metadata.key !== numericKey) {
+      // Check if the current key is already in numeric format (0-11)
+      const currentKeyIsNumeric = result.metadata.key && 
+        /^\d+$/.test(result.metadata.key.trim()) &&
+        parseInt(result.metadata.key.trim()) >= 0 && 
+        parseInt(result.metadata.key.trim()) <= 11;
+
+      // Only add/update key if it's not already in valid numeric format
+      if (!currentKeyIsNumeric) {
+        // If no valid key exists, use detected key
+        if (result.specifiedKey === null && result.detectedKey !== null) {
+          const numericKey = result.detectedKey.toString();
+          result.metadata.key = numericKey;
+          updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
+          shouldUpdate = true;
+        }
+        // If key exists but is in non-numeric format (A, Am, C Major, etc.), convert it
+        else if (result.specifiedKey !== null) {
+          const numericKey = result.specifiedKey.toString();
           result.metadata.key = numericKey;
           updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
           shouldUpdate = true;
         }
       }
+      // If key is already numeric (0-11), keep it as is
 
       // Update the content if changes were made
       if (shouldUpdate) {
