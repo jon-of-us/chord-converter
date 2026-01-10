@@ -3,7 +3,7 @@
  * Analyzes all chords in a file and determines the most likely key
  */
 
-import { parseChord } from './chordParser';
+import * as ChordParser from './chordParser';
 
 /**
  * Detect key from chords using convolution with Krumhansl-Schmuckler weights
@@ -31,7 +31,7 @@ export function detectKeyFromChords(content: string): number | null {
     // Split by whitespace and parse each word as a potential chord
     const words = line.split(/\s+/);
     for (const word of words) {
-      const chord = parseChord(word);
+      const chord = ChordParser.parseChord(word);
       if (chord) {
         chords.push(chord);
       }
@@ -73,5 +73,44 @@ export function detectKeyFromChords(content: string): number | null {
     }
   }
   
+  return (bestOffset + 4) % 12; // Convert offset from C (4) to actual key
+}
+
+/**
+ * Calculate the transposition offset needed to move all chords to key 0 (C)
+ * Used for normalized visualization
+ * 
+ * @param chords - Array of parsed chords
+ * @returns The offset value to transpose to C
+ */
+export function calculateTransposeToCOffset(chords: any[]): number {
+  if (chords.length === 0) return 0;
+
+  const noteCount = new Array(12).fill(0);
+
+  for (const chord of chords) {
+    for (const interval of chord.type.intervals) {
+      const note = (chord.root + interval * 7) % 12;
+      noteCount[note] += 1;
+    }
+    noteCount[(chord.root + chord.bass * 7) % 12] += 2; // bass gets double weight
+  }
+
+  const weights = [10, 0, 4, 174, 265, 231, 139, 221, 180, 100, 6, 2];
+
+  let maxScore = -Infinity;
+  let bestOffset = 0;
+
+  for (let offset = 0; offset < 12; offset++) {
+    let score = 0;
+    for (let i = 0; i < 12; i++) {
+      score += noteCount[(i + offset) % 12] * weights[i];
+    }
+    if (score > maxScore) {
+      maxScore = score;
+      bestOffset = offset;
+    }
+  }
+
   return bestOffset;
 }

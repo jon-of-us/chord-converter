@@ -1,6 +1,6 @@
 import { fileConfig } from './config';
-import { parseKeyString } from './chords/keyUtils';
-import { detectKeyFromChords } from './chords/keyDetection';
+import * as KeyUtils from './chords/keyUtils';
+import * as KeyDetection from './chords/keyDetection';
 
 export interface ChordFileMetadata {
   title: string;
@@ -98,11 +98,11 @@ export function parseMetadata(content: string): ChordFileWithKeys {
   // Parse specified key (from metadata)
   let specifiedKey: number | null = null;
   if (specifiedKeyStr) {
-    specifiedKey = parseKeyString(specifiedKeyStr);
+    specifiedKey = KeyUtils.parseKeyString(specifiedKeyStr);
   }
 
   // Detect key from chords (independent of specified key)
-  const detectedKey = detectKeyFromChords(content);
+  const detectedKey = KeyDetection.detectKeyFromChords(content);
 
   return {
     metadata,
@@ -129,7 +129,7 @@ export function serializeWithMetadata(metadata: ChordFileMetadata, content: stri
   
   // Convert key to numeric format if valid
   if (metadata.key && metadata.key.trim() !== '') {
-    const keyNum = parseKeyString(metadata.key);
+    const keyNum = KeyUtils.parseKeyString(metadata.key);
     if (keyNum !== null) {
       parts.push(`Key: ${keyNum.toString()}`);
     } else {

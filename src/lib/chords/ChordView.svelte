@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { parseChord } from './chordParser';
+  import * as ChordParser from './chordParser';
   import { generateChordSVG } from './chordToSVG';
   import type { Chord } from './chordTypes';
   import { onMount } from 'svelte';
   import { editorConfig } from '../config';
+  import * as KeyDetection from './keyDetection';
 
   const CHORD_ICON_GAP = 10; // px minimal horizontal gap between consecutive chord icons
 
@@ -28,7 +29,7 @@
 
     const wordsNoSlash = split.map(w => w.split('/')[0]);
     const nWords = wordsNoSlash.length;
-    const isChord = wordsNoSlash.map(w => parseChord(w) !== null || w === '|');
+    const isChord = wordsNoSlash.map(w => ChordParser.parseChord(w) !== null || w === '|');
     const nChords = isChord.filter(Boolean).length;
 
     if (nChords / Math.max(1, nWords) > 0.35) return 'chords';
@@ -36,33 +37,15 @@
   }
 
   function transposeToC(chordsOrWords: ChordOrWord[]): ChordOrWord[] {
-    const noteCount = new Array(12).fill(0);
+    // Extract just the chords for calculation
+    const chordsOnly = chordsOrWords
+      .filter(cow => cow.isChord)
+      .map(cow => cow.content as Chord);
 
-    for (const cow of chordsOrWords) {
-      if (!cow.isChord) continue;
-      const chord = cow.content as Chord;
+    // Calculate the offset needed to transpose to C
+    const offsetToC = KeyDetection.calculateTransposeToCOffset(chordsOnly);
 
-      for (const interval of chord.type.intervals) {
-        const note = (chord.root + interval * 7) % 12;
-        noteCount[note] += 1;
-      }
-      noteCount[(chord.root + chord.bass * 7) % 12] += 2; // bass gets double weight
-    }
-
-    const weights = [10, 0, 4, 174, 265, 231, 139, 221, 180, 100, 6, 2];
-
-    // Convolve to find best key
-    const scores: number[] = [];
-    for (let offset = 0; offset < 12; offset++) {
-      let score = 0;
-      for (let i = 0; i < 12; i++) {
-        score += noteCount[(i + offset) % 12] * weights[i];
-      }
-      scores.push(score);
-    }
-
-    const offsetToC = scores.indexOf(Math.max(...scores));
-
+    // Apply the transpose offset to all chords
     for (const cow of chordsOrWords) {
       if (!cow.isChord) continue;
       const chord = cow.content as Chord;
@@ -108,7 +91,7 @@
           continue;
         }
 
-        const parsed = parseChord(tok);
+        const parsed = ChordParser.parseChord(tok);
         const content = parsed || tok;
 
         chordsInLine[i].push(chordsOrWords.length);

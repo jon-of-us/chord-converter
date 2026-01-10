@@ -24,7 +24,7 @@
   import { themeStore } from './themeStore';
   import { editorConfig } from './config';
   import { parseMetadata, serializeWithMetadata } from './chordFileUtils';
-  import {  } from './chords/keyUtils';
+  import * as KeyUtils from './chords/keyUtils';
 
   let { controls = $bindable() }: { controls?: EditorControls } = $props();
 
@@ -108,12 +108,41 @@
       // Update the content if changes were made
       if (shouldUpdate) {
         editedContent = updatedContent;
-        lastLoadedContent = updatedContent;
-        // Note: We don't call fileStore.setCurrentContent here to avoid triggering effects
-        // The content will be saved when the user explicitly saves the file
+        // Update the store so hasChanges becomes true
+        fileStore.setCurrentContent($fileStore.currentContent);
+        // Save the file with the updated metadata
+        await saveUpdatedContent(updatedContent);
       }
     } catch (error: any) {
       console.error('Error updating key metadata:', error);
+    }
+  }
+
+  async function saveUpdatedContent(content: string) {
+    if (!$fileStore.currentFile) return;
+
+    try {
+      if ($fileStore.storageMode === 'filesystem' && $fileStore.currentFile.handle) {
+        // Save to filesystem
+        const writable = await $fileStore.currentFile.handle.createWritable();
+        await writable.write(content);
+        await writable.close();
+      } else {
+        // Save to browser storage
+        await saveBrowserFile($fileStore.currentFile.name, content);
+        
+        // Update file entry in store
+        fileStore.updateFile($fileStore.currentFile.name, {
+          ...$fileStore.currentFile,
+          content: content
+        });
+      }
+      
+      // Update store with new content
+      fileStore.setCurrentContent(content);
+      lastLoadedContent = content;
+    } catch (error: any) {
+      fileStore.setError(`Error saving key metadata: ${error.message}`);
     }
   }
 
