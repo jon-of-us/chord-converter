@@ -42,8 +42,12 @@ export function parseKeyString(keyStr: string): number | null {
   
   const key = keyStr.trim();
   
-  // Check if it's already a number
+  // Check if it's already a number (0-11)
   const num = parseInt(key);
+  if (!isNaN(num) && num >= 0 && num <= 11) {
+    return num;
+  }
+  
   // Parse note name with optional modifier
   const lower = key.toLowerCase();
   

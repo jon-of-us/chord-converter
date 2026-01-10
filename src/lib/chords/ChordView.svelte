@@ -14,8 +14,8 @@
     isChord: boolean;
   }
 
-  let { content = '', zoomLevel = 100, isAutoscrolling = false, autoscrollSpeed = 1, theme = 'dark' }: 
-    { content: string; zoomLevel?: number; isAutoscrolling?: boolean; autoscrollSpeed?: number; theme?: 'dark' | 'light' } = $props();
+  let { content = '', zoomLevel = 100, isAutoscrolling = false, autoscrollSpeed = 1, theme = 'dark', showRootNumbers = false }: 
+    { content: string; zoomLevel?: number; isAutoscrolling?: boolean; autoscrollSpeed?: number; theme?: 'dark' | 'light'; showRootNumbers?: boolean } = $props();
   let viewContainer: HTMLDivElement;
   let scrollOffset = $state(0);
 
@@ -64,6 +64,7 @@
       svg: string; 
       word: string;
       markerId: string;
+      rootNumber?: number;
     }>;
     maxPos?: number;
   }
@@ -155,6 +156,7 @@
               svg: svgCache.get(key)!,
               word: '',
               markerId,
+              rootNumber: chord.root, // Store the actual root number (transposed to current key)
             };
           } else {
             // For words, show full word
@@ -164,6 +166,7 @@
               svg: '',
               word: wordStr,
               markerId,
+              rootNumber: undefined,
             };
           }
         });
@@ -198,14 +201,14 @@
       }> = [];
       
       markers.forEach(m => {
-        const svg = m.querySelector('svg.chord-icon') as HTMLElement;
+        const chordContainer = m.querySelector('.chord-container') as HTMLElement;
         const markerId = m.id;
         const wordEl = line.querySelector(`.word-chord[data-marker='${markerId}']`) as HTMLElement;
         
-        if (svg) {
+        if (chordContainer) {
           items.push({
             type: 'chord',
-            element: svg,
+            element: chordContainer,
             naturalLeft: m.getBoundingClientRect().left - containerRect.left
           });
         }
@@ -323,7 +326,7 @@
       <pre class="lyrics">{line.content}</pre>
     {:else if line.type === 'chords'}
       <div class="chord-line-wrapper">
-        <pre class="lyrics chord-markers">{#each Array(line.maxPos).fill(' ') as char, idx}{#if line.chords?.some(c => c.pos === idx)}{#each line.chords.filter(c => c.pos === idx) as chord}<span class="marker chord-marker" id={chord.markerId}>{#if chord.svg}{@html chord.svg}{/if}</span>{/each}{/if}{char}{/each}</pre>
+        <pre class="lyrics chord-markers">{#each Array(line.maxPos).fill(' ') as char, idx}{#if line.chords?.some(c => c.pos === idx)}{#each line.chords.filter(c => c.pos === idx) as chord}<span class="marker chord-marker" id={chord.markerId}>{#if chord.svg}<div class="chord-container">{#if showRootNumbers && chord.rootNumber !== undefined}<span class="root-number">{chord.rootNumber}</span>{/if}{@html chord.svg}</div>{:else}{chord.word}{/if}</span>{/each}{/if}{char}{/each}</pre>
         {#each line.chords?.filter(c => c.word) ?? [] as chord}
           <pre class="word-chord" data-marker={chord.markerId}>{chord.word}</pre>
         {/each}
@@ -378,12 +381,25 @@
     overflow: visible;
   }
 
-  .marker :global(svg.chord-icon) {
+  .chord-container {
     position: absolute;
     left: 0;
     bottom: -1.4em;
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+  }
+
+  .chord-container :global(svg.chord-icon) {
     height: 3.2em;
     overflow: visible;
+  }
+
+  .root-number {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: inherit;
+    white-space: nowrap;
   }
 
   .word-chord {

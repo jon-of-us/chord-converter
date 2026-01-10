@@ -23,6 +23,8 @@
     toggleAutoscroll: () => {},
     increaseAutoscrollSpeed: () => {},
     decreaseAutoscrollSpeed: () => {},
+    transposeUp: () => {},
+    transposeDown: () => {},
     saveFile: () => {}
   });
 
@@ -86,6 +88,8 @@
         onToggleAutoscroll={editorControls.toggleAutoscroll}
         onIncreaseSpeed={editorControls.increaseAutoscrollSpeed}
         onDecreaseSpeed={editorControls.decreaseAutoscrollSpeed}
+        onTransposeUp={editorControls.transposeUp}
+        onTransposeDown={editorControls.transposeDown}
         onSave={editorControls.saveFile}
       />
     </aside>

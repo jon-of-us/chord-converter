@@ -4,19 +4,21 @@
   import { editorConfig } from './config';
   
   interface ControlsSidebarProps {
-    viewMode: 'text' | 'chords';
+    viewMode: 'text' | 'structure' | 'chords';
     zoomLevel: number;
     isAutoscrolling: boolean;
     autoscrollSpeed: number;
     hasChanges: boolean;
     isSaving: boolean;
     saveSuccess: boolean;
-    onViewModeChange: (mode: 'text' | 'chords') => void;
+    onViewModeChange: (mode: 'text' | 'structure' | 'chords') => void;
     onZoomIn: () => void;
     onZoomOut: () => void;
     onToggleAutoscroll: () => void;
     onIncreaseSpeed: () => void;
     onDecreaseSpeed: () => void;
+    onTransposeUp: () => void;
+    onTransposeDown: () => void;
     onSave: () => void;
   }
 
@@ -34,6 +36,8 @@
     onToggleAutoscroll,
     onIncreaseSpeed,
     onDecreaseSpeed,
+    onTransposeUp,
+    onTransposeDown,
     onSave
   }: ControlsSidebarProps = $props();
 
@@ -53,9 +57,17 @@
       </button>
       <button 
         class="control-button"
+        class:active={viewMode === 'structure'}
+        onclick={() => onViewModeChange('structure')}
+        title="Structure view"
+      >
+        Structure
+      </button>
+      <button 
+        class="control-button"
         class:active={viewMode === 'chords'}
         onclick={() => onViewModeChange('chords')}
-        title="Chord view"
+        title="Chord view with numbers"
       >
         Chords
       </button>
@@ -113,6 +125,7 @@
       </div>
     </div>
 
+
     <div class="control-section">
       <button 
         onclick={() => themeStore.toggle()}
@@ -121,6 +134,27 @@
       >
         {theme === 'dark' ? '☀' : '🌙'}
       </button>
+    </div>
+
+    <div class="control-section">
+      <h3>Transpose</h3>
+      <div class="control-row">
+        <button 
+          onclick={onTransposeDown}
+          title="Transpose down"
+          class="small-btn"
+        >
+          −
+        </button>
+        <span class="value">Key</span>
+        <button 
+          onclick={onTransposeUp}
+          title="Transpose up"
+          class="small-btn"
+        >
+          +
+        </button>
+      </div>
     </div>
 
     <div class="control-section save-section">

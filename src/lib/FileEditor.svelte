@@ -1,6 +1,6 @@
 <script lang="ts" module>
   export interface EditorControls {
-    viewMode: 'text' | 'chords';
+    viewMode: 'text' | 'structure' | 'chords';
     zoomLevel: number;
     isAutoscrolling: boolean;
     autoscrollSpeed: number;
@@ -13,6 +13,8 @@
     toggleAutoscroll: () => void;
     increaseAutoscrollSpeed: () => void;
     decreaseAutoscrollSpeed: () => void;
+    transposeUp: () => void;
+    transposeDown: () => void;
     saveFile: () => void;
   }
 </script>
@@ -32,14 +34,15 @@
   let isSaving = $state(false);
   let saveSuccess = $state(false);
   let lastLoadedContent = $state('');
-  let viewMode = $state<'text' | 'chords'>('text');
+  let viewMode = $state<'text' | 'structure' | 'chords'>('text');
   let zoomLevel = $state(editorConfig.defaultZoom);
   let isAutoscrolling = $state(false);
   let autoscrollSpeed = $state(editorConfig.defaultAutoscrollSpeed);
   let autoscrollAnimationId: number | null = null;
   let scrollAccumulator = 0;
   let textareaRef = $state<HTMLTextAreaElement>();
-  let previousViewMode = $state<'text' | 'chords'>('text');
+  let previousViewMode = $state<'text' | 'structure' | 'chords'>('text');
+  let currentTranspose = $state(0);
 
   // Only sync when currentContent actually changes (new file loaded or saved)
   $effect(() => {
@@ -67,16 +70,25 @@
       controls.toggleAutoscroll = toggleAutoscroll;
       controls.increaseAutoscrollSpeed = increaseAutoscrollSpeed;
       controls.decreaseAutoscrollSpeed = decreaseAutoscrollSpeed;
+      controls.transposeUp = transposeUp;
+      controls.transposeDown = transposeDown;
       controls.saveFile = saveFile;
     }
   });
 
-  // When switching to chords view, update key metadata if needed
+  // When switching to structure or chords view, update key metadata if needed
   $effect(() => {
-    if (viewMode === 'chords' && previousViewMode === 'text' && $fileStore.currentFile) {
+    if ((viewMode === 'structure' || viewMode === 'chords') && previousViewMode === 'text' && $fileStore.currentFile) {
       updateKeyMetadataIfNeeded();
     }
     previousViewMode = viewMode;
+  });
+
+  // When a new file is opened/switched, update key metadata if we're already in structure/chord view
+  $effect(() => {
+    if ($fileStore.currentFile && (viewMode === 'structure' || viewMode === 'chords')) {
+      updateKeyMetadataIfNeeded();
+    }
   });
 
   async function updateKeyMetadataIfNeeded() {
@@ -257,6 +269,58 @@
   function decreaseAutoscrollSpeed() {
     autoscrollSpeed = Math.max(autoscrollSpeed - editorConfig.autoscrollStepSize, editorConfig.minAutoscrollSpeed);
   }
+
+  async function transposeUp() {
+    console.log('transposeUp called');
+    await transposeKey(7);
+  }
+
+  async function transposeDown() {
+    console.log('transposeDown called');
+    await transposeKey(-7);
+  }
+
+  async function transposeKey(offset: number) {
+    console.log('transposeKey called with offset:', offset);
+    if (!$fileStore.currentFile || !editedContent) return;
+
+    try {
+      // First ensure metadata is up to date
+      console.log('Before updateKeyMetadataIfNeeded, editedContent:', editedContent.substring(0, 100));
+      await updateKeyMetadataIfNeeded();
+      console.log('After updateKeyMetadataIfNeeded, editedContent:', editedContent.substring(0, 100));
+
+      // Re-read editedContent after potential update
+      const contentToTranspose = editedContent;
+      
+      // Parse the current metadata
+      const result = parseMetadata(contentToTranspose);
+      const currentKey = result.specifiedKey;
+      console.log('Current key:', currentKey);
+
+      if (currentKey !== null) {
+        // Calculate new key (0-11)
+        const newKey = (currentKey + offset + 12) % 12;
+        console.log('New key:', newKey);
+        result.metadata.key = newKey.toString();
+        const updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
+        console.log('Updated content:', updatedContent.substring(0, 100));
+        
+        // Update edited content immediately for display
+        editedContent = updatedContent;
+        console.log('Set editedContent to updatedContent');
+        
+        // Save the file with the new key
+        await saveUpdatedContent(updatedContent);
+        console.log('Saved updated content');
+        
+        // Update transpose state for display
+        currentTranspose += offset;
+      }
+    } catch (error: any) {
+      console.error('Error transposing key:', error);
+    }
+  }
 </script>
 
 <div class="file-editor">
@@ -270,7 +334,7 @@
         placeholder="File content..."
         style="font-size: {zoomLevel}%; background-color: {$themeStore === 'light' ? '#ffffff' : '#1e1e1e'}; color: {$themeStore === 'light' ? '#333333' : '#e0e0e0'};"
       ></textarea>
-    {:else}
+    {:else if viewMode === 'structure'}
       <div class="chord-view-container">
         <ChordView 
           content={editedContent} 
@@ -278,6 +342,18 @@
           isAutoscrolling={isAutoscrolling}
           autoscrollSpeed={autoscrollSpeed}
           theme={$themeStore}
+          showRootNumbers={false}
+        />
+      </div>
+    {:else if viewMode === 'chords'}
+      <div class="chord-view-container">
+        <ChordView 
+          content={editedContent} 
+          zoomLevel={zoomLevel}
+          isAutoscrolling={isAutoscrolling}
+          autoscrollSpeed={autoscrollSpeed}
+          theme={$themeStore}
+          showRootNumbers={true}
         />
       </div>
     {/if}
