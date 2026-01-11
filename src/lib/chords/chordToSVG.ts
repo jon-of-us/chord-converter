@@ -136,12 +136,13 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
     }
   }
   
+  // Apply best octave shift
   if (bestOctave) {
     chordPointIndices = chordPointIndices.map(idx => add(idx, bestOctave!));
     bassIndex = bassIndex.map(idx => add(idx, bestOctave!));
   }
   
-  // Shift all point indices to start from (0,0)
+  // normalize all point indices to start from (0,0) to ensure no negative indices
   const tonicPointIndices = [...TONIC_POINT_INDICES];
   const drawnPoints = [...bassIndex, ...chordPointIndices, ...tonicPointIndices];
   
@@ -164,8 +165,9 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   const width = maxCol - minCol + 2 * PADDING;
   const height = VERTICAL_DISTANCE * 5 + 2 * PADDING;
   
+  // correct for normalization shift
   const adjustedRowCoords = rowCoords.map(row => 
-    row.map(val => val - (shiftedTonic[0][0] - 2) * VERTICAL_DISTANCE + PADDING)
+    row.map(val => val - (-minRowIdx - 2) * VERTICAL_DISTANCE + PADDING)
   );
   const adjustedColCoords = colCoords.map(row => 
     row.map(val => val - minCol + PADDING)
@@ -184,6 +186,168 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   for (const point of shiftedTonic) {
     svgContent += drawCircle(point, TONIC_RAD, TONIC_COLOR);
   }
+  
+  // Draw lines between chord points
+  for (let i = 0; i < shiftedChord.length; i++) {
+    const [r1, c1] = shiftedChord[i];
+    const x1 = adjustedColCoords[r1][c1];
+    const y1 = adjustedRowCoords[r1][c1];
+    
+    for (let j = i + 1; j < shiftedChord.length; j++) {
+      const [r2, c2] = shiftedChord[j];
+      const x2 = adjustedColCoords[r2][c2];
+      const y2 = adjustedRowCoords[r2][c2];
+      const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      
+      if (dist < 1.5 * HORIZONTAL_DISTANCE) {
+        svgContent += `  <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${CHORD_COLOR}" stroke-width="${LINE_WIDTH}" />\n`;
+      }
+    }
+  }
+  
+  // Draw chord points
+  for (const point of shiftedChord) {
+    svgContent += drawCircle(point, CHORD_RAD, CHORD_COLOR);
+  }
+  
+  // Draw bass (only if it's not the leftmost point)
+  for (const bassIdx of shiftedBass) {
+    const bassCol = adjustedColCoords[bassIdx[0]][bassIdx[1]];
+    const minChordCol = Math.min(...shiftedChord.map(([r, c]) => adjustedColCoords[r][c]));
+    
+    if (bassCol !== minChordCol) {
+      svgContent += drawCircle(bassIdx, CHORD_RAD, CHORD_COLOR);
+      svgContent += drawCircle(bassIdx, BASS_INNER_RAD, BASS_INNER_COLOR);
+    }
+  }
+  
+  svgContent += "</svg>";
+  return svgContent;
+}
+
+export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'dark'): string {
+  // Select color scheme based on theme
+  const colors = theme === 'light' ? LIGHT_MODE : DARK_MODE;
+  const CHORD_RAD = colors.CHORD_RAD;
+  const CHORD_COLOR = colors.CHORD_COLOR;
+  const BASS_INNER_COLOR = colors.BASS_INNER_COLOR;
+  
+  // Create grid coordinates
+  const rowCoords: number[][] = [];
+  const colCoords: number[][] = [];
+  
+  for (let row = 0; row < 30; row++) {
+    rowCoords[row] = [];
+    colCoords[row] = [];
+    for (let col = 0; col < 30; col++) {
+      rowCoords[row][col] = VERTICAL_DISTANCE * row;
+      colCoords[row][col] = HORIZONTAL_DISTANCE * col + ROW_SHIFT * row;
+    }
+  }
+  
+  // Determine which points to draw
+  const chordIntervals = chord.type.intervals;
+  const providedCoords = chord.type.coords;
+  
+  let chordPointIndices: Point[] = providedCoords
+    ? providedCoords.map(c => [c[0], c[1]] as Point)
+    : chordIntervals.map(intervalToIndex);
+  
+  const providedBassIndex = chord.type.bass_coord;
+  let bassIndex: Point[] = [
+    providedBassIndex 
+      ? [providedBassIndex[0], providedBassIndex[1]] as Point
+      : bassToIndex(chord.bass, chordPointIndices)
+  ];
+  
+  
+  // Determine octave of points
+  const shifts: Point[] = [];
+  for (let vert = -4; vert <= 4; vert++) {
+      shifts.push([vert, 2]);
+  }
+  const rewardRoot: Point = [1, 2];
+  const rewards = [
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  ];
+  // neighbors for each point
+  const n_neighbors = chordPointIndices.map(
+    p1 => chordPointIndices.reduce((count, p2) => {
+      if (p1 === p2) return count;
+      if (p1[0] === p2[0] && Math.abs(p1[1] - p2[1]) === 1) return count + 1;
+      if (p1[0] + 1 === p2[0] && (p1[1] === p2[1] || p1[1] + 1 === p2[1])) return count + 1;
+      if (p1[0] - 1 === p2[0] && (p1[1] === p2[1] || p1[1] - 1 === p2[1])) return count + 1;
+      return count;
+    }, 0)
+  );
+  
+  let bestPositionShift: Point = [0, 0];
+  let bestReward = -1;
+  
+  for (const shift of shifts) {
+    const shiftedCoords = chordPointIndices.map(idx => 
+      add(add(idx, shift), rewardRoot)
+    );
+    const reward = shiftedCoords.reduce((sum, [r, c], idx) => {
+      if (r >= 0 && r < rewards.length && c >= 0 && c < rewards[0].length) {
+        return sum + rewards[r][c] * n_neighbors[idx];
+      }
+      return sum;
+    }, 0);
+    
+    if (reward > bestReward) {
+      bestReward = reward;
+      bestPositionShift = shift;
+    }
+  }
+  console.log(`chord: ${chord.type.name}, best pos: ${bestPositionShift ? bestPositionShift[0] : null}, reward: ${bestReward}`);
+  
+  
+  if (bestPositionShift) {
+    chordPointIndices = chordPointIndices.map(idx => add(idx, bestPositionShift!));
+    bassIndex = bassIndex.map(idx => add(idx, bestPositionShift!));
+  }
+  
+  // normalize all point indices to start from (0,0) to ensure no negative coords
+  const drawnPoints = [...bassIndex, ...chordPointIndices];
+  
+  const minRowIdx = Math.min(...drawnPoints.map(p => p[0]));
+  const minColIdx = Math.min(...drawnPoints.map(p => p[1]));
+  
+  const shiftAll = (points: Point[]): Point[] => 
+    points.map(p => add(p, [-minRowIdx, -minColIdx]));
+  
+  const shiftedBass = shiftAll(bassIndex);
+  const shiftedChord = shiftAll(chordPointIndices);
+  const allShifted = [...shiftedBass, ...shiftedChord];
+  
+  // Shift coordinates to fit drawn points
+  const usedColCoords = allShifted.map(([r, c]) => colCoords[r][c]);
+  const minCol = Math.min(...usedColCoords);
+  const maxCol = Math.max(...usedColCoords);
+  
+  const width = maxCol - minCol + 2 * PADDING;
+  const height = VERTICAL_DISTANCE * 5 + 2 * PADDING;
+  
+  // correct for normalization shift
+  const adjustedRowCoords = rowCoords.map(row => 
+    row.map(val => val - (-minRowIdx - 2) * VERTICAL_DISTANCE + PADDING)
+  );
+  const adjustedColCoords = colCoords.map(row => 
+    row.map(val => val - minCol + PADDING)
+  );
+  
+  // Generate SVG content
+  let svgContent = `<svg class="chord-icon" viewBox="0 0 ${width} ${height}" data-w="${width}" data-h="${height}" xmlns="http://www.w3.org/2000/svg">\n`;
+  
+  const drawCircle = (point: Point, rad: number, color: string): string => {
+    const cx = adjustedColCoords[point[0]][point[1]];
+    const cy = adjustedRowCoords[point[0]][point[1]];
+    return `  <circle cx="${cx}" cy="${cy}" r="${rad}" fill="${color}" />\n`;
+  };
   
   // Draw lines between chord points
   for (let i = 0; i < shiftedChord.length; i++) {

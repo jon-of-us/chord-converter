@@ -1,6 +1,6 @@
 <script lang="ts">
     import * as ChordParser from "./chordParser";
-    import { generateChordSVG } from "./chordToSVG";
+    import { generateChordSVG, generateChordShapeSVG } from "./chordToSVG";
     import type { Chord } from "./chordTypes";
     import { onMount } from "svelte";
     import { editorConfig } from "../config";
@@ -170,16 +170,20 @@
 
                     if (cow.isChord) {
                         const chord = cow.content as Chord;
-                        const key = `${chord.root}-${chord.type.intervals.join(",")}-${chord.bass}-${themeMode}`;
+                        const cachePrefix = showRootNumbers ? 'simplified' : 'full';
+                        const key = `${cachePrefix}-${chord.root}-${chord.type.intervals.join(",")}-${chord.bass}-${themeMode}`;
 
                         if (!svgCache.has(key)) {
                             const adjustedChord = {
                                 ...chord,
                                 root: chord.root - 3,
                             }; // transpose to C major for display
+                            
+                            // Use simplified SVG for chords mode, full SVG for structure mode
+                            const svgGenerator = showRootNumbers ? generateChordShapeSVG : generateChordSVG;
                             svgCache.set(
                                 key,
-                                generateChordSVG(adjustedChord, themeMode),
+                                svgGenerator(adjustedChord, themeMode),
                             );
                         }
 
@@ -450,21 +454,11 @@
     }
 
     .root-number {
-        font-size: 0.85em;
-        font-weight: 600;
+        font-size: 1.2em;
+        font-weight: 700;
         color: inherit;
         white-space: nowrap;
-    }
-
-    .word-chord {
-        position: absolute;
-        top: 0;
-        left: 0;
-        margin: 0;
-        padding: 0;
-        font-weight: 600;
-        pointer-events: none;
-        white-space: pre;
+        margin-right: -0.2em;
     }
 
     .chord-markers {

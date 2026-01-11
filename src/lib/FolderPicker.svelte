@@ -134,7 +134,6 @@
       const entryPath = path ? `${path}/${entry.name}` : entry.name;
       
       if (entry.kind === 'file' && (entry.name.toLowerCase().endsWith('.chords') || entry.name.toLowerCase().endsWith('.txt'))) {
-        console.log('Found file:', entryPath);
         files.push({
           name: entry.name,
           path: entryPath,
