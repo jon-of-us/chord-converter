@@ -450,6 +450,10 @@
         const oldFileData = await oldFile.handle.getFile();
         const content = await oldFileData.text();
 
+        // Extract old filename before modifying pathParts
+        const oldPathParts = oldPath.split('/');
+        const oldFileName = oldPathParts[oldPathParts.length - 1];
+
         // Get folder path
         const folderPath = pathParts.slice(0, -1).join('/');
         let targetFolder = $fileStore.folderHandle!;
@@ -467,8 +471,8 @@
         await writable.write(content);
         await writable.close();
 
-        // Delete old file
-        await targetFolder.removeEntry(oldFile.name);
+        // Delete old file using extracted old filename
+        await targetFolder.removeEntry(oldFileName);
 
         // Update store
         const newFile: FileEntry = {

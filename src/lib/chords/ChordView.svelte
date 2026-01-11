@@ -76,7 +76,6 @@
     interface ProcessedLine {
         type: string;
         content: string;
-        lineIdx: number;
         chords?: Array<{
             pos: number;
             svg: string;
@@ -133,10 +132,28 @@
         // Build HTML representation
         const result: ProcessedLine[] = [];
 
+        // Track metadata lines to know when to add blank line
+        let metadataEndIdx = -1;
+        for (let i = 0; i < nonEmptyLines.length; i++) {
+            const lowerLine = nonEmptyLines[i].toLowerCase();
+            // if first word ends with ':', consider it metadata
+            const firstWord = lowerLine.split(" ")[0];
+            if (firstWord.endsWith(":")) {
+                metadataEndIdx = i;
+            } else if (metadataEndIdx >= 0) {
+                // First non-metadata line found
+                break;
+            }
+        }
+
         for (let i = 0; i < nonEmptyLines.length; i++) {
             const line = nonEmptyLines[i];
             const ltype = lineTypes[i];
-
+            if (i === metadataEndIdx + 1 && metadataEndIdx >= 0) {
+                // Add blank line after metadata
+                result.push({ type: "lyrics", content: " " });
+                result.push({ type: "lyrics", content: "" });
+            }
             if (i === 0) {
                 // First non-empty line is the title
                 let titleContent = line;
@@ -149,12 +166,11 @@
                 result.push({
                     type: "heading",
                     content: titleContent,
-                    lineIdx: i,
                 });
             } else if (ltype === "subheading") {
-                result.push({ type: "subheading", content: line, lineIdx: i });
+                result.push({ type: "subheading", content: line });
             } else if (ltype === "lyrics") {
-                result.push({ type: "lyrics", content: line, lineIdx: i });
+                result.push({ type: "lyrics", content: line });
             } else if (ltype === "chords") {
                 const cows = chordsInLine[i].map(
                     (idx) => transposedChords[idx],
@@ -211,7 +227,6 @@
                 result.push({
                     type: "chords",
                     content: line,
-                    lineIdx: i,
                     chords: chordData,
                     maxPos: maxPos + 2,
                 });
@@ -372,6 +387,8 @@
     {#each processedLines as line}
         {#if line.type === "heading"}
             <div class="heading">{line.content}</div>
+        {:else if line.type === "empty"}
+            <pre class="lyrics"></pre>
         {:else if line.type === "subheading"}
             <div class="subheading">{line.content}</div>
         {:else if line.type === "lyrics"}
