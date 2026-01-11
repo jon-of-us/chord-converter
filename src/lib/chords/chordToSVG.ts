@@ -303,7 +303,6 @@ export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'd
       bestPositionShift = shift;
     }
   }
-  console.log(`chord: ${chord.type.name}, best pos: ${bestPositionShift ? bestPositionShift[0] : null}, reward: ${bestReward}`);
   
   
   if (bestPositionShift) {

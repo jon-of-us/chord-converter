@@ -21,6 +21,7 @@
         autoscrollSpeed = 1,
         theme = "dark",
         showRootNumbers = false,
+        keyNumber = 0,
     }: {
         content: string;
         zoomLevel?: number;
@@ -28,9 +29,9 @@
         autoscrollSpeed?: number;
         theme?: "dark" | "light";
         showRootNumbers?: boolean;
+        keyNumber: number;
     } = $props();
     let viewContainer: HTMLDivElement;
-    let scrollOffset = $state(0);
 
     function lineType(
         line: string,
@@ -384,7 +385,7 @@
                                     >{#if chord.svg}<div
                                             class="chord-container">{#if showRootNumbers && chord.rootNumber !== undefined}<span
                                                     class="root-number"
-                                                    >{chord.rootNumber}</span
+                                                    >{(chord.rootNumber + keyNumber + 8 ) % 12}</span
                                                 >{/if}{@html chord.svg}</div>{/if}</span
                                 >{/each}{/if}{char}{/each}</pre>
             </div>
@@ -458,7 +459,7 @@
         font-weight: 700;
         color: inherit;
         white-space: nowrap;
-        margin-right: -0.2em;
+        margin-right: -0.3em;
     }
 
     .chord-markers {

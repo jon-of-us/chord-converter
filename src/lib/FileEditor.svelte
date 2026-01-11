@@ -42,7 +42,7 @@
   let scrollAccumulator = 0;
   let textareaRef = $state<HTMLTextAreaElement>();
   let previousViewMode = $state<'text' | 'structure' | 'chords'>('text');
-  let currentTranspose = $state(0);
+  let key = $state(0);
 
   // Only sync when currentContent actually changes (new file loaded or saved)
   $effect(() => {
@@ -98,6 +98,7 @@
       const result = parseMetadata(editedContent);
       let shouldUpdate = false;
       let updatedContent = editedContent;
+      let keyNumber: number | null = null;
 
       // Check if the current key is already in numeric format (0-11)
       const currentKeyIsNumeric = result.metadata.key && 
@@ -106,24 +107,27 @@
         parseInt(result.metadata.key.trim()) <= 11;
 
       // Only add/update key if it's not already in valid numeric format
-      if (!currentKeyIsNumeric) {
+      if (currentKeyIsNumeric) {
+        keyNumber = parseInt(result.metadata.key.trim());
+      } else {
         // If no valid key exists, use detected key
-        if (result.specifiedKey === null && result.detectedKey !== null) {
-          const numericKey = result.detectedKey.toString();
+        if (result.specifiedKey === null) {
+          keyNumber = result.detectedKey;
+          const numericKey = (
+            result.detectedKey != null ? result.detectedKey : 0
+          ).toString();
           result.metadata.key = numericKey;
           updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
           shouldUpdate = true;
-        }
-        // If key exists but is in non-numeric format (A, Am, C Major, etc.), convert it
-        else if (result.specifiedKey !== null) {
+        } else { // If key exists but is in non-numeric format (A, Am, C Major, etc.), convert it
+          keyNumber = result.specifiedKey;
           const numericKey = result.specifiedKey.toString();
           result.metadata.key = numericKey;
           updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
           shouldUpdate = true;
         }
-      }
-      // If key is already numeric (0-11), keep it as is
-
+      } 
+  
       // Update the content if changes were made
       if (shouldUpdate) {
         editedContent = updatedContent;
@@ -132,6 +136,10 @@
         // Save the file with the updated metadata
         await saveUpdatedContent(updatedContent);
       }
+
+      // set currentTransposeKey based on the specified key
+      key = keyNumber!
+
     } catch (error: any) {
       console.error('Error updating key metadata:', error);
     }
@@ -271,52 +279,30 @@
   }
 
   async function transposeUp() {
-    console.log('transposeUp called');
-    await transposeKey(7);
+    await changeTransposeKey(7);
   }
 
   async function transposeDown() {
-    console.log('transposeDown called');
-    await transposeKey(-7);
+    await changeTransposeKey(-7);
   }
 
-  async function transposeKey(offset: number) {
-    console.log('transposeKey called with offset:', offset);
+  async function changeTransposeKey(offset: number) {
     if (!$fileStore.currentFile || !editedContent) return;
 
     try {
       // First ensure metadata is up to date
-      console.log('Before updateKeyMetadataIfNeeded, editedContent:', editedContent.substring(0, 100));
       await updateKeyMetadataIfNeeded();
-      console.log('After updateKeyMetadataIfNeeded, editedContent:', editedContent.substring(0, 100));
 
-      // Re-read editedContent after potential update
       const contentToTranspose = editedContent;
-      
-      // Parse the current metadata
       const result = parseMetadata(contentToTranspose);
-      const currentKey = result.specifiedKey;
-      console.log('Current key:', currentKey);
 
-      if (currentKey !== null) {
-        // Calculate new key (0-11)
-        const newKey = (currentKey + offset + 12) % 12;
-        console.log('New key:', newKey);
-        result.metadata.key = newKey.toString();
-        const updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
-        console.log('Updated content:', updatedContent.substring(0, 100));
-        
-        // Update edited content immediately for display
-        editedContent = updatedContent;
-        console.log('Set editedContent to updatedContent');
-        
-        // Save the file with the new key
-        await saveUpdatedContent(updatedContent);
-        console.log('Saved updated content');
-        
-        // Update transpose state for display
-        currentTranspose += offset;
-      }
+      // Calculate update everything
+      key = ((key + offset) % 12 + 12) % 12;
+      result.metadata.key = key.toString();
+      const updatedContent = serializeWithMetadata(result.metadata, result.contentWithoutMetadata);
+      editedContent = updatedContent;
+      await saveUpdatedContent(updatedContent);
+
     } catch (error: any) {
       console.error('Error transposing key:', error);
     }
@@ -343,6 +329,7 @@
           autoscrollSpeed={autoscrollSpeed}
           theme={$themeStore}
           showRootNumbers={false}
+          keyNumber={key} 
         />
       </div>
     {:else if viewMode === 'chords'}
@@ -354,6 +341,7 @@
           autoscrollSpeed={autoscrollSpeed}
           theme={$themeStore}
           showRootNumbers={true}
+          keyNumber={key} 
         />
       </div>
     {/if}
