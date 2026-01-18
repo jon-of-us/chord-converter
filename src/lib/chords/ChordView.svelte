@@ -46,7 +46,7 @@
         const wordsNoSlash = split.map((w) => w.split("/")[0]);
         const nWords = wordsNoSlash.length;
         const isChord = wordsNoSlash.map(
-            (w) => ChordParser.parseChord(w) !== null || w === "|",
+            (w) => ChordParser.parseChord(w) !== null || w === "|" || w === ".",
         );
         const nChords = isChord.filter(Boolean).length;
 
