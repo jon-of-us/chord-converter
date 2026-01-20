@@ -3,34 +3,34 @@
   import { themeStore } from '../../stores/themeStore';
   import { editorStore, hasChanges } from '../../stores/editorStore';
   import { editorConfig } from '../../config';
-  
-  let { 
-    editorRef 
-  }: { 
-    editorRef: any;
-  } = $props();
+  import * as editorService from '../../services/editorService';
   
   let theme = $derived($themeStore);
   let viewMode = $derived($editorStore.viewMode);
   let zoomLevel = $derived($editorStore.zoomLevel);
   let isAutoscrolling = $derived($editorStore.isAutoscrolling);
   let autoscrollSpeed = $derived($editorStore.autoscrollSpeed);
+  let isSaving = $derived($editorStore.isSaving);
+  let saveSuccess = $derived($editorStore.saveSuccess);
+  let hasChangesValue = $derived($hasChanges);
+  let currentFile = $derived($fileStore.currentFile);
+  let editedContent = $derived($editorStore.editedContent);
   
-  let saveState = $state({ isSaving: false, saveSuccess: false, hasChanges: false });
-  
-  // Poll save state from editor
-  $effect(() => {
-    if (editorRef?.getSaveState) {
-      const interval = setInterval(() => {
-        saveState = editorRef.getSaveState();
-      }, 100);
-      return () => clearInterval(interval);
+  function handleSave() {
+    if (currentFile && hasChangesValue && !isSaving) {
+      editorService.saveFile(currentFile, editedContent);
     }
-  });
+  }
+  
+  function handleTranspose(offset: number) {
+    if (currentFile && editedContent) {
+      editorService.transpose(currentFile, editedContent, offset);
+    }
+  }
 </script>
 
 <div class="controls-sidebar">
-  {#if $fileStore.currentFile}
+  {#if currentFile}
     <div class="control-section">
       <button 
         class="control-button"
@@ -125,7 +125,7 @@
       <h3>Transpose</h3>
       <div class="control-row">
         <button 
-          onclick={() => editorRef?.transpose('down')}
+          onclick={() => handleTranspose(-7)}
           title="Transpose down"
           class="small-btn"
         >
@@ -133,7 +133,7 @@
         </button>
         <span class="value">Key</span>
         <button 
-          onclick={() => editorRef?.transpose('up')}
+          onclick={() => handleTranspose(7)}
           title="Transpose up"
           class="small-btn"
         >
@@ -143,16 +143,16 @@
     </div>
 
     <div class="control-section save-section">
-      {#if saveState.saveSuccess}
+      {#if saveSuccess}
         <div class="success-indicator">✓</div>
       {/if}
       <button 
-        onclick={() => editorRef?.save()}
-        disabled={!saveState.hasChanges || saveState.isSaving}
+        onclick={handleSave}
+        disabled={!hasChangesValue || isSaving}
         class="control-button save-button"
         title="Save (Ctrl+S)"
       >
-        {saveState.isSaving ? 'Saving...' : 'Save'}
+        {isSaving ? 'Saving...' : 'Save'}
       </button>
     </div>
   {/if}

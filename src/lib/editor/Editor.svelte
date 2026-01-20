@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import * as Svelte from 'svelte';
   import EditorView from './view/EditorView.svelte';
   import { editorStore, hasChanges } from '../stores/editorStore';
   import { fileStore } from '../stores/fileStore';
-  import * as fileService from '../services/fileService';
-  import * as metadataService from '../services/metadataService';
+  import * as editorService from '../services/editorService';
   
-  let isSaving = $state(false);
-  let saveSuccess = $state(false);
   let editedContent = $state('');
   let previousViewMode = $state($editorStore.viewMode);
   let lastLoadedFilePath = $state<string | null>(null);
@@ -16,7 +13,7 @@
   $effect(() => {
     const currentFile = $fileStore.currentFile;
     if (currentFile && currentFile.path !== lastLoadedFilePath) {
-      loadFileContent(currentFile);
+      editorService.loadFile(currentFile);
       lastLoadedFilePath = currentFile.path;
     } else if (!currentFile) {
       editorStore.reset();
@@ -25,133 +22,47 @@
     }
   });
   
+  // Sync editedContent from store
+  $effect(() => {
+    editedContent = $editorStore.editedContent;
+  });
+  
+  // Sync editedContent changes back to store
+  $effect(() => {
+    if (editedContent !== $editorStore.editedContent) {
+      editorStore.setEditedContent(editedContent);
+    }
+  });
+  
   // When switching to structure/chords view, ensure numeric key
   $effect(() => {
     const viewMode = $editorStore.viewMode;
+    const currentFile = $fileStore.currentFile;
+    
     if ((viewMode === 'structure' || viewMode === 'chords') && 
         previousViewMode === 'text' && 
-        $fileStore.currentFile) {
-      updateKeyMetadataIfNeeded();
+        currentFile) {
+      editorService.ensureNumericKey(currentFile, editedContent);
     }
     previousViewMode = viewMode;
   });
   
-  async function loadFileContent(file: any) {
-    try {
-      fileStore.setLoading(true);
-      const content = await fileService.readFile(file);
-      
-      // Ensure numeric key and get key number
-      const keyResult = metadataService.ensureNumericKey(content);
-      const finalContent = keyResult.updated ? keyResult.content : content;
-      
-      // If key was updated, save it immediately
-      if (keyResult.updated) {
-        await fileService.saveFile(file, finalContent);
-        fileStore.setCurrentContent(finalContent);
-      } else {
-        fileStore.setCurrentContent(content);
-      }
-      
-      editorStore.loadContent(finalContent, keyResult.keyNumber);
-      editedContent = finalContent;
-    } catch (error: any) {
-      fileStore.setError(`Error loading file: ${error.message}`);
-    } finally {
-      fileStore.setLoading(false);
-    }
-  }
-  
-  async function updateKeyMetadataIfNeeded() {
-    if (!editedContent) return;
-    
-    try {
-      const keyResult = metadataService.ensureNumericKey(editedContent);
-      if (keyResult.updated) {
-        editedContent = keyResult.content;
-        editorStore.setEditedContent(keyResult.content);
-        editorStore.setKeyNumber(keyResult.keyNumber);
-        await saveFile();
-      } else {
-        editorStore.setKeyNumber(keyResult.keyNumber);
-      }
-    } catch (error: any) {
-      console.error('Error updating key metadata:', error);
-    }
-  }
-  
-  async function saveFile() {
-    if (!$fileStore.currentFile || !$hasChanges) return;
-    
-    try {
-      isSaving = true;
-      fileStore.setError(null);
-      saveSuccess = false;
-      
-      await fileService.saveFile($fileStore.currentFile, editedContent);
-      
-      fileStore.setCurrentContent(editedContent);
-      editorStore.setLastSavedContent(editedContent);
-      
-      saveSuccess = true;
-      setTimeout(() => { saveSuccess = false; }, 2000);
-    } catch (error: any) {
-      fileStore.setError(`Error saving file: ${error.message}`);
-    } finally {
-      isSaving = false;
-    }
-  }
-  
-  async function transposeUp() {
-    if (!editedContent) return;
-    
-    try {
-      const result = metadataService.transposeKey(editedContent, 7);
-      editedContent = result.content;
-      editorStore.setEditedContent(result.content);
-      editorStore.setKeyNumber(result.keyNumber);
-      await saveFile();
-    } catch (error: any) {
-      console.error('Error transposing:', error);
-    }
-  }
-  
-  async function transposeDown() {
-    if (!editedContent) return;
-    
-    try {
-      const result = metadataService.transposeKey(editedContent, -7);
-      editedContent = result.content;
-      editorStore.setEditedContent(result.content);
-      editorStore.setKeyNumber(result.keyNumber);
-      await saveFile();
-    } catch (error: any) {
-      console.error('Error transposing:', error);
-    }
-  }
-  
   // Keyboard shortcuts
-  onMount(() => {
+  Svelte.onMount(() => {
     function handleKeydown(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
-        saveFile();
+        const currentFile = $fileStore.currentFile;
+        const hasChangesValue = $hasChanges;
+        if (currentFile && hasChangesValue) {
+          editorService.saveFile(currentFile, editedContent);
+        }
       }
     }
     
     document.addEventListener('keydown', handleKeydown);
     return () => document.removeEventListener('keydown', handleKeydown);
   });
-  
-  // Expose methods for ControlsSidebar
-  export function save() { saveFile(); }
-  export function transpose(direction: 'up' | 'down') {
-    if (direction === 'up') transposeUp();
-    else transposeDown();
-  }
-  export function getSaveState() {
-    return { isSaving, saveSuccess, hasChanges: $hasChanges };
-  }
 </script>
 
 <div class="editor">

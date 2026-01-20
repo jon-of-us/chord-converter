@@ -403,7 +403,7 @@
                                             class="chord-container">{#if showRootNumbers && chord.rootNumber !== undefined}<span
                                                     class="root-number"
                                                     >{(chord.rootNumber + keyNumber + 8 ) % 12}</span
-                                            >{/if}{@html chord.svg}</div>{:else if chord.word}<span class="word-chord">{chord.word}</span>{/if}</span
+                                            >{/if}{@html chord.svg}</div>{:else if chord.word}<span class="chord-word">{chord.word}</span>{/if}</span
                                 >{/each}{/if}{char}{/each}</pre>
             </div>
         {/if}
@@ -477,10 +477,6 @@
         color: inherit;
         white-space: nowrap;
         margin-right: -0.3em;
-    }
-
-    .word-chord {
-        font-weight: 600;
     }
 
     .chord-markers {

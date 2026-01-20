@@ -1,15 +1,13 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import * as Svelte from 'svelte';
   import FolderPicker from './lib/filemanager/FolderPicker.svelte'
   import FileManager from './lib/filemanager/FileManager.svelte'
   import Editor from './lib/editor/Editor.svelte'
   import EditorControls from './lib/editor/controls/EditorControls.svelte'
-  import { fileStore, type FileEntry } from './lib/stores/fileStore';
+  import { fileStore } from './lib/stores/fileStore';
   import * as fileService from './lib/services/fileService';
 
-  let editorRef: any = $state();
-
-  onMount(async () => {
+  Svelte.onMount(async () => {
     // Load files from browser storage on startup
     try {
       const files = await fileService.loadBrowserFiles();
@@ -37,11 +35,11 @@
     </aside>
     
     <main class="editor-area">
-      <Editor bind:this={editorRef} />
+      <Editor />
     </main>
     
     <aside class="right-sidebar">
-      <EditorControls {editorRef} />
+      <EditorControls />
     </aside>
   </div>
 </div>

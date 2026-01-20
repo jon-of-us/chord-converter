@@ -16,6 +16,8 @@ export interface EditorState {
   keyNumber: number; // Current key for display (0-11)
   editedContent: string; // Local edit buffer
   lastSavedContent: string; // Last saved content to compare against
+  isSaving: boolean;
+  saveSuccess: boolean;
 }
 
 const initialState: EditorState = {
@@ -26,6 +28,8 @@ const initialState: EditorState = {
   keyNumber: 0,
   editedContent: '',
   lastSavedContent: '',
+  isSaving: false,
+  saveSuccess: false,
 };
 
 function createEditorStore() {
@@ -119,6 +123,14 @@ function createEditorStore() {
         lastSavedContent: content,
         keyNumber: (keyNumber % 12 + 12) % 12
       }));
+    },
+    
+    // Save state
+    setSaving: (saving: boolean) => {
+      update(state => ({ ...state, isSaving: saving }));
+    },
+    setSaveSuccess: (success: boolean) => {
+      update(state => ({ ...state, saveSuccess: success }));
     },
     
     // Reset
