@@ -352,8 +352,10 @@
             if (!isAutoscrolling || !viewContainer) return;
 
             // Convert speed multiplier to pixels per frame (at 60fps)
+            // Scale with zoom level - higher zoom = faster scroll
+            const zoomMultiplier = zoomLevel / 100;
             const pixelsPerFrame =
-                (autoscrollSpeed * editorConfig.autoscrollPixelsPerSecond) / 60;
+                (autoscrollSpeed * editorConfig.autoscrollPixelsPerSecond * zoomMultiplier) / 60;
             scrollAccumulator += pixelsPerFrame;
 
             // Only apply integer pixels to scrollTop

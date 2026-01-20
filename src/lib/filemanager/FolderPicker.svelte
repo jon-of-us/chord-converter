@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { fileStore, type FileEntry } from '../stores/fileStore';
-  import { saveFolderHandle, loadFolderHandle, clearFolderHandle, loadAllBrowserFiles, deleteBrowserFile } from '../utils/indexedDB';
+  import * as Svelte from 'svelte';
+  import { fileStore } from '../stores/fileStore';
+  import * as indexedDBModule from '../utils/indexedDB';
   import * as fileService from '../services/fileService';
-  import { onMount } from 'svelte';
+  import * as fileManagerService from '../services/fileManagerService';
   import DownloadButton from './DownloadButton.svelte';
 
   let isSupported = false;
 
-  onMount(async () => {
+  Svelte.onMount(async () => {
     isSupported = 'showDirectoryPicker' in window;
     
     if (!isSupported) {
@@ -21,20 +22,20 @@
   async function restoreFolderHandle() {
     try {
       fileStore.setLoading(true);
-      const handle = await loadFolderHandle();
+      const handle = await indexedDBModule.loadFolderHandle();
       
       if (handle) {
         const permission = await (handle as any).queryPermission({ mode: 'readwrite' });
         
         if (permission === 'granted') {
           fileStore.setFolderHandle(handle);
-          await loadFilesFromFolder(handle);
+          await fileManagerService.loadFilesFromFolder(handle);
           fileStore.setError(null);
         } else if (permission === 'prompt') {
           const newPermission = await (handle as any).requestPermission({ mode: 'readwrite' });
           if (newPermission === 'granted') {
             fileStore.setFolderHandle(handle);
-            await loadFilesFromFolder(handle);
+            await fileManagerService.loadFilesFromFolder(handle);
             fileStore.setError(null);
           }
         }
@@ -56,7 +57,7 @@
       });
 
       // Check for browser files to migrate
-      const browserFiles = await loadAllBrowserFiles();
+      const browserFiles = await indexedDBModule.loadAllBrowserFiles();
       
       if (browserFiles.length > 0) {
         const shouldMigrate = confirm(
@@ -64,24 +65,13 @@
         );
 
         if (shouldMigrate) {
-          for (const browserFile of browserFiles) {
-            try {
-              const fileHandle = await handle.getFileHandle(browserFile.name, { create: true });
-              const writable = await fileHandle.createWritable();
-              await writable.write(browserFile.content);
-              await writable.close();
-              
-              await deleteBrowserFile(browserFile.name);
-            } catch (fileError: any) {
-              console.error(`Error migrating file ${browserFile.name}:`, fileError);
-            }
-          }
+          await fileManagerService.migrateBrowserFilesToFolder(handle, browserFiles);
         }
       }
 
-      await saveFolderHandle(handle);
+      await indexedDBModule.saveFolderHandle(handle);
       fileStore.setFolderHandle(handle);
-      await loadFilesFromFolder(handle);
+      await fileManagerService.loadFilesFromFolder(handle);
       
     } catch (error: any) {
       if (error.name === 'AbortError') {
@@ -95,23 +85,8 @@
     }
   }
 
-  async function loadFilesFromFolder(handle: FileSystemDirectoryHandle) {
-    try {
-      console.log('Loading files from folder:', handle.name);
-      
-      const result = await fileService.scanDirectory(handle);
-      
-      console.log('Total files found:', result.files.length);
-      
-      fileStore.setFiles(result.files);
-    } catch (error: any) {
-      console.error('Error loading files:', error);
-      fileStore.setError(`Error loading files: ${error.message}`);
-    }
-  }
-
   async function disconnectFolder() {
-    await clearFolderHandle();
+    await indexedDBModule.clearFolderHandle();
     fileStore.setFolderHandle(null);
     
     // Load browser files after disconnecting
@@ -142,7 +117,7 @@
 <div class="folder-picker">
   {#if !$fileStore.folderHandle}
     <button 
-      on:click={selectFolder} 
+      onclick={selectFolder} 
       disabled={$fileStore.loading || !isSupported}
       title={isSupported ? '' : 'File System Access is only supported in Chrome, Edge, and Opera. Please use one of these browsers to connect a folder.'}
       class:unsupported={!isSupported}
@@ -160,7 +135,7 @@
     
     <div class="folder-actions">
       <button 
-        on:click={selectFolder}
+        onclick={selectFolder}
         disabled={$fileStore.loading}
         class="folder-action-btn"
         title="Change folder"
@@ -168,7 +143,7 @@
         Change Folder
       </button>
       <button 
-        on:click={disconnectFolder} 
+        onclick={disconnectFolder} 
         class="disconnect-btn" 
         disabled={$fileStore.loading} 
         title="Disconnect folder"

@@ -11,7 +11,7 @@
 <script lang="ts">
   import { fileStore, type FileEntry } from '../stores/fileStore';
   import { fileManagerStore } from '../stores/fileManagerStore';
-  import * as fileService from '../services/fileService';
+  import * as fileManagerService from '../services/fileManagerService';
   import FileTreeItem from './FileTreeItem.svelte';
   
   let { 
@@ -57,48 +57,29 @@
     }
     
     try {
-      fileStore.setLoading(true);
-      
       if (node.isFolder) {
-        // Folder rename not implemented in simplified version
-        fileStore.setError('Folder renaming not yet implemented');
+        await fileManagerService.renameFolder(node.path, editValue);
       } else if (node.file) {
-        const newFile = await fileService.renameFile(
-          node.file,
-          editValue,
-          $fileStore.folderHandle || undefined
-        );
-        
-        fileStore.deleteFile(node.path);
-        fileStore.addFile(newFile);
-        
-        if ($fileStore.currentFile?.path === node.path) {
-          fileStore.setCurrentFile(newFile);
-        }
+        await fileManagerService.renameFile(node.file, editValue);
       }
-      
-      fileManagerStore.cancelEditing();
     } catch (error: any) {
-      fileStore.setError(`Error renaming: ${error.message}`);
-    } finally {
-      fileStore.setLoading(false);
+      // Error already handled in service
     }
   }
   
   async function handleDelete() {
-    if (!node.file) return;
-    
-    const confirmed = confirm(`Delete "${node.name}"?`);
+    const itemType = node.isFolder ? 'folder' : 'file';
+    const confirmed = confirm(`Delete ${itemType} "${node.name}"? ${node.isFolder ? 'This will delete all files inside.' : ''}`);
     if (!confirmed) return;
     
     try {
-      fileStore.setLoading(true);
-      await fileService.deleteFile(node.file, $fileStore.folderHandle || undefined);
-      fileStore.deleteFile(node.path);
+      if (node.isFolder) {
+        await fileManagerService.deleteFolder(node.path);
+      } else if (node.file) {
+        await fileManagerService.deleteFile(node.file);
+      }
     } catch (error: any) {
-      fileStore.setError(`Error deleting: ${error.message}`);
-    } finally {
-      fileStore.setLoading(false);
+      // Error already handled in service
     }
   }
   
@@ -118,38 +99,40 @@
       onblur={() => saveEdit()}
     />
   {:else}
-    <button
-      class="item-button"
-      class:folder={node.isFolder}
-      onclick={handleClick}
-      disabled={$fileStore.loading}
-    >
-      {#if node.isFolder}
-        <span class="folder-icon">{expanded ? '📂' : '📁'}</span>
+    <div class="item-row">
+      <button
+        class="item-button"
+        class:folder={node.isFolder}
+        onclick={handleClick}
+        disabled={$fileStore.loading}
+      >
+        {#if node.isFolder}
+          <span class="folder-icon">{expanded ? '📂' : '📁'}</span>
+        {/if}
+        <span class="name">{node.name}</span>
+      </button>
+      
+      {#if isSelected}
+        <div class="actions">
+          <button
+            class="action-btn"
+            onclick={startRename}
+            disabled={$fileStore.loading}
+            title="Rename"
+          >
+            ✎
+          </button>
+          <button
+            class="action-btn delete"
+            onclick={handleDelete}
+            disabled={$fileStore.loading}
+            title="Delete"
+          >
+            🗑
+          </button>
+        </div>
       {/if}
-      <span class="name">{node.name}</span>
-    </button>
-    
-    {#if isSelected && !node.isFolder}
-      <div class="actions">
-        <button
-          class="action-btn"
-          onclick={startRename}
-          disabled={$fileStore.loading}
-          title="Rename"
-        >
-          ✎
-        </button>
-        <button
-          class="action-btn delete"
-          onclick={handleDelete}
-          disabled={$fileStore.loading}
-          title="Delete"
-        >
-          🗑
-        </button>
-      </div>
-    {/if}
+    </div>
   {/if}
   
   {#if node.isFolder && expanded && node.children.length > 0}
@@ -176,6 +159,12 @@
   
   li:hover:not(.selected) {
     background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .item-button {
@@ -213,11 +202,11 @@
   .actions {
     display: flex;
     gap: 0.25rem;
-    padding: 0 0.5rem 0.5rem;
+    padding: 0 0.5rem;
   }
   
   .action-btn {
-    padding: 0.5rem;
+    padding: 0.4rem;
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.5);

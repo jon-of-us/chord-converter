@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { fileStore, type FileEntry } from '../stores/fileStore';
+  import { fileStore } from '../stores/fileStore';
   import { fileManagerStore } from '../stores/fileManagerStore';
-  import * as fileService from '../services/fileService';
-  import { fileConfig } from '../config';
-  import FileTreeItem, { type TreeNode } from './FileTreeItem.svelte';
+  import * as fileManagerService from '../services/fileManagerService';
+  import FileTreeItem from './FileTreeItem.svelte';
   
   // Extract folders from file paths
   let allFolders = $derived.by(() => {
@@ -18,117 +17,16 @@
   });
   
   // Build tree from files and folders
-  let tree = $derived(buildTree($fileStore.files, allFolders));
-  
-  function buildTree(files: FileEntry[], folders: Set<string>): TreeNode[] {
-    const root: TreeNode[] = [];
-    const folderMap = new Map<string, TreeNode>();
-    
-    // Create folder nodes
-    for (const folderPath of folders) {
-      const parts = folderPath.split('/');
-      let currentLevel = root;
-      let currentPath = '';
-      
-      for (let i = 0; i < parts.length; i++) {
-        currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
-        
-        if (!folderMap.has(currentPath)) {
-          const folderNode: TreeNode = {
-            name: parts[i],
-            path: currentPath,
-            isFolder: true,
-            children: [],
-          };
-          folderMap.set(currentPath, folderNode);
-          currentLevel.push(folderNode);
-        }
-        
-        currentLevel = folderMap.get(currentPath)!.children;
-      }
-    }
-    
-    // Add files
-    for (const file of files) {
-      const parts = file.path.split('/');
-      let currentLevel = root;
-      let currentPath = '';
-      
-      // Navigate to parent folder
-      for (let i = 0; i < parts.length - 1; i++) {
-        currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
-        
-        if (!folderMap.has(currentPath)) {
-          const folderNode: TreeNode = {
-            name: parts[i],
-            path: currentPath,
-            isFolder: true,
-            children: [],
-          };
-          folderMap.set(currentPath, folderNode);
-          currentLevel.push(folderNode);
-        }
-        
-        currentLevel = folderMap.get(currentPath)!.children;
-      }
-      
-      // Add file node
-      currentLevel.push({
-        name: file.name,
-        path: file.path,
-        isFolder: false,
-        file,
-        children: [],
-      });
-    }
-    
-    return root;
-  }
-  
-  async function selectFile(file: FileEntry) {
-    try {
-      fileStore.setLoading(true);
-      fileStore.setError(null);
-      
-      const content = await fileService.readFile(file);
-      
-      fileStore.setCurrentFile(file);
-      fileStore.setCurrentContent(content);
-    } catch (error: any) {
-      fileStore.setError(`Error reading file: ${error.message}`);
-    } finally {
-      fileStore.setLoading(false);
-    }
-  }
+  let tree = $derived(fileManagerService.buildFileTree($fileStore.files, allFolders));
   
   async function addFile() {
-    const input = prompt('Enter file name:');
+    const input = prompt('Enter file name (or folderName/filenameName to create in subfolder, just folderName/ to create a folder ):');
     if (!input) return;
     
-    const fileName = input.endsWith('.chords') ? input : `${input}.chords`;
-    
-    if ($fileStore.files.some(f => f.path === fileName)) {
-      fileStore.setError(`File "${fileName}" already exists`);
-      return;
-    }
-    
     try {
-      fileStore.setLoading(true);
-      fileStore.setError(null);
-      
-      const newFile = await fileService.createFile(
-        fileName,
-        '',
-        $fileStore.folderHandle || undefined
-      );
-      
-      fileStore.addFile(newFile);
-      fileStore.setCurrentFile(newFile);
-      fileStore.setCurrentContent(fileConfig.newFileTemplate);
-    } catch (error: any) {
-      fileStore.setError(`Error creating file: ${error.message}`);
-    } finally {
-      fileStore.setLoading(false);
+      await fileManagerService.createFile(input);
+    } catch (error) {
+      // Error already handled in service
     }
   }
 </script>
@@ -140,28 +38,26 @@
         {#if $fileStore.storageMode === 'filesystem'}
           No .chords files found
         {:else}
-          No files yet. Click + to create one!
+          No files yet. Click "New +" to create one!
         {/if}
       </div>
     {:else}
       <ul class="tree">
         {#each tree as node}
-          <FileTreeItem {node} onSelectFile={selectFile} />
+          <FileTreeItem {node} onSelectFile={fileManagerService.selectFile} />
         {/each}
       </ul>
     {/if}
   </div>
   
-  <div class="footer">
-    <button
-      class="add-button"
-      onclick={addFile}
-      disabled={$fileStore.loading}
-      title="Create new file"
-    >
-      +
-    </button>
-  </div>
+  <button
+    class="add-button"
+    onclick={addFile}
+    disabled={$fileStore.loading}
+    title="Create new file or folder"
+  >
+    New +
+  </button>
 </div>
 
 <style>
@@ -171,6 +67,7 @@
     flex: 1;
     min-height: 0;
     background-color: rgba(0, 0, 0, 0.2);
+    position: relative;
   }
   
   .file-list {
@@ -193,31 +90,30 @@
     margin: 0;
   }
   
-  .footer {
-    display: flex;
-    justify-content: center;
-    padding: 0.75rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(0, 0, 0, 0.2);
-  }
-  
   .add-button {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
     background-color: #646cff;
     color: white;
     border: none;
-    font-size: 24px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 10;
   }
   
   .add-button:hover:not(:disabled) {
     background-color: #535bf2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
   }
   
   .add-button:disabled {
