@@ -41,10 +41,12 @@ export async function saveFile(file: FileEntry, content: string): Promise<void> 
 export async function createFile(
   fileName: string,
   folderPath: string,
-  folderHandle?: FileSystemDirectoryHandle
+  folderHandle?: FileSystemDirectoryHandle,
+  isEmpty: boolean = false
 ): Promise<FileEntry> {
-  const fullFileName = fileName.endsWith('.chords') ? fileName : `${fileName}.chords`;
+  const fullFileName = fileName.includes('.') ? fileName : `${fileName}.chords`;
   const filePath = folderPath ? `${folderPath}/${fullFileName}` : fullFileName;
+  const fileContent = isEmpty ? '' : fileConfig.newFileTemplate;
 
   if (folderHandle) {
     let targetFolder = folderHandle;
@@ -56,12 +58,12 @@ export async function createFile(
 
     const fileHandle = await targetFolder.getFileHandle(fullFileName, { create: true });
     const writable = await fileHandle.createWritable();
-    await writable.write(fileConfig.newFileTemplate);
+    await writable.write(fileContent);
     await writable.close();
 
     return { name: fullFileName, path: filePath, handle: fileHandle };
   } else {
-    const content = String(fileConfig.newFileTemplate);
+    const content = String(fileContent);
     await saveBrowserFile(fullFileName, content);
     return { name: fullFileName, path: fullFileName, content };
   }

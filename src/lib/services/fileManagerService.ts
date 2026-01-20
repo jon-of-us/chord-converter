@@ -131,8 +131,8 @@ export async function createFile(fileName: string): Promise<void> {
       const files = fileStoreModule.fileStore;
       files.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
       
-      // Create .keep file in the folder
-      const newFile = await fileService.createFile(keepFileName, folderPath, folderHandle);
+      // Create empty .keep file in the folder
+      const newFile = await fileService.createFile(keepFileName, folderPath, folderHandle, true);
       fileStoreModule.fileStore.addFile(newFile);
       
       return;
