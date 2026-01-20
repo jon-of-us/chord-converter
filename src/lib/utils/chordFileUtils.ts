@@ -1,6 +1,6 @@
-import { fileConfig } from './config';
-import * as KeyUtils from './chords/keyUtils';
-import * as KeyDetection from './chords/keyDetection';
+import { fileConfig } from '../config';
+import * as KeyUtils from '../chords/keyUtils';
+import * as KeyDetection from '../chords/keyDetection';
 
 export interface ChordFileMetadata {
   title: string;
@@ -153,21 +153,3 @@ export function serializeWithMetadata(metadata: ChordFileMetadata, content: stri
   return parts.join('\n');
 }
 
-/**
- * Ensure filename has .chords extension
- */
-export function ensureChordsExtension(filename: string): string {
-  if (filename.endsWith(fileConfig.extension)) {
-    return filename;
-  }
-  // Remove any existing extension and add .chords
-  const nameWithoutExt = filename.replace(/\.[^.]*$/, '');
-  return `${nameWithoutExt}${fileConfig.extension}`;
-}
-
-/**
- * Check if a filename has .chords extension
- */
-export function isChordsFile(filename: string): boolean {
-  return filename.toLowerCase().endsWith(fileConfig.extension);
-}

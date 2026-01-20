@@ -20,7 +20,7 @@
   let tree = $derived(fileManagerService.buildFileTree($fileStore.files, allFolders));
   
   async function addFile() {
-    const input = prompt('Enter file name (or folderName/filenameName to create in subfolder, just folderName/ to create a folder ):');
+    const input = prompt('Enter file name (or folder/filename for folders, folder/ for empty folder):');
     if (!input) return;
     
     try {

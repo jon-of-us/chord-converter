@@ -44,7 +44,8 @@ export async function createFile(
   folderHandle?: FileSystemDirectoryHandle,
   isEmpty: boolean = false
 ): Promise<FileEntry> {
-  const fullFileName = fileName.includes('.') ? fileName : `${fileName}.chords`;
+  // Use fileName as-is (formatting is handled by caller)
+  const fullFileName = fileName;
   const filePath = folderPath ? `${folderPath}/${fullFileName}` : fullFileName;
   const fileContent = isEmpty ? '' : fileConfig.newFileTemplate;
 

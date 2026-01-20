@@ -144,7 +144,24 @@ export async function createFile(fileName: string): Promise<void> {
     }
   }
   
-  const fullFileName = actualFileName.endsWith('.chords') ? actualFileName : `${actualFileName}.chords`;
+  // Determine file name and whether it should be empty
+  let fullFileName: string;
+  let isEmpty = false;
+  
+  // Check if file has an extension (anything with a dot that's not at the start)
+  const lastDotIndex = actualFileName.lastIndexOf('.');
+  const hasExtension = lastDotIndex > 0; // Must be after first character to be an extension
+  
+  if (hasExtension) {
+    // Keep the provided extension and create empty
+    fullFileName = actualFileName;
+    isEmpty = true;
+  } else {
+    // No extension provided, append .chords
+    fullFileName = `${actualFileName}.chords`;
+    isEmpty = false;
+  }
+  
   const fullPath = folderPath ? `${folderPath}/${fullFileName}` : fullFileName;
   
   // Check if file already exists
@@ -164,7 +181,7 @@ export async function createFile(fileName: string): Promise<void> {
     let folderHandle: FileSystemDirectoryHandle | undefined;
     files.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
     
-    const newFile = await fileService.createFile(fullFileName, folderPath, folderHandle);
+    const newFile = await fileService.createFile(fullFileName, folderPath, folderHandle, isEmpty);
     
     fileStoreModule.fileStore.addFile(newFile);
     fileStoreModule.fileStore.setCurrentFile(newFile);

@@ -1,4 +1,4 @@
-import { parseMetadata, serializeWithMetadata, type ChordFileMetadata } from '../chordFileUtils';
+import { parseMetadata, serializeWithMetadata, type ChordFileMetadata } from '../utils/chordFileUtils';
 
 /**
  * Metadata Service
