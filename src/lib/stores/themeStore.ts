@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { themeConfig } from './config';
+import { themeConfig } from '../config';
 
 type Theme = 'dark' | 'light';
 

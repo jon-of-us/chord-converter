@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { fileStore } from './fileStore';
+  import { fileStore } from '../stores/fileStore';
+  import * as fileService from '../services/fileService';
 
   async function downloadAllFiles() {
     if ($fileStore.files.length === 0) {
@@ -11,18 +12,9 @@
       fileStore.setLoading(true);
       fileStore.setError(null);
 
-      // Download each file individually
       for (const file of $fileStore.files) {
-        let content = '';
+        const content = await fileService.readFile(file);
         
-        if ($fileStore.storageMode === 'filesystem' && file.handle) {
-          const fileData = await file.handle.getFile();
-          content = await fileData.text();
-        } else {
-          content = file.content || '';
-        }
-        
-        // Create download link for each file
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -33,7 +25,6 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        // Small delay between downloads to avoid browser blocking
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
@@ -53,16 +44,8 @@
     try {
       fileStore.setError(null);
 
-      let content = '';
-      
-      if ($fileStore.storageMode === 'filesystem' && $fileStore.currentFile.handle) {
-        const fileData = await $fileStore.currentFile.handle.getFile();
-        content = await fileData.text();
-      } else {
-        content = $fileStore.currentContent;
-      }
+      const content = await fileService.readFile($fileStore.currentFile);
 
-      // Create download link
       const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

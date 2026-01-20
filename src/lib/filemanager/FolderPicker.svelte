@@ -1,22 +1,20 @@
 <script lang="ts">
-  import { fileStore, type FileEntry } from './fileStore';
-  import { saveFolderHandle, loadFolderHandle, clearFolderHandle, loadAllBrowserFiles, deleteBrowserFile } from './indexedDB';
+  import { fileStore, type FileEntry } from '../stores/fileStore';
+  import { saveFolderHandle, loadFolderHandle, clearFolderHandle, loadAllBrowserFiles, deleteBrowserFile } from '../utils/indexedDB';
+  import * as fileService from '../services/fileService';
   import { onMount } from 'svelte';
   import DownloadButton from './DownloadButton.svelte';
 
   let isSupported = false;
 
   onMount(async () => {
-    // Check if File System Access API is supported
     isSupported = 'showDirectoryPicker' in window;
     
     if (!isSupported) {
-      // Don't show error immediately - user can still use browser mode
       console.log('File System Access API not supported - browser mode only');
       return;
     }
 
-    // Try to restore previous folder handle
     await restoreFolderHandle();
   });
 
@@ -26,7 +24,6 @@
       const handle = await loadFolderHandle();
       
       if (handle) {
-        // Verify we still have permission
         const permission = await (handle as any).queryPermission({ mode: 'readwrite' });
         
         if (permission === 'granted') {
@@ -34,7 +31,6 @@
           await loadFilesFromFolder(handle);
           fileStore.setError(null);
         } else if (permission === 'prompt') {
-          // Request permission again
           const newPermission = await (handle as any).requestPermission({ mode: 'readwrite' });
           if (newPermission === 'granted') {
             fileStore.setFolderHandle(handle);
@@ -45,7 +41,6 @@
       }
     } catch (error) {
       console.error('Error restoring folder handle:', error);
-      // Silently fail - user will need to select folder manually
     } finally {
       fileStore.setLoading(false);
     }
@@ -56,12 +51,11 @@
       fileStore.setLoading(true);
       fileStore.setError(null);
 
-      // Request folder access
       const handle = await (window as any).showDirectoryPicker({
         mode: 'readwrite',
       });
 
-      // Check if there are browser files to migrate
+      // Check for browser files to migrate
       const browserFiles = await loadAllBrowserFiles();
       
       if (browserFiles.length > 0) {
@@ -70,7 +64,6 @@
         );
 
         if (shouldMigrate) {
-          // Migrate files from browser to folder
           for (const browserFile of browserFiles) {
             try {
               const fileHandle = await handle.getFileHandle(browserFile.name, { create: true });
@@ -78,23 +71,16 @@
               await writable.write(browserFile.content);
               await writable.close();
               
-              // Delete from browser storage after successful migration
               await deleteBrowserFile(browserFile.name);
             } catch (fileError: any) {
               console.error(`Error migrating file ${browserFile.name}:`, fileError);
-              // Continue with other files
             }
           }
         }
       }
 
-      // Save handle to IndexedDB
       await saveFolderHandle(handle);
-      
-      // Update store
       fileStore.setFolderHandle(handle);
-      
-      // Load files
       await loadFilesFromFolder(handle);
       
     } catch (error: any) {
@@ -111,38 +97,16 @@
 
   async function loadFilesFromFolder(handle: FileSystemDirectoryHandle) {
     try {
-      const files: FileEntry[] = [];
-      
       console.log('Loading files from folder:', handle.name);
       
-      await scanDirectory(handle, '', files);
+      const result = await fileService.scanDirectory(handle);
       
-      console.log('Total files found:', files.length);
+      console.log('Total files found:', result.files.length);
       
-      // Sort files alphabetically by path
-      files.sort((a, b) => a.name.localeCompare(b.name));
-      
-      fileStore.setFiles(files);
+      fileStore.setFiles(result.files);
     } catch (error: any) {
       console.error('Error loading files:', error);
       fileStore.setError(`Error loading files: ${error.message}`);
-    }
-  }
-
-  async function scanDirectory(dirHandle: FileSystemDirectoryHandle, path: string, files: FileEntry[]) {
-    for await (const entry of dirHandle.values()) {
-      const entryPath = path ? `${path}/${entry.name}` : entry.name;
-      
-      if (entry.kind === 'file' && (entry.name.toLowerCase().endsWith('.chords') || entry.name.toLowerCase().endsWith('.txt'))) {
-        files.push({
-          name: entry.name,
-          path: entryPath,
-          handle: entry as FileSystemFileHandle,
-        });
-      } else if (entry.kind === 'directory') {
-        console.log('Scanning subdirectory:', entryPath);
-        await scanDirectory(entry as FileSystemDirectoryHandle, entryPath, files);
-      }
     }
   }
 
@@ -152,15 +116,9 @@
     
     // Load browser files after disconnecting
     try {
-      const browserFiles = await loadAllBrowserFiles();
+      const files = await fileService.loadBrowserFiles();
       
-      if (browserFiles.length > 0) {
-        const files: FileEntry[] = browserFiles.map(f => ({
-          name: f.name,
-          path: f.name,
-          content: f.content
-        }));
-        
+      if (files.length > 0) {
         fileStore.setFiles(files);
         
         // Auto-open first file

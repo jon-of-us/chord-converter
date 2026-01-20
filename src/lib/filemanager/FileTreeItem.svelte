@@ -1,0 +1,260 @@
+<script lang="ts" module>
+  export interface TreeNode {
+    name: string;
+    path: string;
+    isFolder: boolean;
+    file?: any;
+    children: TreeNode[];
+  }
+</script>
+
+<script lang="ts">
+  import { fileStore, type FileEntry } from '../stores/fileStore';
+  import { fileManagerStore } from '../stores/fileManagerStore';
+  import * as fileService from '../services/fileService';
+  import FileTreeItem from './FileTreeItem.svelte';
+  
+  let { 
+    node,
+    onSelectFile,
+  }: { 
+    node: TreeNode;
+    onSelectFile: (file: FileEntry) => void;
+  } = $props();
+  
+  let expanded = $derived($fileManagerStore.expandedFolders.has(node.path));
+  let isEditing = $derived($fileManagerStore.editingPath === node.path);
+  let editValue = $derived($fileManagerStore.editingValue);
+  let isSelected = $derived(
+    node.isFolder 
+      ? $fileManagerStore.selectedFolderPath === node.path
+      : $fileStore.currentFile?.path === node.path
+  );
+  
+  function handleClick() {
+    if (node.isFolder) {
+      fileManagerStore.toggleFolder(node.path);
+    } else if (node.file) {
+      fileManagerStore.selectFolder(null);
+      onSelectFile(node.file);
+    }
+  }
+  
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      fileManagerStore.cancelEditing();
+    }
+  }
+  
+  async function saveEdit() {
+    if (!editValue.trim() || editValue === node.name) {
+      fileManagerStore.cancelEditing();
+      return;
+    }
+    
+    try {
+      fileStore.setLoading(true);
+      
+      if (node.isFolder) {
+        // Folder rename not implemented in simplified version
+        fileStore.setError('Folder renaming not yet implemented');
+      } else if (node.file) {
+        const newFile = await fileService.renameFile(
+          node.file,
+          editValue,
+          $fileStore.folderHandle || undefined
+        );
+        
+        fileStore.deleteFile(node.path);
+        fileStore.addFile(newFile);
+        
+        if ($fileStore.currentFile?.path === node.path) {
+          fileStore.setCurrentFile(newFile);
+        }
+      }
+      
+      fileManagerStore.cancelEditing();
+    } catch (error: any) {
+      fileStore.setError(`Error renaming: ${error.message}`);
+    } finally {
+      fileStore.setLoading(false);
+    }
+  }
+  
+  async function handleDelete() {
+    if (!node.file) return;
+    
+    const confirmed = confirm(`Delete "${node.name}"?`);
+    if (!confirmed) return;
+    
+    try {
+      fileStore.setLoading(true);
+      await fileService.deleteFile(node.file, $fileStore.folderHandle || undefined);
+      fileStore.deleteFile(node.path);
+    } catch (error: any) {
+      fileStore.setError(`Error deleting: ${error.message}`);
+    } finally {
+      fileStore.setLoading(false);
+    }
+  }
+  
+  function startRename() {
+    fileManagerStore.startEditing(node.path, node.name);
+  }
+</script>
+
+<li class:selected={isSelected}>
+  {#if isEditing}
+    <input
+      type="text"
+      class="filename-input"
+      value={editValue}
+      oninput={(e) => fileManagerStore.updateEditingValue(e.currentTarget.value)}
+      onkeydown={handleKeydown}
+      onblur={() => saveEdit()}
+    />
+  {:else}
+    <button
+      class="item-button"
+      class:folder={node.isFolder}
+      onclick={handleClick}
+      disabled={$fileStore.loading}
+    >
+      {#if node.isFolder}
+        <span class="folder-icon">{expanded ? '📂' : '📁'}</span>
+      {/if}
+      <span class="name">{node.name}</span>
+    </button>
+    
+    {#if isSelected && !node.isFolder}
+      <div class="actions">
+        <button
+          class="action-btn"
+          onclick={startRename}
+          disabled={$fileStore.loading}
+          title="Rename"
+        >
+          ✎
+        </button>
+        <button
+          class="action-btn delete"
+          onclick={handleDelete}
+          disabled={$fileStore.loading}
+          title="Delete"
+        >
+          🗑
+        </button>
+      </div>
+    {/if}
+  {/if}
+  
+  {#if node.isFolder && expanded && node.children.length > 0}
+    <ul class="nested">
+      {#each node.children as child}
+        <FileTreeItem node={child} {onSelectFile} />
+      {/each}
+    </ul>
+  {/if}
+</li>
+
+<style>
+  li {
+    display: flex;
+    flex-direction: column;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  
+  li.selected {
+    background-color: rgba(100, 108, 255, 0.15);
+    border-left-color: #646cff;
+  }
+  
+  li:hover:not(.selected) {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .item-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.87);
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+  
+  .item-button.folder {
+    font-weight: 500;
+  }
+  
+  .item-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
+  .folder-icon {
+    font-size: 16px;
+  }
+  
+  .name {
+    flex: 1;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0 0.5rem 0.5rem;
+  }
+  
+  .action-btn {
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 16px;
+    transition: color 0.2s;
+  }
+  
+  .action-btn:hover:not(:disabled) {
+    color: #646cff;
+  }
+  
+  .action-btn.delete:hover:not(:disabled) {
+    color: #ff6b6b;
+  }
+  
+  .action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
+  .filename-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #646cff;
+    color: rgba(255, 255, 255, 0.87);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    margin: 0.25rem 0.5rem;
+    border-radius: 3px;
+  }
+  
+  .nested {
+    list-style: none;
+    padding-left: 1rem;
+    margin: 0;
+  }
+</style>

@@ -1,47 +1,32 @@
 <script lang="ts">
-  import { fileStore } from './fileStore';
-  import { themeStore } from './themeStore';
-  import { editorConfig } from './config';
+  import { fileStore } from '../../stores/fileStore';
+  import { themeStore } from '../../stores/themeStore';
+  import { editorStore, hasChanges } from '../../stores/editorStore';
+  import { editorConfig } from '../../config';
   
-  interface ControlsSidebarProps {
-    viewMode: 'text' | 'structure' | 'chords';
-    zoomLevel: number;
-    isAutoscrolling: boolean;
-    autoscrollSpeed: number;
-    hasChanges: boolean;
-    isSaving: boolean;
-    saveSuccess: boolean;
-    onViewModeChange: (mode: 'text' | 'structure' | 'chords') => void;
-    onZoomIn: () => void;
-    onZoomOut: () => void;
-    onToggleAutoscroll: () => void;
-    onIncreaseSpeed: () => void;
-    onDecreaseSpeed: () => void;
-    onTransposeUp: () => void;
-    onTransposeDown: () => void;
-    onSave: () => void;
-  }
-
-  let {
-    viewMode,
-    zoomLevel,
-    isAutoscrolling,
-    autoscrollSpeed,
-    hasChanges,
-    isSaving,
-    saveSuccess,
-    onViewModeChange,
-    onZoomIn,
-    onZoomOut,
-    onToggleAutoscroll,
-    onIncreaseSpeed,
-    onDecreaseSpeed,
-    onTransposeUp,
-    onTransposeDown,
-    onSave
-  }: ControlsSidebarProps = $props();
-
+  let { 
+    editorRef 
+  }: { 
+    editorRef: any;
+  } = $props();
+  
   let theme = $derived($themeStore);
+  let viewMode = $derived($editorStore.viewMode);
+  let zoomLevel = $derived($editorStore.zoomLevel);
+  let isAutoscrolling = $derived($editorStore.isAutoscrolling);
+  let autoscrollSpeed = $derived($editorStore.autoscrollSpeed);
+  
+  let saveState = $state({ isSaving: false, saveSuccess: false, hasChanges: false });
+  
+  // Poll save state from editor
+  $effect(() => {
+    if (editorRef?.getSaveState) {
+      const interval = setInterval(() => {
+        saveState = editorRef.getSaveState();
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  });
 </script>
 
 <div class="controls-sidebar">
@@ -50,7 +35,7 @@
       <button 
         class="control-button"
         class:active={viewMode === 'text'}
-        onclick={() => onViewModeChange('text')}
+        onclick={() => editorStore.setViewMode('text')}
         title="Text view"
       >
         Text
@@ -58,7 +43,7 @@
       <button 
         class="control-button"
         class:active={viewMode === 'structure'}
-        onclick={() => onViewModeChange('structure')}
+        onclick={() => editorStore.setViewMode('structure')}
         title="Structure view"
       >
         Structure
@@ -66,7 +51,7 @@
       <button 
         class="control-button"
         class:active={viewMode === 'chords'}
-        onclick={() => onViewModeChange('chords')}
+        onclick={() => editorStore.setViewMode('chords')}
         title="Chord view with numbers"
       >
         Chords
@@ -77,7 +62,7 @@
       <h3>Zoom</h3>
       <div class="control-row">
         <button 
-          onclick={onZoomOut}
+          onclick={() => editorStore.zoomOut()}
           title="Zoom out (Ctrl/-)"
           class="small-btn"
         >
@@ -85,7 +70,7 @@
         </button>
         <span class="value">{zoomLevel}%</span>
         <button 
-          onclick={onZoomIn}
+          onclick={() => editorStore.zoomIn()}
           title="Zoom in (Ctrl/+)"
           class="small-btn"
         >
@@ -97,7 +82,7 @@
     <div class="control-section">
       <h3>Speed</h3>
       <button 
-        onclick={onToggleAutoscroll}
+        onclick={() => editorStore.toggleAutoscroll()}
         class="control-button"
         class:active={isAutoscrolling}
         title="Toggle autoscroll"
@@ -106,7 +91,7 @@
       </button>
       <div class="control-row">
         <button 
-          onclick={onDecreaseSpeed}
+          onclick={() => editorStore.decreaseAutoscrollSpeed()}
           title="Decrease speed"
           class="small-btn"
           disabled={autoscrollSpeed <= editorConfig.minAutoscrollSpeed}
@@ -115,7 +100,7 @@
         </button>
         <span class="value">{autoscrollSpeed.toFixed(1)}x</span>
         <button 
-          onclick={onIncreaseSpeed}
+          onclick={() => editorStore.increaseAutoscrollSpeed()}
           title="Increase speed"
           class="small-btn"
           disabled={autoscrollSpeed >= editorConfig.maxAutoscrollSpeed}
@@ -140,7 +125,7 @@
       <h3>Transpose</h3>
       <div class="control-row">
         <button 
-          onclick={onTransposeDown}
+          onclick={() => editorRef?.transpose('down')}
           title="Transpose down"
           class="small-btn"
         >
@@ -148,7 +133,7 @@
         </button>
         <span class="value">Key</span>
         <button 
-          onclick={onTransposeUp}
+          onclick={() => editorRef?.transpose('up')}
           title="Transpose up"
           class="small-btn"
         >
@@ -158,16 +143,16 @@
     </div>
 
     <div class="control-section save-section">
-      {#if saveSuccess}
+      {#if saveState.saveSuccess}
         <div class="success-indicator">✓</div>
       {/if}
       <button 
-        onclick={onSave}
-        disabled={!hasChanges || isSaving}
+        onclick={() => editorRef?.save()}
+        disabled={!saveState.hasChanges || saveState.isSaving}
         class="control-button save-button"
         title="Save (Ctrl+S)"
       >
-        {isSaving ? 'Saving...' : 'Save'}
+        {saveState.isSaving ? 'Saving...' : 'Save'}
       </button>
     </div>
   {/if}
