@@ -36,10 +36,9 @@ export const fileConfig = {
   defaultKey: '',
   defaultInfo: '',
   // Template for new files
-  newFileTemplate: `Title: 
-Artist: 
+  newFileTemplate: `Title: Test 
 Key: 
-
+Artist: 
 `,
 };
 
