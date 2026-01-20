@@ -7,6 +7,7 @@ export interface ChordFileMetadata {
   artist: string;
   key: string; // The key specified in metadata (can be various formats)
   info: string;
+  [key: string]: string; // Allow any additional metadata fields
 }
 
 export interface ChordFileWithKeys {
@@ -36,46 +37,54 @@ export function parseMetadata(content: string): ChordFileWithKeys {
   let firstNonEmptyLineIdx = -1;
   let hasTitle = false;
   let specifiedKeyStr = '';
+  let inMetadataSection = true;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmedLine = line.trim();
     
-    // Skip empty lines at beginning
+    // Skip empty lines at beginning or within metadata
     if (trimmedLine === '') {
-      if (metadataEndIndex === 0) continue;
+      if (inMetadataSection) {
+        metadataEndIndex = i + 1;
+        continue;
+      }
     }
     
-    const lowerTrimmed = trimmedLine.toLowerCase();
-    
-    if (lowerTrimmed.startsWith('title:')) {
-      metadata.title = trimmedLine.substring(6).trim();
-      metadataEndIndex = i + 1;
-      hasTitle = true;
-    } else if (lowerTrimmed.startsWith('artist:')) {
-      metadata.artist = trimmedLine.substring(7).trim();
-      metadataEndIndex = i + 1;
-    } else if (lowerTrimmed.startsWith('key:')) {
-      specifiedKeyStr = trimmedLine.substring(4).trim();
-      metadata.key = specifiedKeyStr;
-      metadataEndIndex = i + 1;
-    } else if (lowerTrimmed.startsWith('info:')) {
-      metadata.info = trimmedLine.substring(5).trim();
+    // Check if this line is metadata (contains : and is before content)
+    const colonIndex = trimmedLine.indexOf(':');
+    if (inMetadataSection && colonIndex > 0) {
+      const fieldName = trimmedLine.substring(0, colonIndex).trim();
+      const fieldValue = trimmedLine.substring(colonIndex + 1).trim();
+      const lowerFieldName = fieldName.toLowerCase();
+      
+      // Store in appropriate field
+      if (lowerFieldName === 'title') {
+        metadata.title = fieldValue;
+        hasTitle = true;
+      } else if (lowerFieldName === 'artist') {
+        metadata.artist = fieldValue;
+      } else if (lowerFieldName === 'key') {
+        specifiedKeyStr = fieldValue;
+        metadata.key = fieldValue;
+      } else if (lowerFieldName === 'info') {
+        metadata.info = fieldValue;
+      } else {
+        // Store any other metadata field
+        metadata[fieldName] = fieldValue;
+      }
+      
       metadataEndIndex = i + 1;
     } else if (trimmedLine !== '') {
-      // Found first non-metadata line
+      // Found first non-metadata line (no colon)
       if (firstNonEmptyLineIdx === -1) {
         firstNonEmptyLineIdx = i;
       }
+      inMetadataSection = false;
       
       if (!hasTitle) {
         break;
-      }
-      
-      if (!lowerTrimmed.startsWith('title:') && 
-          !lowerTrimmed.startsWith('artist:') && 
-          !lowerTrimmed.startsWith('key:') && 
-          !lowerTrimmed.startsWith('info:')) {
+      } else {
         break;
       }
     }
@@ -84,12 +93,7 @@ export function parseMetadata(content: string): ChordFileWithKeys {
   // Handle first non-empty line if no Title was found
   if (!hasTitle && firstNonEmptyLineIdx >= 0) {
     const firstLine = lines[firstNonEmptyLineIdx].trim();
-    // Add "Title: " prefix if not already present
-    if (!firstLine.toLowerCase().startsWith('title:')) {
-      metadata.title = firstLine;
-    } else {
-      metadata.title = firstLine.substring(6).trim();
-    }
+    metadata.title = firstLine;
     metadataEndIndex = firstNonEmptyLineIdx + 1;
   }
 
@@ -118,16 +122,18 @@ export function parseMetadata(content: string): ChordFileWithKeys {
  */
 export function serializeWithMetadata(metadata: ChordFileMetadata, content: string): string {
   const parts: string[] = [];
+  const knownFields = ['title', 'artist', 'key', 'info'];
 
-  // Always include title
+  // Always include title first
   const title = metadata.title || fileConfig.defaultTitle;
   parts.push(`Title: ${title}`);
   
+  // Then artist if present
   if (metadata.artist) {
     parts.push(`Artist: ${metadata.artist}`);
   }
   
-  // Convert key to numeric format if valid
+  // Then key (convert to numeric format if valid)
   if (metadata.key && metadata.key.trim() !== '') {
     const keyNum = KeyUtils.parseKeyString(metadata.key);
     if (keyNum !== null) {
@@ -138,8 +144,16 @@ export function serializeWithMetadata(metadata: ChordFileMetadata, content: stri
     }
   }
   
+  // Then info if present
   if (metadata.info) {
     parts.push(`Info: ${metadata.info}`);
+  }
+  
+  // Add any additional metadata fields not in the known list
+  for (const [key, value] of Object.entries(metadata)) {
+    if (!knownFields.includes(key.toLowerCase()) && typeof value === 'string') {
+      parts.push(`${key}: ${value}`);
+    }
   }
 
   // Add empty lines between metadata and content if there's content

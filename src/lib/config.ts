@@ -35,10 +35,11 @@ export const fileConfig = {
   defaultArtist: '',
   defaultKey: '',
   defaultInfo: '',
-  // Template for new files
-  newFileTemplate: `Title: Test 
-Key: 
+  // Template for new .chords files (with blank lines separating metadata from content)
+  newFileTemplate: `Title: 
 Artist: 
+Key: 
+
 `,
 };
 

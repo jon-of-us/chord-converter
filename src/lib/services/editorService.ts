@@ -16,19 +16,26 @@ export async function loadFile(file: fileStore.FileEntry): Promise<void> {
     fileStore.fileStore.setLoading(true);
     const content = await fileService.readFile(file);
     
-    // Ensure numeric key and get key number
-    const keyResult = metadataService.ensureNumericKey(content);
-    const finalContent = keyResult.updated ? keyResult.content : content;
-    
-    // If key was updated, save it immediately
-    if (keyResult.updated) {
-      await fileService.saveFile(file, finalContent);
-      fileStore.fileStore.setCurrentContent(finalContent);
+    // Only process metadata for .chords files
+    if (file.path.endsWith('.chords')) {
+      // Ensure numeric key and get key number
+      const keyResult = metadataService.ensureNumericKey(content);
+      const finalContent = keyResult.updated ? keyResult.content : content;
+      
+      // If key was updated, save it immediately
+      if (keyResult.updated) {
+        await fileService.saveFile(file, finalContent);
+        fileStore.fileStore.setCurrentContent(finalContent);
+      } else {
+        fileStore.fileStore.setCurrentContent(content);
+      }
+      
+      editorStore.editorStore.loadContent(finalContent, keyResult.keyNumber);
     } else {
+      // For non-.chords files, just load the content as-is
       fileStore.fileStore.setCurrentContent(content);
+      editorStore.editorStore.loadContent(content, 0);
     }
-    
-    editorStore.editorStore.loadContent(finalContent, keyResult.keyNumber);
   } catch (error: any) {
     fileStore.fileStore.setError(`Error loading file: ${error.message}`);
     throw error;
@@ -92,6 +99,9 @@ export async function ensureNumericKey(
   content: string
 ): Promise<void> {
   if (!content) return;
+  
+  // Only process metadata for .chords files
+  if (!file.path.endsWith('.chords')) return;
   
   try {
     const keyResult = metadataService.ensureNumericKey(content);

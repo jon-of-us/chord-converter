@@ -120,16 +120,22 @@ export async function createFile(fileName: string): Promise<void> {
   
   // If fileName ends with /, create folder by creating a .keep file
   if (fileName.endsWith('/')) {
+    // Check if we're in filesystem mode (folder connected)
+    let folderHandle: FileSystemDirectoryHandle | undefined;
+    const files = fileStoreModule.fileStore;
+    files.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
+    
+    if (!folderHandle) {
+      fileStoreModule.fileStore.setError('Cannot create folders in browser mode. Please connect a folder first.');
+      throw new Error('Cannot create folders in browser mode');
+    }
+    
     const keepFileName = '.keep';
     const keepPath = folderPath ? `${folderPath}/.keep` : '.keep';
     
     try {
       fileStoreModule.fileStore.setLoading(true);
       fileStoreModule.fileStore.setError(null);
-      
-      let folderHandle: FileSystemDirectoryHandle | undefined;
-      const files = fileStoreModule.fileStore;
-      files.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
       
       // Create empty .keep file in the folder
       const newFile = await fileService.createFile(keepFileName, folderPath, folderHandle, true);
