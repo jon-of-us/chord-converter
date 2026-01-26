@@ -421,24 +421,136 @@ export async function downloadAllFiles(files: fileStoreModule.FileEntry[]): Prom
     fileStoreModule.fileStore.setLoading(true);
     fileStoreModule.fileStore.setError(null);
 
+    // Dynamic import of JSZip
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+
+    // Add all files to ZIP with their folder structure
     for (const file of files) {
       const content = await fileService.readFile(file);
-      
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      // Small delay between downloads
-      await new Promise(resolve => setTimeout(resolve, 100));
+      zip.file(file.path, content);
     }
+
+    // Generate ZIP file
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    
+    // Download the ZIP
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chords-files.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   } catch (error: any) {
     fileStoreModule.fileStore.setError(`Error downloading files: ${error.message}`);
+    throw error;
+  } finally {
+    fileStoreModule.fileStore.setLoading(false);
+  }
+}
+
+/**
+ * Handle file drop (drag and drop)
+ */
+export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> {
+  const files: Array<{ path: string; content: string }> = [];
+  
+  // Recursive function to read directory entries
+  async function readEntry(entry: any, path: string = ''): Promise<void> {
+    if (entry.isFile) {
+      const file: File = await new Promise((resolve, reject) => {
+        entry.file(resolve, reject);
+      });
+      
+      // Only process .chords files
+      if (file.name.toLowerCase().endsWith('.chords')) {
+        const content = await file.text();
+        const fullPath = path ? `${path}/${file.name}` : file.name;
+        files.push({ path: fullPath, content });
+      }
+    } else if (entry.isDirectory) {
+      const reader = entry.createReader();
+      const entries: any[] = await new Promise((resolve, reject) => {
+        reader.readEntries(resolve, reject);
+      });
+      
+      const folderPath = path ? `${path}/${entry.name}` : entry.name;
+      for (const subEntry of entries) {
+        await readEntry(subEntry, folderPath);
+      }
+    }
+  }
+  
+  try {
+    fileStoreModule.fileStore.setLoading(true);
+    fileStoreModule.fileStore.setError(null);
+    
+    // Process all dropped items
+    const items = Array.from(dataTransfer.items);
+    for (const item of items) {
+      const entry = item.webkitGetAsEntry?.();
+      if (entry) {
+        await readEntry(entry);
+      }
+    }
+    
+    if (files.length === 0) {
+      fileStoreModule.fileStore.setError('No .chords files found in dropped items');
+      return;
+    }
+    
+    // Check for duplicates
+    let currentFiles: fileStoreModule.FileEntry[] = [];
+    fileStoreModule.fileStore.subscribe(state => { currentFiles = state.files; })();
+    
+    const existingPaths = new Set(currentFiles.map(f => f.path));
+    const duplicates = files.filter(f => existingPaths.has(f.path));
+    
+    let filesToImport = files;
+    
+    if (duplicates.length > 0) {
+      const duplicateList = duplicates.map(d => `  • ${d.path}`).join('\n');
+      const message = `The following files already exist:\n\n${duplicateList}\n\nWhat would you like to do?`;
+      
+      const action = confirm(
+        `${message}\n\nOK = Replace existing files\nCancel = Skip duplicates`
+      );
+      
+      if (action === null || !action) {
+        // User chose to skip or abort - ask again
+        const shouldAbort = confirm('Skip duplicate files and import the rest?');
+        if (!shouldAbort) {
+          fileStoreModule.fileStore.setError('Import cancelled');
+          return;
+        }
+        // Skip duplicates
+        filesToImport = files.filter(f => !existingPaths.has(f.path));
+      }
+      // else: Replace (import all files)
+    }
+    
+    if (filesToImport.length === 0) {
+      fileStoreModule.fileStore.setError('No files to import');
+      return;
+    }
+    
+    // Import files
+    const importedFiles = await fileService.importFiles(filesToImport);
+    
+    // Update store
+    for (const file of importedFiles) {
+      // Remove old file if it exists
+      if (existingPaths.has(file.path)) {
+        fileStoreModule.fileStore.deleteFile(file.path);
+      }
+      fileStoreModule.fileStore.addFile(file);
+    }
+    
+    fileStoreModule.fileStore.setError(null);
+  } catch (error: any) {
+    fileStoreModule.fileStore.setError(`Error importing files: ${error.message}`);
     throw error;
   } finally {
     fileStoreModule.fileStore.setLoading(false);

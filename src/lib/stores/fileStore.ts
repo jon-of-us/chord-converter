@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import * as fileService from '../services/fileService';
 
 export type StorageMode = 'browser' | 'filesystem';
 
@@ -38,6 +39,9 @@ function createFileStore() {
       update(state => ({ ...state, storageMode: mode }));
     },
     setFolderHandle: (handle: FileSystemDirectoryHandle | null) => {
+      // Update storage implementation
+      fileService.setStorage(handle);
+      
       update(state => ({ 
         ...state, 
         folderHandle: handle, 

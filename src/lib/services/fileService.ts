@@ -1,9 +1,12 @@
 import type { FileEntry } from '../stores/fileStore';
-import { saveBrowserFile, deleteBrowserFile, renameBrowserFile, loadAllBrowserFiles, type BrowserFile } from '../utils/indexedDB';
+import { loadAllBrowserFiles, type BrowserFile } from '../utils/indexedDB';
 import { fileConfig } from '../config';
+import type { IFileStorage } from './storage/IFileStorage';
+import { BrowserStorage } from './storage/BrowserStorage';
+import { Filesystem } from './storage/Filesystem';
 
 /**
- * File Service - Minimal interface for file operations
+ * File Service - Uses storage adapters for file operations
  */
 
 export interface ScanResult {
@@ -11,28 +14,42 @@ export interface ScanResult {
   folders: Set<string>;
 }
 
+// Storage instances
+let currentStorage: IFileStorage | null = null;
+
+/**
+ * Set the storage implementation
+ */
+export function setStorage(folderHandle: FileSystemDirectoryHandle | null): void {
+  if (folderHandle) {
+    currentStorage = new Filesystem(folderHandle);
+  } else {
+    currentStorage = new BrowserStorage();
+  }
+}
+
+/**
+ * Get current storage (creates BrowserStorage if none set)
+ */
+function getStorage(): IFileStorage {
+  if (!currentStorage) {
+    currentStorage = new BrowserStorage();
+  }
+  return currentStorage;
+}
+
 /**
  * Read file content
  */
 export async function readFile(file: FileEntry): Promise<string> {
-  if (file.handle) {
-    const fileData = await file.handle.getFile();
-    return await fileData.text();
-  }
-  return String(file.content || '');
+  return getStorage().readFile(file);
 }
 
 /**
  * Save file content
  */
 export async function saveFile(file: FileEntry, content: string): Promise<void> {
-  if (file.handle) {
-    const writable = await file.handle.createWritable();
-    await writable.write(content);
-    await writable.close();
-  } else {
-    await saveBrowserFile(file.name, content);
-  }
+  return getStorage().writeFile(file, content);
 }
 
 /**
@@ -44,30 +61,8 @@ export async function createFile(
   folderHandle?: FileSystemDirectoryHandle,
   isEmpty: boolean = false
 ): Promise<FileEntry> {
-  // Use fileName as-is (formatting is handled by caller)
-  const fullFileName = fileName;
-  const filePath = folderPath ? `${folderPath}/${fullFileName}` : fullFileName;
   const fileContent = isEmpty ? '' : fileConfig.newFileTemplate;
-
-  if (folderHandle) {
-    let targetFolder = folderHandle;
-    if (folderPath) {
-      for (const part of folderPath.split('/')) {
-        targetFolder = await targetFolder.getDirectoryHandle(part, { create: true });
-      }
-    }
-
-    const fileHandle = await targetFolder.getFileHandle(fullFileName, { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(fileContent);
-    await writable.close();
-
-    return { name: fullFileName, path: filePath, handle: fileHandle };
-  } else {
-    const content = String(fileContent);
-    await saveBrowserFile(fullFileName, content);
-    return { name: fullFileName, path: fullFileName, content };
-  }
+  return getStorage().createFile(fileName, folderPath, fileContent);
 }
 
 /**
@@ -77,18 +72,7 @@ export async function deleteFile(
   file: FileEntry,
   folderHandle?: FileSystemDirectoryHandle
 ): Promise<void> {
-  if (file.handle && folderHandle) {
-    const pathParts = file.path.split('/');
-    let targetFolder = folderHandle;
-    
-    for (let i = 0; i < pathParts.length - 1; i++) {
-      targetFolder = await targetFolder.getDirectoryHandle(pathParts[i], { create: false });
-    }
-
-    await targetFolder.removeEntry(file.name);
-  } else {
-    await deleteBrowserFile(file.name);
-  }
+  return getStorage().deleteFile(file);
 }
 
 /**
@@ -101,33 +85,27 @@ export async function renameFile(
 ): Promise<FileEntry> {
   const fullNewName = newName.endsWith('.chords') ? newName : `${newName}.chords`;
   const pathParts = file.path.split('/');
-  pathParts[pathParts.length - 1] = fullNewName;
-  const newPath = pathParts.join('/');
-
-  if (file.handle && folderHandle) {
-    const content = await readFile(file);
-    let targetFolder = folderHandle;
-    
-    for (let i = 0; i < pathParts.length - 1; i++) {
-      targetFolder = await targetFolder.getDirectoryHandle(pathParts[i], { create: false });
-    }
-
-    const newHandle = await targetFolder.getFileHandle(fullNewName, { create: true });
-    const writable = await newHandle.createWritable();
-    await writable.write(content);
-    await writable.close();
-
-    await targetFolder.removeEntry(file.name);
-
-    return { name: fullNewName, path: newPath, handle: newHandle };
-  } else {
-    await renameBrowserFile(file.name, fullNewName);
-    return { name: fullNewName, path: newPath, content: file.content };
-  }
+  const folderPath = pathParts.slice(0, -1).join('/');
+  
+  return getStorage().renameFile(file, fullNewName, folderPath);
 }
 
 /**
- * Scan a directory for .chords files and folders
+ * List all files from current storage
+ */
+export async function listFiles(): Promise<FileEntry[]> {
+  return getStorage().listFiles();
+}
+
+/**
+ * Import multiple files (drag-and-drop support)
+ */
+export async function importFiles(files: Array<{ path: string; content: string }>): Promise<FileEntry[]> {
+  return getStorage().importFiles(files);
+}
+
+/**
+ * Scan a directory for .chords files and folders (Filesystem mode only)
  */
 export async function scanDirectory(dirHandle: FileSystemDirectoryHandle): Promise<ScanResult> {
   const files: FileEntry[] = [];
@@ -153,9 +131,13 @@ export async function scanDirectory(dirHandle: FileSystemDirectoryHandle): Promi
 }
 
 /**
- * Load all files from browser storage
+ * Load all files from browser storage (legacy)
  */
 export async function loadBrowserFiles(): Promise<FileEntry[]> {
   const browserFiles = await loadAllBrowserFiles();
-  return browserFiles.map((bf: BrowserFile) => ({ name: bf.name, path: bf.name, content: bf.content }));
+  return browserFiles.map((bf: BrowserFile) => ({ 
+    name: bf.name.split('/').pop() || bf.name, 
+    path: bf.name, 
+    content: bf.content 
+  }));
 }

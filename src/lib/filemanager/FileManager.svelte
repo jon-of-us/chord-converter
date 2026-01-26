@@ -19,6 +19,9 @@
   // Build tree from files and folders
   let tree = $derived(fileManagerService.buildFileTree($fileStore.files, allFolders));
   
+  // Drag and drop state
+  let isDragging = $state(false);
+  
   async function addFile() {
     const input = prompt('Enter file name (or folder/filename for folders, folder/ for empty folder):');
     if (!input) return;
@@ -29,16 +32,53 @@
       // Error already handled in service
     }
   }
+  
+  async function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+    isDragging = true;
+  }
+  
+  function handleDragLeave(e: DragEvent) {
+    // Only set to false if we're leaving the container itself, not a child
+    if (e.currentTarget === e.target) {
+      isDragging = false;
+    }
+  }
+  
+  async function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    isDragging = false;
+    
+    if (!e.dataTransfer) return;
+    
+    try {
+      await fileManagerService.handleFileDrop(e.dataTransfer);
+    } catch (error) {
+      // Error already handled in service
+    }
+  }
 </script>
 
-<div class="file-manager">
+<div 
+  class="file-manager"
+  class:dragging={isDragging}
+  ondragover={handleDragOver}
+  ondragleave={handleDragLeave}
+  ondrop={handleDrop}
+  role="region"
+  aria-label="File manager with drag and drop support"
+>
   <div class="file-list">
     {#if $fileStore.files.length === 0}
       <div class="empty-state">
         {#if $fileStore.storageMode === 'filesystem'}
           No .chords files found
         {:else}
-          No files yet. Click "New +" to create one!
+          No files yet. Click "New +" to create one!<br>
+          <span class="drop-hint">Or drag & drop .chords files here</span>
         {/if}
       </div>
     {:else}
@@ -47,6 +87,12 @@
           <FileTreeItem {node} onSelectFile={fileManagerService.selectFile} />
         {/each}
       </ul>
+    {/if}
+    
+    {#if isDragging && $fileStore.storageMode === 'browser'}
+      <div class="drop-overlay">
+        <div class="drop-message">Drop files or folders here</div>
+      </div>
     {/if}
   </div>
   
@@ -68,6 +114,11 @@
     min-height: 0;
     background-color: rgba(0, 0, 0, 0.2);
     position: relative;
+    transition: background-color 0.2s;
+  }
+  
+  .file-manager.dragging {
+    background-color: rgba(100, 108, 255, 0.1);
   }
   
   .file-list {
@@ -75,6 +126,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
+    position: relative;
   }
   
   .empty-state {
@@ -82,6 +134,38 @@
     text-align: center;
     color: rgba(255, 255, 255, 0.5);
     font-size: 14px;
+  }
+  
+  .drop-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+    margin-top: 0.5rem;
+    display: inline-block;
+  }
+  
+  .drop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(100, 108, 255, 0.2);
+    border: 2px dashed #646cff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+  }
+  
+  .drop-message {
+    font-size: 16px;
+    font-weight: 600;
+    color: #646cff;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 1rem 2rem;
+    border-radius: 8px;
   }
   
   .tree {
