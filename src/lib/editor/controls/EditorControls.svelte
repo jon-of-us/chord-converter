@@ -5,6 +5,14 @@
   import { editorConfig } from '../../config';
   import * as editorService from '../../services/editorService';
   
+  let {
+    toggleLeftSidebar,
+    leftSidebarVisible,
+  }: {
+    toggleLeftSidebar: () => void;
+    leftSidebarVisible: boolean;
+  } = $props();
+  
   let theme = $derived($themeStore);
   let viewMode = $derived($editorStore.viewMode);
   let zoomLevel = $derived($editorStore.zoomLevel);
@@ -30,6 +38,7 @@
 </script>
 
 <div class="controls-sidebar">
+  
   {#if currentFile}
     <div class="control-section">
       <button 
@@ -110,17 +119,6 @@
       </div>
     </div>
 
-
-    <div class="control-section">
-      <button 
-        onclick={() => themeStore.toggle()}
-        class="control-button"
-        title="Toggle dark/light mode"
-      >
-        {theme === 'dark' ? '☀' : '🌙'}
-      </button>
-    </div>
-
     <div class="control-section">
       <h3>Transpose</h3>
       <div class="control-row">
@@ -141,6 +139,25 @@
         </button>
       </div>
     </div>
+
+    <div class="control-section">
+      <button 
+        onclick={() => themeStore.toggle()}
+        class="control-button"
+        title="Toggle dark/light mode"
+      >
+        {theme === 'dark' ? '☀' : '🌙'}
+      </button>
+      <button 
+        onclick={toggleLeftSidebar}
+        class="control-button"
+        title={leftSidebarVisible ? 'Hide file list' : 'Show file list'}
+      >
+        {leftSidebarVisible ? 'Hide Files' : 'Show Files'}
+      </button>
+    </div>
+
+
 
     <div class="control-section save-section">
       {#if saveSuccess}

@@ -402,7 +402,7 @@
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
             "Liberation Mono", "Courier New", monospace;
         line-height: 1.4;
-        padding: 2rem;
+        padding: 2rem 2rem 2rem 3rem;
         height: 100%;
         overflow-y: auto;
         overflow-x: hidden;

@@ -41,7 +41,7 @@
     flex: 1;
     width: 100%;
     height: 100%;
-    padding: 1rem;
+    padding: 1rem 1rem 1rem 3rem;
     background-color: rgba(0, 0, 0, 0.2);
     color: rgba(255, 255, 255, 0.87);
     border: none;

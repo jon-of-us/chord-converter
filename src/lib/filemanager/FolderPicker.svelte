@@ -5,6 +5,7 @@
   import * as fileService from '../services/fileService';
   import * as fileManagerService from '../services/fileManagerService';
   import DownloadButton from './DownloadButton.svelte';
+  import Button from '../components/Button.svelte';
 
   let isSupported = false;
 
@@ -163,23 +164,22 @@
   
   {#if !$fileStore.folderHandle}
     <div class="top-buttons">
-      <button 
-        onclick={selectFolder} 
+      <Button
+        onclick={selectFolder}
         disabled={$fileStore.loading || !isSupported}
         title={isSupported ? '' : 'File System Access is only supported in Chrome, Edge, and Opera. Please use one of these browsers to connect a folder.'}
-        class:unsupported={!isSupported}
-        class="main-btn"
+        variant="primary"
+        class={!isSupported ? 'unsupported' : ''}
       >
         Connect Folder
-      </button>
-      <button
-        class="import-btn"
+      </Button>
+      <Button
         onclick={triggerFileInput}
         disabled={$fileStore.loading}
         title="Import folder with .chords files"
       >
         Import Folder
-      </button>
+      </Button>
     </div>
   {/if}
   
@@ -190,22 +190,20 @@
     </div>
     
     <div class="folder-actions">
-      <button 
+      <Button
         onclick={selectFolder}
         disabled={$fileStore.loading}
-        class="folder-action-btn"
         title="Change folder"
       >
         Change Folder
-      </button>
-      <button 
-        onclick={disconnectFolder} 
-        class="disconnect-btn" 
-        disabled={$fileStore.loading} 
+      </Button>
+      <Button
+        onclick={disconnectFolder}
+        disabled={$fileStore.loading}
         title="Disconnect folder"
       >
         Disconnect
-      </button>
+      </Button>
     </div>
   {/if}
   
@@ -226,57 +224,13 @@
     display: flex;
     gap: 0.5rem;
   }
-
-  .main-btn {
+  
+  .top-buttons :global(.btn) {
     flex: 1;
-    padding: 0.4rem 0.75rem;
-    background-color: #646cff;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    transition: background-color 0.2s;
-    white-space: nowrap;
   }
   
-  .import-btn {
-    flex: 1;
-    padding: 0.4rem 0.75rem;
-    background-color: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .main-btn:hover:not(:disabled) {
-    background-color: #535bf2;
-  }
-
-  .main-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .main-btn.unsupported {
+  .top-buttons :global(.btn.unsupported) {
     background-color: #888;
-  }
-  
-  .import-btn:hover:not(:disabled) {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.9);
-  }
-  
-  .import-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 
   .folder-info {
@@ -306,52 +260,8 @@
     display: flex;
     gap: 0.5rem;
   }
-
-  .folder-action-btn {
+  
+  .folder-actions :global(.btn) {
     flex: 1;
-    padding: 0.4rem 0.75rem;
-    background-color: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-
-  .folder-action-btn:hover:not(:disabled) {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .folder-action-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .disconnect-btn {
-    flex: 1;
-    padding: 0.4rem 0.75rem;
-    background-color: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-
-  .disconnect-btn:hover:not(:disabled) {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .disconnect-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 </style>
