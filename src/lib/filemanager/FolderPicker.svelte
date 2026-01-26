@@ -112,19 +112,75 @@
       fileStore.setCurrentContent('');
     }
   }
+  
+  // File input handler for iOS and browsers without drag-and-drop support
+  let fileInput: HTMLInputElement;
+  
+  async function handleFileInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    
+    try {
+      // Process files directly to preserve webkitRelativePath
+      const filesToImport: Array<{ path: string; content: string }> = [];
+      
+      for (const file of Array.from(input.files)) {
+        if (file.type === 'text/plain' || file.name.endsWith('.chords')) {
+          const content = await file.text();
+          // Use webkitRelativePath which preserves folder structure
+          const path = (file as any).webkitRelativePath || file.name;
+          filesToImport.push({ path, content });
+        }
+      }
+      
+      if (filesToImport.length > 0) {
+        await fileManagerService.importFilesDirectly(filesToImport);
+      }
+      
+      // Reset input so the same folder can be selected again
+      input.value = '';
+    } catch (error) {
+      // Error already handled in service
+    }
+  }
+  
+  function triggerFileInput() {
+    fileInput?.click();
+  }
 </script>
 
 <div class="folder-picker">
+  <!-- Hidden file input for iOS and browsers without drag-and-drop -->
+  <input
+    type="file"
+    multiple
+    webkitdirectory
+    accept=".chords,text/plain"
+    bind:this={fileInput}
+    onchange={handleFileInput}
+    style="display: none;"
+  />
+  
   {#if !$fileStore.folderHandle}
-    <button 
-      onclick={selectFolder} 
-      disabled={$fileStore.loading || !isSupported}
-      title={isSupported ? '' : 'File System Access is only supported in Chrome, Edge, and Opera. Please use one of these browsers to connect a folder.'}
-      class:unsupported={!isSupported}
-      class="main-btn"
-    >
-      Connect Folder
-    </button>
+    <div class="top-buttons">
+      <button 
+        onclick={selectFolder} 
+        disabled={$fileStore.loading || !isSupported}
+        title={isSupported ? '' : 'File System Access is only supported in Chrome, Edge, and Opera. Please use one of these browsers to connect a folder.'}
+        class:unsupported={!isSupported}
+        class="main-btn"
+      >
+        Connect Folder
+      </button>
+      <button
+        class="import-btn"
+        onclick={triggerFileInput}
+        disabled={$fileStore.loading}
+        title="Import folder with .chords files"
+      >
+        Import Folder
+      </button>
+    </div>
   {/if}
   
   {#if $fileStore.folderHandle}
@@ -165,8 +221,14 @@
     background-color: rgba(255, 255, 255, 0.05);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
+  
+  .top-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
 
   .main-btn {
+    flex: 1;
     padding: 0.4rem 0.75rem;
     background-color: #646cff;
     color: white;
@@ -176,6 +238,20 @@
     font-size: 12px;
     font-weight: 500;
     transition: background-color 0.2s;
+    white-space: nowrap;
+  }
+  
+  .import-btn {
+    flex: 1;
+    padding: 0.4rem 0.75rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
     white-space: nowrap;
   }
 
@@ -190,6 +266,17 @@
 
   .main-btn.unsupported {
     background-color: #888;
+  }
+  
+  .import-btn:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .import-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .folder-info {
