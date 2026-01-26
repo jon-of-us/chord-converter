@@ -457,7 +457,7 @@ export async function downloadAllFiles(files: fileStoreModule.FileEntry[]): Prom
 export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> {
   const files: Array<{ path: string; content: string }> = [];
   
-  // Recursive function to read directory entries
+  // Recursive function to read directory entries (for browsers supporting webkitGetAsEntry)
   async function readEntry(entry: any, path: string = ''): Promise<void> {
     if (entry.isFile) {
       const file: File = await new Promise((resolve, reject) => {
@@ -487,17 +487,50 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
     fileStoreModule.fileStore.setLoading(true);
     fileStoreModule.fileStore.setError(null);
     
-    // Process all dropped items
+    // Try using webkitGetAsEntry for folder support (Chrome desktop, Edge)
     const items = Array.from(dataTransfer.items);
-    for (const item of items) {
-      const entry = item.webkitGetAsEntry?.();
-      if (entry) {
-        await readEntry(entry);
+    let useWebkitAPI = false;
+    
+    if (items.length > 0) {
+      for (const item of items) {
+        try {
+          const entry = item.webkitGetAsEntry?.();
+          if (entry) {
+            useWebkitAPI = true;
+            await readEntry(entry);
+          }
+        } catch (error) {
+          console.warn('webkitGetAsEntry failed, trying fallback:', error);
+        }
       }
     }
     
+    // Fallback for browsers without webkitGetAsEntry or if it failed (iOS Safari/Chrome)
+    // Read files directly from DataTransfer.files
+    if (!useWebkitAPI || files.length === 0) {
+      if (dataTransfer.files.length > 0) {
+        const fileList = Array.from(dataTransfer.files);
+        console.log('Using fallback file reading, found', fileList.length, 'files');
+        
+        for (const file of fileList) {
+          if (file.name.toLowerCase().endsWith('.chords')) {
+            try {
+              const content = await file.text();
+              // Use webkitRelativePath if available (folder drag), otherwise just filename
+              const filePath = (file as any).webkitRelativePath || file.name;
+              files.push({ path: filePath, content });
+            } catch (error) {
+              console.error('Error reading file:', file.name, error);
+            }
+          }
+        }
+      }
+    }
+    
+    console.log('Total .chords files found:', files.length);
+    
     if (files.length === 0) {
-      fileStoreModule.fileStore.setError('No .chords files found in dropped items');
+      fileStoreModule.fileStore.setError('No .chords files found in dropped items. Make sure files have .chords extension.');
       return;
     }
     
