@@ -6,15 +6,14 @@
   import EditorControls from './lib/editor/controls/EditorControls.svelte'
   import { fileStore } from './lib/stores/fileStore';
   import * as fileService from './lib/services/fileService';
-  import { sidebarConfig, mobileMessage } from './lib/config';
+  import { sidebarConfig } from './lib/config';
 
   Svelte.onMount(async () => {
-    // Check if mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-      || (window.innerWidth <= 768);
+    // Check if File System Access API is available
+    const isFileSystemSupported = 'showDirectoryPicker' in window;
     
-    if (isMobile) {
-      alert(mobileMessage);
+    if (!isFileSystemSupported) {
+      alert('In this browser you can not connect the app to a local folder. For full functionality, please use Chrome or Edge on a computer.');
     }
 
     // Load files from browser storage on startup

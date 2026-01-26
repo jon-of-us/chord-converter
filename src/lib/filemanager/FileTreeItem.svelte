@@ -160,13 +160,14 @@
   }
   
   li:hover:not(.selected) {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.01);
   }
   
   .item-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
   }
   
   .item-button {
@@ -175,6 +176,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
+    padding-right: 5rem; /* Make space for action buttons */
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.87);
@@ -182,6 +184,7 @@
     cursor: pointer;
     font-size: 14px;
     transition: background 0.2s;
+    min-width: 0; /* Allow text truncation */
   }
   
   .item-button.folder {
@@ -199,12 +202,18 @@
   
   .name {
     flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   .actions {
+    position: absolute;
+    right: 0.5rem;
     display: flex;
     gap: 0.25rem;
-    padding: 0 0.5rem;
+    background-color: inherit;
+    padding: 0.25rem;
   }
   
   .action-btn {
@@ -234,13 +243,13 @@
     flex: 1;
     padding: 0.75rem 1rem;
     background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid #646cff;
+    /* border: 1px solid #646cff; */
     color: rgba(255, 255, 255, 0.87);
     font-size: 14px;
     font-family: inherit;
     outline: none;
     margin: 0.25rem 0.5rem;
-    border-radius: 3px;
+    /* border-radius: 3px; */
   }
   
   .nested {

@@ -60,11 +60,6 @@ button {
 button:hover {
   border-color: #646cff;
 }
-button:focus,
-button:focus-visible {
-  outline: 2px solid #646cff;
-  outline-offset: 2px;
-}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
@@ -85,27 +80,3 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.3);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3);
-  }
-}

@@ -63,5 +63,3 @@ export const themeConfig = {
   defaultTheme: 'dark' as 'dark' | 'light',
   storageKey: 'chord-converter-theme',
 };
-
-export const mobileMessage = "This application does not support mobile devices. Please use a desktop browser (preferably Chrome or Edge)"

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { fileStore } from '../stores/fileStore';
-  import { fileManagerStore } from '../stores/fileManagerStore';
   import * as fileManagerService from '../services/fileManagerService';
   import FileTreeItem from './FileTreeItem.svelte';
   
@@ -77,8 +76,7 @@
         {#if $fileStore.storageMode === 'filesystem'}
           No .chords files found
         {:else}
-          No files yet. Click "New +" to create one!<br>
-          <span class="drop-hint">Or drag & drop .chords files here</span>
+          No files yet. Click "New +" to create one, or drag & drop .chords files here
         {/if}
       </div>
     {:else}
@@ -136,13 +134,6 @@
     font-size: 14px;
   }
   
-  .drop-hint {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.4);
-    font-style: italic;
-    margin-top: 0.5rem;
-    display: inline-block;
-  }
   
   .drop-overlay {
     position: absolute;
