@@ -125,13 +125,7 @@ export async function createFile(fileName: string): Promise<void> {
     const files = fileStoreModule.fileStore;
     files.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
     
-    if (!folderHandle) {
-      fileStoreModule.fileStore.setError('Cannot create folders in browser mode. Please connect a folder first.');
-      throw new Error('Cannot create folders in browser mode');
-    }
-    
     const keepFileName = '.keep';
-    const keepPath = folderPath ? `${folderPath}/.keep` : '.keep';
     
     try {
       fileStoreModule.fileStore.setLoading(true);
@@ -457,7 +451,7 @@ export async function downloadAllFiles(files: fileStoreModule.FileEntry[]): Prom
 export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> {
   const files: Array<{ path: string; content: string }> = [];
   
-  // Recursive function to read directory entries
+  // Recursive function to read directory entries (for browsers supporting webkitGetAsEntry)
   async function readEntry(entry: any, path: string = ''): Promise<void> {
     if (entry.isFile) {
       const file: File = await new Promise((resolve, reject) => {
@@ -467,33 +461,11 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
       const content = await file.text();
       const fullPath = path ? `${path}/${file.name}` : file.name;
       files.push({ path: fullPath, content });
-      
     } else if (entry.isDirectory) {
       const reader = entry.createReader();
-      
-      // iOS Safari may require multiple calls to readEntries to get all entries
-      const readAllEntries = async (): Promise<any[]> => {
-        const allEntries: any[] = [];
-        
-        const readBatch = (): Promise<any[]> => {
-          return new Promise((resolve, reject) => {
-            reader.readEntries((entries: any[]) => {
-              if (entries.length > 0) {
-                allEntries.push(...entries);
-                // Continue reading if there might be more
-                readBatch().then(resolve).catch(reject);
-              } else {
-                // No more entries
-                resolve(allEntries);
-              }
-            }, reject);
-          });
-        };
-        
-        return readBatch();
-      };
-      
-      const entries = await readAllEntries();
+      const entries: any[] = await new Promise((resolve, reject) => {
+        reader.readEntries(resolve, reject);
+      });
       
       const folderPath = path ? `${path}/${entry.name}` : entry.name;
       for (const subEntry of entries) {
@@ -505,8 +477,7 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
   try {
     fileStoreModule.fileStore.setLoading(true);
     fileStoreModule.fileStore.setError(null);
-    
-    // Process all dropped items
+
     const items = Array.from(dataTransfer.items);
     for (const item of items) {
       const entry = item.webkitGetAsEntry?.();
@@ -515,8 +486,10 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
       }
     }
     
+    console.log('Total .chords files found:', files.length);
+    
     if (files.length === 0) {
-      fileStoreModule.fileStore.setError('No files found. Note: The browser cannot store empty folders.');
+      fileStoreModule.fileStore.setError('No files found. Sorry');
       return;
     }
     
@@ -575,3 +548,4 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
     fileStoreModule.fileStore.setLoading(false);
   }
 }
+
