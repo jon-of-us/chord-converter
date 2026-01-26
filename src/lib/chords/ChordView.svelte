@@ -6,7 +6,7 @@
     import { editorConfig } from "../config";
     import * as KeyDetection from "./keyDetection";
 
-    const CHORD_ICON_GAP = 10; // px minimal horizontal gap between consecutive chord icons
+    const CHORD_ICON_GAP = 8; // px minimal horizontal gap between consecutive chord icons
 
     interface ChordOrWord {
         pos: [number, number]; // [line index, position in line]
@@ -255,30 +255,20 @@
             }> = [];
 
             markers.forEach((m) => {
-                const chordContainer = m.querySelector(
+                const containers = m.querySelectorAll(
                     ".chord-container",
-                ) as HTMLElement;
+                ) as NodeListOf<HTMLElement>;
                 const markerId = m.id;
-                const wordEl = line.querySelector(
-                    `.word-chord[data-marker='${markerId}']`,
-                ) as HTMLElement;
 
-                if (chordContainer) {
+                containers.forEach((container) => {
+                    const isWord = container.classList.contains('word-container');
                     items.push({
-                        type: "chord",
-                        element: chordContainer,
+                        type: isWord ? "word" : "chord",
+                        element: container,
                         naturalLeft:
                             m.getBoundingClientRect().left - containerRect.left,
                     });
-                }
-                if (wordEl) {
-                    items.push({
-                        type: "word",
-                        element: wordEl,
-                        naturalLeft:
-                            m.getBoundingClientRect().left - containerRect.left,
-                    });
-                }
+                });
             });
 
             // Sort by their natural marker position from left to right
@@ -288,11 +278,7 @@
             items.forEach((item) => {
                 const element = item.element;
                 // Reset any previous shift so measurement is consistent
-                if (item.type === "chord") {
-                    element.style.transform = "translateX(0px)";
-                } else {
-                    element.style.transform = `translate(${item.naturalLeft}px, 0)`;
-                }
+                element.style.transform = "translateX(0px)";
 
                 const rect = element.getBoundingClientRect();
                 const width = rect.width;
@@ -303,12 +289,8 @@
                 }
 
                 const shift = desiredLeft - item.naturalLeft;
-                if (item.type === "chord") {
-                    if (shift !== 0) {
-                        element.style.transform = `translateX(${shift}px)`;
-                    }
-                } else {
-                    element.style.transform = `translate(${desiredLeft}px, 0)`;
+                if (shift !== 0) {
+                    element.style.transform = `translateX(${shift}px)`;
                 }
 
                 lastRight = desiredLeft + width;
@@ -405,7 +387,10 @@
                                             class="chord-container">{#if showRootNumbers && chord.rootNumber !== undefined}<span
                                                     class="root-number"
                                                     >{(chord.rootNumber + keyNumber + 8 ) % 12}</span
-                                            >{/if}{@html chord.svg}</div>{:else if chord.word}<span class="chord-word">{chord.word}</span>{/if}</span
+                                            >{/if}{@html chord.svg}</div>{:else if chord.word}<div
+                                            class="chord-container word-container"
+                                            data-marker={chord.markerId}
+                                        ><span class="chord-word">{chord.word}</span></div>{/if}</span
                                 >{/each}{/if}{char}{/each}</pre>
             </div>
         {/if}
@@ -468,9 +453,21 @@
         gap: 0.3em;
     }
 
+    .word-container {
+        /* Words use same positioning as chords but appear inline */
+        bottom: -0.4em !important;
+        gap: 0;
+    }
+
     .chord-container :global(svg.chord-icon) {
         height: 3.2em;
         overflow: visible;
+    }
+    
+    .chord-word {
+        font-size: 1em;
+        font-weight: bold;
+        color: inherit;
     }
 
     .root-number {
