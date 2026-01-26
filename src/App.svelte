@@ -6,7 +6,7 @@
   import EditorControls from './lib/editor/controls/EditorControls.svelte'
   import { fileStore } from './lib/stores/fileStore';
   import * as fileService from './lib/services/fileService';
-  import * as config from './lib/config';
+  import { sidebarConfig, mobileMessage } from './lib/config';
 
   Svelte.onMount(async () => {
     // Check if mobile device
@@ -14,7 +14,7 @@
       || (window.innerWidth <= 768);
     
     if (isMobile) {
-      alert(config.mobileMessage);
+      alert(mobileMessage);
     }
 
     // Load files from browser storage on startup
@@ -35,7 +35,14 @@
   });
 </script>
 
-<div class="app-container">
+<div class="app-container" style="
+  --sidebar-left-bg: {sidebarConfig.leftSidebarBg};
+  --sidebar-left-border: {sidebarConfig.leftSidebarBorder};
+  --sidebar-left-text: {sidebarConfig.leftSidebarText};
+  --sidebar-right-bg: {sidebarConfig.rightSidebarBg};
+  --sidebar-right-border: {sidebarConfig.rightSidebarBorder};
+  --sidebar-right-text: {sidebarConfig.rightSidebarText};
+">
   <div class="main-content">
     <aside class="left-sidebar">
       <h1>Chord Converter</h1>
@@ -72,10 +79,11 @@
     display: flex;
     flex-direction: column;
     width: 300px;
-    background-color: rgba(255, 255, 255, 0.03);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--sidebar-left-bg);
+    border-right: 1px solid var(--sidebar-left-border);
     overflow: hidden;
     padding-top: 1rem;
+    color: var(--sidebar-left-text);
   }
 
   .left-sidebar h1 {
@@ -93,12 +101,13 @@
 
   .right-sidebar {
     width: 130px;
-    background-color: rgba(255, 255, 255, 0.03);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--sidebar-right-bg);
+    border-left: 1px solid var(--sidebar-right-border);
     display: flex;
     flex-direction: column;
     padding: 1rem 0.5rem;
     gap: 1rem;
     overflow-y: auto;
+    color: var(--sidebar-right-text);
   }
 </style>
