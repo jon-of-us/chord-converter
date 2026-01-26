@@ -107,6 +107,7 @@
         class:folder={node.isFolder}
         onclick={handleClick}
         disabled={$fileStore.loading}
+        title={node.name}
       >
         {#if node.isFolder}
           <span class="folder-icon">{expanded ? '📂' : '📁'}</span>

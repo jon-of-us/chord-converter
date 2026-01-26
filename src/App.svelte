@@ -7,6 +7,12 @@
   import { fileStore } from './lib/stores/fileStore';
   import * as fileService from './lib/services/fileService';
   import { sidebarConfig } from './lib/config';
+  
+  let leftSidebarVisible = $state(true);
+  
+  function toggleLeftSidebar() {
+    leftSidebarVisible = !leftSidebarVisible;
+  }
 
   Svelte.onMount(async () => {
     // Check if File System Access API is available
@@ -42,12 +48,22 @@
   --sidebar-right-border: {sidebarConfig.rightSidebarBorder};
   --sidebar-right-text: {sidebarConfig.rightSidebarText};
 ">
+  <button 
+    class="sidebar-toggle"
+    onclick={toggleLeftSidebar}
+    title={leftSidebarVisible ? 'Hide file list' : 'Show file list'}
+  >
+    {leftSidebarVisible ? '◀' : '▶'}
+  </button>
+  
   <div class="main-content">
-    <aside class="left-sidebar">
-      <h1>Chord Converter</h1>
-      <FolderPicker />
-      <FileManager />
-    </aside>
+    {#if leftSidebarVisible}
+      <aside class="left-sidebar">
+        <h1>Chord Converter</h1>
+        <FolderPicker />
+        <FileManager />
+      </aside>
+    {/if}
     
     <main class="editor-area">
       <Editor />
@@ -73,6 +89,27 @@
     right: 0;
     bottom: 0;
   }
+  
+  .sidebar-toggle {
+    position: absolute;
+    top: 1rem;
+    left: 0.25rem;
+    z-index: 1000;
+    padding: 0.4rem 0.5rem;
+    background-color: rgba(41, 41, 41, 0.5);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    transition: all 0.2s;
+  }
+  
+  .sidebar-toggle:hover {
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
 
   .main-content {
     display: flex;
@@ -92,8 +129,8 @@
   }
 
   .left-sidebar h1 {
-    margin: 0 1rem 1rem 1rem;
-    font-size: 1.3rem;
+    margin: 0 1rem 0.5rem 2.5rem;
+    font-size: 2.5 rem;
     color: #646cff;
     flex-shrink: 0;
   }
