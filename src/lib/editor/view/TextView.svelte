@@ -47,7 +47,7 @@
     border: none;
     resize: none;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-    font-size: 14px;
+    font-size: 1em; /* Use relative sizing like ChordView */
     line-height: 1.6;
     outline: none;
   }
