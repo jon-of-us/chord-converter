@@ -9,14 +9,14 @@ export interface FileManagerState {
   expandedFolders: Set<string>;
   editingPath: string | null;
   editingValue: string;
-  selectedFolderPath: string | null;
+  selectedPath: string | null; // Tracks selected file or folder path
 }
 
 const initialState: FileManagerState = {
   expandedFolders: new Set<string>(),
   editingPath: null,
   editingValue: '',
-  selectedFolderPath: null,
+  selectedPath: null,
 };
 
 function createFileManagerStore() {
@@ -37,7 +37,7 @@ function createFileManagerStore() {
         return {
           ...state,
           expandedFolders: newExpanded,
-          selectedFolderPath: path,
+          selectedPath: path,
         };
       });
     },
@@ -70,9 +70,26 @@ function createFileManagerStore() {
       });
     },
     
-    // Folder selection
-    selectFolder: (path: string | null) => {
-      update(state => ({ ...state, selectedFolderPath: path }));
+    // Selection (file or folder)
+    select: (path: string | null) => {
+      update(state => ({ ...state, selectedPath: path }));
+    },
+    
+    // Get folder context for creating new files
+    getSelectedFolderPath: (state: FileManagerState, files: any[]): string => {
+      if (!state.selectedPath) return '';
+      
+      // Check if selected path is a file
+      const selectedFile = files.find(f => f.path === state.selectedPath);
+      if (selectedFile) {
+        // Extract folder from file path
+        const parts = selectedFile.path.split('/');
+        parts.pop(); // Remove filename
+        return parts.join('/');
+      }
+      
+      // Otherwise it's a folder path
+      return state.selectedPath;
     },
     
     // Editing

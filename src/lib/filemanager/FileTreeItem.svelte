@@ -25,11 +25,7 @@
   let expanded = $derived($fileManagerStore.expandedFolders.has(node.path));
   let isEditing = $derived($fileManagerStore.editingPath === node.path);
   let editValue = $derived($fileManagerStore.editingValue);
-  let isSelected = $derived(
-    node.isFolder 
-      ? $fileManagerStore.selectedFolderPath === node.path
-      : $fileStore.currentFile?.path === node.path
-  );
+  let isSelected = $derived($fileManagerStore.selectedPath === node.path);
   
   function handleClick() {
     if (node.isFolder) {
@@ -37,7 +33,7 @@
       fileStore.setCurrentFile(null);
       fileStore.setCurrentContent('');
     } else if (node.file) {
-      fileManagerStore.selectFolder(null);
+      fileManagerStore.select(node.path);
       onSelectFile(node.file);
     }
   }
@@ -175,9 +171,8 @@
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem;
     padding: 0.75rem 1rem;
-    padding-right: 5rem; /* Make space for action buttons */
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.87);
@@ -209,12 +204,10 @@
   }
   
   .actions {
-    position: absolute;
-    right: 0.5rem;
     display: flex;
-    gap: 0.25rem;
-    background-color: inherit;
+    /* gap: 0.25rem; */
     padding: 0.25rem;
+    flex-shrink: 0;
   }
   
   .action-btn {

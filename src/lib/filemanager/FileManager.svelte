@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fileStore } from '../stores/fileStore';
+  import { fileManagerStore } from '../stores/fileManagerStore';
   import * as fileManagerService from '../services/fileManagerService';
   import FileTreeItem from './FileTreeItem.svelte';
   
@@ -21,8 +22,28 @@
   // Drag and drop state
   let isDragging = $state(false);
   
+  // Get current folder context for prompt
+  let currentFolderContext = $derived.by(() => {
+    const selectedPath = $fileManagerStore.selectedPath;
+    if (!selectedPath) return 'root';
+    
+    // Check if it's a file
+    const selectedFile = $fileStore.files.find(f => f.path === selectedPath);
+    if (selectedFile) {
+      const parts = selectedFile.path.split('/');
+      parts.pop();
+      return parts.length > 0 ? parts.join('/') : 'root';
+    }
+    
+    // It's a folder
+    return selectedPath;
+  });
+  
   async function addFile() {
-    const input = prompt('Enter file name (or folder/filename for folders, folder/ for empty folder):');
+    const contextMsg = currentFolderContext === 'root' 
+      ? '' 
+      : ` in "${currentFolderContext}"`;
+    const input = prompt(`Create new file${contextMsg}:\n\nEnter filename, or use:\n- "subfolder/file" to create in subfolder\n- "folder/" to create empty folder`);
     if (!input) return;
     
     try {

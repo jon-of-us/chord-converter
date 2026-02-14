@@ -108,14 +108,24 @@ export async function selectFile(file: fileStoreModule.FileEntry): Promise<void>
  * Create a new file (supports folder paths like "folder/file.chords" or "folder/")
  */
 export async function createFile(fileName: string): Promise<void> {
+  // Get selected folder context
+  let selectedFolderPath = '';
+  let currentFiles: fileStoreModule.FileEntry[] = [];
+  fileStoreModule.fileStore.subscribe(state => { currentFiles = state.files; })();
+  fileManagerStoreModule.fileManagerStore.subscribe(state => {
+    selectedFolderPath = fileManagerStoreModule.fileManagerStore.getSelectedFolderPath(state, currentFiles);
+  })();
+  
   // Parse folder path and file name
-  let folderPath = '';
+  let folderPath = selectedFolderPath; // Start with selected folder
   let actualFileName = fileName;
   
   if (fileName.includes('/')) {
     const parts = fileName.split('/');
     actualFileName = parts.pop() || '';
-    folderPath = parts.join('/');
+    const relativePath = parts.join('/');
+    // Combine selected folder with relative path
+    folderPath = selectedFolderPath ? `${selectedFolderPath}/${relativePath}` : relativePath;
   }
   
   // If fileName ends with /, create folder by creating a .keep file
@@ -164,11 +174,7 @@ export async function createFile(fileName: string): Promise<void> {
   
   const fullPath = folderPath ? `${folderPath}/${fullFileName}` : fullFileName;
   
-  // Check if file already exists
-  const files = fileStoreModule.fileStore;
-  let currentFiles: fileStoreModule.FileEntry[] = [];
-  files.subscribe(state => { currentFiles = state.files; })();
-  
+  // Check if file already exists (reuse currentFiles from top of function)
   if (currentFiles.some(f => f.path === fullPath)) {
     fileStoreModule.fileStore.setError(`File "${fullPath}" already exists`);
     throw new Error(`File "${fullPath}" already exists`);
@@ -179,7 +185,7 @@ export async function createFile(fileName: string): Promise<void> {
     fileStoreModule.fileStore.setError(null);
     
     let folderHandle: FileSystemDirectoryHandle | undefined;
-    files.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
+    fileStoreModule.fileStore.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
     
     const newFile = await fileService.createFile(fullFileName, folderPath, folderHandle, isEmpty);
     
