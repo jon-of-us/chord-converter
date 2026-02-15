@@ -5,26 +5,25 @@
     import { editorConfig } from "../config";
     import * as KeyDetection from "./keyDetection";
     import type { ChordFile } from "../models/ChordFile";
+    import * as chordFileService from "../services/chordFileService";
+    import { editorStore } from "../stores/editorStore";
+    import { themeStore } from "../stores/themeStore";
 
     const CHORD_ICON_GAP = 8; // px minimal horizontal gap between consecutive chord icons
 
-    let {
-        chordFile,
-        zoomLevel = 100,
-        isAutoscrolling = false,
-        autoscrollSpeed = 1,
-        theme = "dark",
-        showRootNumbers = false,
-        keyNumber = 0,
-    }: {
-        chordFile: ChordFile;
-        zoomLevel?: number;
-        isAutoscrolling?: boolean;
-        autoscrollSpeed?: number;
-        theme?: "dark" | "light";
-        showRootNumbers?: boolean;
-        keyNumber: number;
-    } = $props();
+    // Derive all data from stores
+    let editedContent = $derived($editorStore.editedContent);
+    let viewMode = $derived($editorStore.viewMode);
+    let zoomLevel = $derived($editorStore.zoomLevel);
+    let isAutoscrolling = $derived($editorStore.isAutoscrolling);
+    let autoscrollSpeed = $derived($editorStore.autoscrollSpeed);
+    let keyNumber = $derived($editorStore.keyNumber);
+    let theme = $derived($themeStore);
+    let showRootNumbers = $derived(viewMode === 'chords');
+    
+    // Parse chordFile from content
+    let chordFile = $derived(chordFileService.parseChordFile(editedContent));
+    
     let viewContainer: HTMLDivElement;
 
     function transposeChordToC(chord: Chord, offsetToC: number): Chord {
@@ -290,9 +289,16 @@
         ? '#ffffff'
         : '#1e1e1e'}; color: {theme === 'light' ? '#333333' : '#e0e0e0'};"
 >
-    {#each processedLines as line}
+    {#each processedLines as line, idx}
         {#if line.type === "heading"}
-            <div class="heading">{line.content}</div>
+            <pre class="lyrics heading">{line.content}</pre>
+            {#if chordFile.metadata.artist}
+                <pre class="lyrics">Artist: {chordFile.metadata.artist}</pre>
+            {/if}
+            <pre class="lyrics">Key: {keyNumber}</pre>
+            {#if chordFile.metadata.info}
+                <pre class="lyrics">Info: {chordFile.metadata.info}</pre>
+            {/if}
         {:else if line.type === "empty"}
             <pre class="lyrics"></pre>
         {:else if line.type === "subheading"}
@@ -339,7 +345,7 @@
         font-weight: 700;
         padding-top: 1rem;
         padding-bottom: 0.5rem;
-        font-size: 1.5rem;
+        font-size: 1.5em;
     }
 
     .subheading {

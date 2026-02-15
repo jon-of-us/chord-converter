@@ -76,27 +76,24 @@ export async function saveFile(
 
 /**
  * Transpose key by semitone offset
- * Uses cached ChordFile from store to avoid re-parsing
+ * Parses content, transposes, and saves
  */
 export async function transpose(
   file: fileStore.FileEntry,
   offset: number
 ): Promise<void> {
   try {
-    // Get cached ChordFile from store
+    // Get current content from store
     const state = get(editorStore.editorStore);
-    if (!state.parsedChordFile) {
-      throw new Error('No parsed ChordFile available for transpose');
-    }
+    const content = state.editedContent;
     
-    const result = metadataService.transposeKey(state.parsedChordFile, offset);
+    // Parse, transpose, and serialize
+    const chordFile = chordFileService.parseChordFile(content);
+    const result = metadataService.transposeKey(chordFile, offset);
     
-    // Update both content and cached ChordFile
-    editorStore.editorStore.updateContentAndChordFile(
-      result.content,
-      result.chordFile,
-      result.keyNumber
-    );
+    // Update content and key number
+    editorStore.editorStore.setEditedContent(result.content);
+    editorStore.editorStore.setKeyNumber(result.keyNumber);
     
     await saveFile(file, result.content);
   } catch (error: any) {
@@ -107,7 +104,6 @@ export async function transpose(
 
 /**
  * Ensure numeric key when switching to structure/chords view
- * Uses already-parsed ChordFile to avoid re-parsing
  */
 export async function ensureNumericKey(
   file: fileStore.FileEntry,
@@ -119,16 +115,12 @@ export async function ensureNumericKey(
   try {
     const keyResult = metadataService.ensureNumericKey(chordFile);
     if (keyResult.updated) {
-      // Update both content and cached ChordFile
-      editorStore.editorStore.updateContentAndChordFile(
-        keyResult.content,
-        keyResult.chordFile,
-        keyResult.keyNumber
-      );
+      // Update content and key number
+      editorStore.editorStore.setEditedContent(keyResult.content);
+      editorStore.editorStore.setKeyNumber(keyResult.keyNumber);
       await saveFile(file, keyResult.content);
     } else {
-      // Just update ChordFile and key number (content unchanged)
-      editorStore.editorStore.setParsedChordFile(keyResult.chordFile);
+      // Just update key number (content unchanged)
       editorStore.editorStore.setKeyNumber(keyResult.keyNumber);
     }
   } catch (error: any) {

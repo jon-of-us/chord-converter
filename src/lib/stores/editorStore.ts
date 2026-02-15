@@ -1,6 +1,5 @@
 import { writable, derived } from 'svelte/store';
 import { editorConfig } from '../config';
-import type { ChordFile } from '../models/ChordFile';
 
 /**
  * Editor Store
@@ -17,7 +16,6 @@ export interface EditorState {
   keyNumber: number; // Current key for display (0-11)
   editedContent: string; // Local edit buffer
   lastSavedContent: string; // Last saved content to compare against
-  parsedChordFile: ChordFile | null; // Parsed chord file for visual modes
   isSaving: boolean;
   saveSuccess: boolean;
 }
@@ -30,7 +28,6 @@ const initialState: EditorState = {
   keyNumber: 0,
   editedContent: '',
   lastSavedContent: '',
-  parsedChordFile: null,
   isSaving: false,
   saveSuccess: false,
 };
@@ -118,29 +115,13 @@ function createEditorStore() {
       }));
     },
     
-    // Parsed ChordFile
-    setParsedChordFile: (chordFile: ChordFile | null) => {
-      update(state => ({ ...state, parsedChordFile: chordFile }));
-    },
-    
-    // Update both content and ChordFile together
-    updateContentAndChordFile: (content: string, chordFile: ChordFile, keyNumber: number) => {
-      update(state => ({
-        ...state,
-        editedContent: content,
-        parsedChordFile: chordFile,
-        keyNumber: (keyNumber % 12 + 12) % 12
-      }));
-    },
-    
     // Combined updates
     loadContent: (content: string, keyNumber: number) => {
       update(state => ({
         ...state,
         editedContent: content,
         lastSavedContent: content,
-        keyNumber: (keyNumber % 12 + 12) % 12,
-        parsedChordFile: null // Clear cached ChordFile when loading new file
+        keyNumber: (keyNumber % 12 + 12) % 12
       }));
     },
     

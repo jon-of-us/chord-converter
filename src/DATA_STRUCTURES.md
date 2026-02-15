@@ -22,7 +22,7 @@ interface ChordFile {
 
 ### **1. File Loading**
 - **editorService.loadFile()** → Reads file as string
-- **chordFileService.parseChordFile(string)** → Parses to ChordFile
+- **chordFileService.parseChordFile(string)** → Parses to ChordFile  
 - **metadataService.ensureNumericKey(ChordFile)** → Normalizes key metadata
 - **Stores:** String in `editorStore.editedContent`, key number in `editorStore.keyNumber`
 
@@ -31,19 +31,16 @@ interface ChordFile {
 #### Text Mode
 - Uses: `editorStore.editedContent` (raw string)
 - Component: `TextView.svelte`
-- ChordFile: Not needed (cleared from store)
 
 #### Structure/Chords Mode
-- **EditorView.svelte** → Parses string to ChordFile on mode switch
-- **Stores:** ChordFile in `editorStore.parsedChordFile` (cached)
-- **ChordViewContainer.svelte** → Receives cached ChordFile
-- **ChordView.svelte** → Renders ChordFile visually
+- **ChordView.svelte** → Derives `chordFile` from `editorStore.editedContent` (reactive parsing)
+- **All props** → Derived from `editorStore` and `themeStore` (no prop passing)
+- **Single source of truth:** `editedContent` string in store
 
 ### **3. Transpose Operation**
 - **EditorControls** → Calls `editorService.transpose(file, offset)`
-- **Uses:** Cached `editorStore.parsedChordFile` (no re-parsing)
-- **metadataService.transposeKey(ChordFile, offset)** → Updates ChordFile
-- **Stores:** Updated ChordFile + serialized string in store
+- **editorService** → Parses `editedContent`, transposes, serializes, updates store
+- **ChordView** → Automatically re-renders from updated `editedContent` (reactive)
 
 ---
 
@@ -71,8 +68,7 @@ interface ChordFile {
 ```typescript
 {
   viewMode: 'text' | 'structure' | 'chords',
-  editedContent: string,              // Always maintained (for text editing)
-  parsedChordFile: ChordFile | null,  // Only in structure/chords mode (cached)
+  editedContent: string,              // Single source of truth
   keyNumber: number,                  // Current key (0-11)
   zoomLevel: number,
   isAutoscrolling: boolean,
@@ -94,10 +90,9 @@ interface ChordFile {
 
 ## Performance Optimization
 
-**Before:** Parse → Serialize → Parse on every operation (3-5 parses per interaction)
+**Architecture:** Parse-on-demand with reactive derivations
 
-**After:** Parse once on mode switch, cache ChordFile, use it directly (1 parse per mode switch)
-
-- ✅ No reactive parsing in ChordViewContainer
-- ✅ Transpose uses cached ChordFile
-- ✅ Text mode doesn't maintain ChordFile (unnecessary)
+- ✅ ChordView derives `chordFile` from `editedContent` (reactive $derived)
+- ✅ All props come directly from stores (no prop drilling)
+- ✅ Transpose updates `editedContent` → ChordView re-parses automatically
+- ✅ Single source of truth: `editedContent` string

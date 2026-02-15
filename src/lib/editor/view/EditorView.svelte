@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Svelte from 'svelte';
   import TextView from './TextView.svelte';
-  import ChordViewContainer from './ChordViewContainer.svelte';
+  import ChordView from '../../chords/ChordView.svelte';
   import { editorStore } from '../../stores/editorStore';
   import * as chordFileService from '../../services/chordFileService';
   import * as editorService from '../../services/editorService';
@@ -10,26 +10,17 @@
   let { content = $bindable('') }: { content: string } = $props();
   
   let viewMode = $derived($editorStore.viewMode);
-  let parsedChordFile = $derived($editorStore.parsedChordFile);
   let currentFile = $derived($fileStore.currentFile);
-  let previousContent = $state('');
+  let previousViewMode = $state<string>('text');
   
-  // Parse ChordFile when entering visual modes or content changes
+  // Ensure numeric key when entering visual modes
   $effect(() => {
-    if (viewMode !== 'text' && content && currentFile) {
-      // Parse and cache ChordFile when switching to structure/chords mode or content changes
-      if (!parsedChordFile || content !== previousContent) {
-        const chordFile = chordFileService.parseChordFile(content);
-        
-        // Ensure numeric key on the already-parsed ChordFile
-        editorService.ensureNumericKey(currentFile, chordFile);
-        previousContent = content;
-      }
+    if (viewMode !== 'text' && viewMode !== previousViewMode && content && currentFile) {
+      const chordFile = chordFileService.parseChordFile(content);
+      editorService.ensureNumericKey(currentFile, chordFile);
+      previousViewMode = viewMode;
     } else if (viewMode === 'text') {
-      // Clear cached ChordFile when switching to text mode
-      if (parsedChordFile) {
-        editorStore.setParsedChordFile(null);
-      }
+      previousViewMode = viewMode;
     }
   });
 </script>
@@ -37,8 +28,8 @@
 <div class="editor-view">
   {#if viewMode === 'text'}
     <TextView bind:content={content} />
-  {:else if parsedChordFile && (viewMode === 'structure' || viewMode === 'chords')}
-    <ChordViewContainer chordFile={parsedChordFile} showRootNumbers={viewMode === 'chords'} />
+  {:else if viewMode === 'structure' || viewMode === 'chords'}
+    <ChordView />
   {/if}
 </div>
 
