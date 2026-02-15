@@ -1,7 +1,10 @@
+import { get } from 'svelte/store';
 import * as fileService from './fileService';
 import * as metadataService from './metadataService';
+import * as chordFileService from './chordFileService';
 import * as fileStore from '../stores/fileStore';
 import * as editorStore from '../stores/editorStore';
+import type { ChordFile } from '../models/ChordFile';
 
 /**
  * Editor Service
@@ -18,18 +21,17 @@ export async function loadFile(file: fileStore.FileEntry): Promise<void> {
     
     // Only process metadata for .chords files
     if (file.path.endsWith('.chords')) {
-      // Ensure numeric key and get key number
-      const keyResult = metadataService.ensureNumericKey(content);
-      const finalContent = keyResult.updated ? keyResult.content : content;
+      // Parse and ensure numeric key
+      const chordFile = chordFileService.parseChordFile(content);
+      const keyResult = metadataService.ensureNumericKey(chordFile);
+      const finalContent = keyResult.content;
       
       // If key was updated, save it immediately
       if (keyResult.updated) {
         await fileService.saveFile(file, finalContent);
-        fileStore.fileStore.setCurrentContent(finalContent);
-      } else {
-        fileStore.fileStore.setCurrentContent(content);
       }
       
+      fileStore.fileStore.setCurrentContent(finalContent);
       editorStore.editorStore.loadContent(finalContent, keyResult.keyNumber);
     } else {
       // For non-.chords files, just load the content as-is
@@ -74,16 +76,28 @@ export async function saveFile(
 
 /**
  * Transpose key by semitone offset
+ * Uses cached ChordFile from store to avoid re-parsing
  */
 export async function transpose(
   file: fileStore.FileEntry,
-  content: string,
   offset: number
 ): Promise<void> {
   try {
-    const result = metadataService.transposeKey(content, offset);
-    editorStore.editorStore.setEditedContent(result.content);
-    editorStore.editorStore.setKeyNumber(result.keyNumber);
+    // Get cached ChordFile from store
+    const state = get(editorStore.editorStore);
+    if (!state.parsedChordFile) {
+      throw new Error('No parsed ChordFile available for transpose');
+    }
+    
+    const result = metadataService.transposeKey(state.parsedChordFile, offset);
+    
+    // Update both content and cached ChordFile
+    editorStore.editorStore.updateContentAndChordFile(
+      result.content,
+      result.chordFile,
+      result.keyNumber
+    );
+    
     await saveFile(file, result.content);
   } catch (error: any) {
     console.error('Error transposing:', error);
@@ -93,23 +107,28 @@ export async function transpose(
 
 /**
  * Ensure numeric key when switching to structure/chords view
+ * Uses already-parsed ChordFile to avoid re-parsing
  */
 export async function ensureNumericKey(
   file: fileStore.FileEntry,
-  content: string
+  chordFile: ChordFile
 ): Promise<void> {
-  if (!content) return;
-  
   // Only process metadata for .chords files
   if (!file.path.endsWith('.chords')) return;
   
   try {
-    const keyResult = metadataService.ensureNumericKey(content);
+    const keyResult = metadataService.ensureNumericKey(chordFile);
     if (keyResult.updated) {
-      editorStore.editorStore.setEditedContent(keyResult.content);
-      editorStore.editorStore.setKeyNumber(keyResult.keyNumber);
+      // Update both content and cached ChordFile
+      editorStore.editorStore.updateContentAndChordFile(
+        keyResult.content,
+        keyResult.chordFile,
+        keyResult.keyNumber
+      );
       await saveFile(file, keyResult.content);
     } else {
+      // Just update ChordFile and key number (content unchanged)
+      editorStore.editorStore.setParsedChordFile(keyResult.chordFile);
       editorStore.editorStore.setKeyNumber(keyResult.keyNumber);
     }
   } catch (error: any) {

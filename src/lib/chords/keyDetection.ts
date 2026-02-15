@@ -3,75 +3,74 @@
  * Analyzes all chords in a file and determines the most likely key
  */
 
-import * as ChordParser from './chordParser';
+import { NUMBER_TO_NOTE } from './keyUtils';
+
+// Krumhansl-Schmuckler weights for major keys
+// These weights represent how likely each scale degree is in a major key
+const KRUMHANSL_SCHMUCKLER_WEIGHTS = [10.0, 0.0, 4.0, 174.0, 265.0, 231.0, 139.0, 221.0, 180.0, 100.0, 6.0, 2.0];
 
 /**
- * Detect key from chords using convolution with Krumhansl-Schmuckler weights
- * This  algorithm computes the offset to key C major (4)
- * @param content - The full file content with chords
- * @returns Numeric key (0-11) or null if no chords found
+ * Count note occurrences from chords with weighted importance
+ * @param chords - Array of parsed chords
+ * @returns Array of 12 note counts (one per chromatic note)
  */
-export function detectKeyFromChords(content: string): number | null {
-  const lines = content.split('\n');
-  const chords = [];
-  
-  // Extract all chords from the content, skipping metadata
-  for (const line of lines) {
-    const trimmed = line.trim();
-    
-    // Skip metadata and section headers
-    if (trimmed.startsWith('Title:') || 
-        trimmed.startsWith('Artist:') ||
-        trimmed.startsWith('Key:') ||
-        trimmed.startsWith('Info:') ||
-        trimmed.startsWith('[')) {
-      continue;
-    }
-    
-    // Split by whitespace and parse each word as a potential chord
-    const words = line.split(/\s+/);
-    for (const word of words) {
-      const chord = ChordParser.parseChord(word);
-      if (chord) {
-        chords.push(chord);
-      }
-    }
-  }
-  
-  // If no chords found, can't detect key
-  if (chords.length === 0) return null;
-  
-  // Count note occurrences
-  const noteCount = new Array(12).fill(0);
+function countNoteOccurrences(chords: any[]): number[] {
+  const noteCount = new Array(12).fill(0.0);
   
   for (const chord of chords) {
+    // Weight major and diminished chords less
+    const isMajor = chord.type.intervals.slice(0, 3).toString() === '0,4,7';
+    const isDiminished = chord.type.intervals.slice(0, 3).toString() === '0,3,6';
+
     // Add each note in the chord to the count
     for (const interval of chord.type.intervals) {
       const note = (chord.root + interval * 7) % 12;
-      noteCount[note] += 1;
+      noteCount[note] += isMajor ? 0.8 : isDiminished ? 0.3 : 1; // weight major chords slightly less, diminished even less
     }
     // Bass note gets double weight (more important for key detection)
-    noteCount[(chord.root + chord.bass * 7) % 12] += 2;
+    noteCount[(chord.root + chord.bass * 7) % 12] += 1;
   }
   
-  // Krumhansl-Schmuckler weights for major keys
-  // These weights represent how likely each scale degree is in a major key
-  const weights = [10, 0, 4, 174, 265, 231, 139, 221, 180, 100, 6, 2];
-  
-  // Convolve: try each possible key offset and find the best match
+  return noteCount;
+}
+
+/**
+ * Find the best key offset using convolution with Krumhansl-Schmuckler weights
+ * @param noteCount - Array of note occurrence counts
+ * @returns Best offset value
+ */
+function findBestKeyOffset(noteCount: number[]): number {
   let maxScore = -Infinity;
   let bestOffset = 0;
   
   for (let offset = 0; offset < 12; offset++) {
     let score = 0;
     for (let i = 0; i < 12; i++) {
-      score += noteCount[(i + offset) % 12] * weights[i];
+      score += noteCount[(i + offset) % 12] * KRUMHANSL_SCHMUCKLER_WEIGHTS[i];
     }
     if (score > maxScore) {
       maxScore = score;
       bestOffset = offset;
     }
   }
+  
+  return bestOffset;
+}
+
+/**
+ * Detect key from chords using convolution with Krumhansl-Schmuckler weights
+ * This algorithm computes the offset to key C major (4)
+ * @param chords - Array of parsed chords
+ * @returns Numeric key (0-11) or null if no chords found
+ */
+export function detectKeyFromChords(chords: any[]): number | null {
+  // If no chords found, can't detect key
+  if (chords.length === 0) return null;
+  
+  const noteCount = countNoteOccurrences(chords);
+  // console.log('Note counts from chords:', noteCount);
+  
+  const bestOffset = findBestKeyOffset(noteCount);
   
   return (bestOffset + 4) % 12; // Convert offset from C (4) to actual key
 }
@@ -86,31 +85,8 @@ export function detectKeyFromChords(content: string): number | null {
 export function calculateTransposeToCOffset(chords: any[]): number {
   if (chords.length === 0) return 0;
 
-  const noteCount = new Array(12).fill(0);
-
-  for (const chord of chords) {
-    for (const interval of chord.type.intervals) {
-      const note = (chord.root + interval * 7) % 12;
-      noteCount[note] += 1;
-    }
-    noteCount[(chord.root + chord.bass * 7) % 12] += 2; // bass gets double weight
-  }
-
-  const weights = [10, 0, 4, 174, 265, 231, 139, 221, 180, 100, 6, 2];
-
-  let maxScore = -Infinity;
-  let bestOffset = 0;
-
-  for (let offset = 0; offset < 12; offset++) {
-    let score = 0;
-    for (let i = 0; i < 12; i++) {
-      score += noteCount[(i + offset) % 12] * weights[i];
-    }
-    if (score > maxScore) {
-      maxScore = score;
-      bestOffset = offset;
-    }
-  }
+  const noteCount = countNoteOccurrences(chords);
+  const bestOffset = findBestKeyOffset(noteCount);
 
   return bestOffset;
 }

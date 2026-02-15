@@ -1,21 +1,15 @@
 <script lang="ts">
-    import * as ChordParser from "./chordParser";
     import { generateChordSVG, generateChordShapeSVG } from "./chordToSVG";
     import type { Chord } from "./chordTypes";
     import { onMount } from "svelte";
     import { editorConfig } from "../config";
     import * as KeyDetection from "./keyDetection";
+    import type { ChordFile } from "../models/ChordFile";
 
     const CHORD_ICON_GAP = 8; // px minimal horizontal gap between consecutive chord icons
 
-    interface ChordOrWord {
-        pos: [number, number]; // [line index, position in line]
-        content: Chord | string;
-        isChord: boolean;
-    }
-
     let {
-        content = "",
+        chordFile,
         zoomLevel = 100,
         isAutoscrolling = false,
         autoscrollSpeed = 1,
@@ -23,7 +17,7 @@
         showRootNumbers = false,
         keyNumber = 0,
     }: {
-        content: string;
+        chordFile: ChordFile;
         zoomLevel?: number;
         isAutoscrolling?: boolean;
         autoscrollSpeed?: number;
@@ -33,44 +27,11 @@
     } = $props();
     let viewContainer: HTMLDivElement;
 
-    function lineType(
-        line: string,
-    ): "empty" | "subheading" | "chords" | "lyrics" {
-        const s = line.trim();
-        if (s.length === 0) return "empty";
-        if (s.startsWith("[")) return "subheading";
-
-        const split = line.split(" ").filter((w) => w !== "");
-        if (split.length === 0) return "empty";
-
-        const wordsNoSlash = split.map((w) => w.split("/")[0]);
-        const nWords = wordsNoSlash.length;
-        const isChord = wordsNoSlash.map(
-            (w) => ChordParser.parseChord(w) !== null || w === "|" || w === ".",
-        );
-        const nChords = isChord.filter(Boolean).length;
-
-        if (nChords / Math.max(1, nWords) > 0.35) return "chords";
-        return "lyrics";
-    }
-
-    function transposeToC(chordsOrWords: ChordOrWord[]): ChordOrWord[] {
-        // Extract just the chords for calculation
-        const chordsOnly = chordsOrWords
-            .filter((cow) => cow.isChord)
-            .map((cow) => cow.content as Chord);
-
-        // Calculate the offset needed to transpose to C
-        const offsetToC = KeyDetection.calculateTransposeToCOffset(chordsOnly);
-
-        // Apply the transpose offset to all chords
-        for (const cow of chordsOrWords) {
-            if (!cow.isChord) continue;
-            const chord = cow.content as Chord;
-            chord.root = (chord.root - offsetToC + 12) % 12;
-        }
-
-        return chordsOrWords;
+    function transposeChordToC(chord: Chord, offsetToC: number): Chord {
+        return {
+            ...chord,
+            root: (chord.root - offsetToC + 12) % 12,
+        };
     }
 
     interface ProcessedLine {
@@ -86,104 +47,65 @@
         maxPos?: number;
     }
 
-    function processContent(
-        text: string,
+    function processChordFile(
+        chordFile: ChordFile,
         themeMode: "dark" | "light",
     ): ProcessedLine[] {
-        const lines = text.split("\n").map((ln) => ln.trimEnd());
-        const nonEmptyLines = lines.filter((line) => line.trim() !== "");
-        const lineTypes = nonEmptyLines.map(lineType);
 
-        const chordsOrWords: ChordOrWord[] = [];
-        const chordsInLine: number[][] = nonEmptyLines.map(() => []);
-
-        for (let i = 0; i < nonEmptyLines.length; i++) {
-            const line = nonEmptyLines[i];
-            const ltype = lineTypes[i];
-
-            if (ltype !== "chords") continue;
-
-            const split = line.split(" ");
-            let idxInLine = 0;
-
-            for (const tok of split) {
-                if (tok === "") {
-                    idxInLine += 1;
-                    continue;
-                }
-
-                const parsed = ChordParser.parseChord(tok);
-                const content = parsed || tok;
-
-                chordsInLine[i].push(chordsOrWords.length);
-                chordsOrWords.push({
-                    pos: [i, idxInLine],
-                    content,
-                    isChord: parsed !== null,
-                });
-
-                idxInLine += tok.length + 1;
-            }
-        }
-
-        const transposedChords = transposeToC(chordsOrWords);
+        // Calculate offset to transpose to C for visualization
+        const offsetToC = KeyDetection.calculateTransposeToCOffset(chordFile.allChords);
         const svgCache = new Map<string, string>();
 
-        // Build HTML representation
         const result: ProcessedLine[] = [];
 
-        // Track metadata lines to know when to add blank line
-        let metadataEndIdx = -1;
-        for (let i = 0; i < nonEmptyLines.length; i++) {
-            const lowerLine = nonEmptyLines[i].toLowerCase();
-            // if first word ends with ':', consider it metadata
-            const firstWord = lowerLine.split(" ")[0];
-            if (firstWord.endsWith(":")) {
-                metadataEndIdx = i;
-            } else if (metadataEndIdx >= 0) {
-                // First non-metadata line found
-                break;
-            }
+        // Add title as heading
+        let titleContent = chordFile.metadata.title;
+        if (titleContent.toLowerCase().startsWith("title:")) {
+            titleContent = titleContent.substring(6).trim();
         }
+        titleContent = titleContent.toUpperCase();
+        result.push({
+            type: "heading",
+            content: titleContent,
+        });
 
-        for (let i = 0; i < nonEmptyLines.length; i++) {
-            const line = nonEmptyLines[i];
-            const ltype = lineTypes[i];
-            if (i === metadataEndIdx + 1 && metadataEndIdx >= 0) {
-                // Add blank line after metadata
-                result.push({ type: "lyrics", content: " " });
-                result.push({ type: "lyrics", content: "" });
-            }
-            if (i === 0) {
-                // First non-empty line is the title
-                let titleContent = line;
-                // Remove "Title: " prefix if it exists (case-insensitive)
-                if (titleContent.toLowerCase().startsWith("title:")) {
-                    titleContent = titleContent.substring(6).trim();
-                }
-                // Convert to uppercase
-                titleContent = titleContent.toUpperCase();
-                result.push({
-                    type: "heading",
-                    content: titleContent,
+        // Add blank line after title
+        result.push({ type: "empty", content: "" });
+        result.push({ type: "empty", content: "" });
+
+        // Process each line
+        for (let lineIdx = 0; lineIdx < chordFile.lines.length; lineIdx++) {
+            const line = chordFile.lines[lineIdx];
+
+            if (line.type === 'empty') {
+                result.push({ type: "empty", content: line.content });
+            } else if (line.type === 'heading') {
+                // Skip - already added title above
+                continue;
+            } else if (line.type === 'subheading') {
+                result.push({ type: "subheading", content: line.content });
+            } else if (line.type === 'lyrics') {
+                result.push({ type: "lyrics", content: line.content });
+            } else if (line.type === 'chords' && line.chordsOrWords) {
+                // Transpose all chords to C for visualization
+                const transposedChordsOrWords = line.chordsOrWords.map(cow => {
+                    if (cow.isChord) {
+                        return {
+                            ...cow,
+                            content: transposeChordToC(cow.content as Chord, offsetToC),
+                        };
+                    }
+                    return cow;
                 });
-            } else if (ltype === "subheading") {
-                result.push({ type: "subheading", content: line });
-            } else if (ltype === "lyrics") {
-                result.push({ type: "lyrics", content: line });
-            } else if (ltype === "chords") {
-                const cows = chordsInLine[i].map(
-                    (idx) => transposedChords[idx],
-                );
 
                 // Find max position
                 let maxPos = 0;
-                for (const cow of cows) {
-                    maxPos = Math.max(maxPos, cow.pos[1]);
+                for (const cow of transposedChordsOrWords) {
+                    maxPos = Math.max(maxPos, cow.position);
                 }
 
-                const chordData = cows.map((cow) => {
-                    const markerId = `mk-${i}-${cow.pos[1]}`;
+                const chordData = transposedChordsOrWords.map((cow) => {
+                    const markerId = `mk-${lineIdx}-${cow.position}`;
 
                     if (cow.isChord) {
                         const chord = cow.content as Chord;
@@ -195,8 +117,8 @@
                                 ...chord,
                                 root: chord.root - 3,
                             }; // transpose to C major for display
-                            
-                            // Use simplified SVG for chords mode, full SVG for structure mode
+
+                            // Use simplified SVG for structure mode, full SVG for chords mode
                             const svgGenerator = showRootNumbers ? generateChordShapeSVG : generateChordSVG;
                             svgCache.set(
                                 key,
@@ -205,7 +127,7 @@
                         }
 
                         return {
-                            pos: cow.pos[1],
+                            pos: cow.position,
                             svg: svgCache.get(key)!,
                             word: "",
                             markerId,
@@ -215,7 +137,7 @@
                         // For words, show full word
                         const wordStr = cow.content as string;
                         return {
-                            pos: cow.pos[1],
+                            pos: cow.position,
                             svg: "",
                             word: wordStr,
                             markerId,
@@ -226,7 +148,7 @@
 
                 result.push({
                     type: "chords",
-                    content: line,
+                    content: line.content,
                     chords: chordData,
                     maxPos: maxPos + 2,
                 });
@@ -298,7 +220,7 @@
         });
     }
 
-    let processedLines = $derived(processContent(content, theme));
+    let processedLines = $derived(processChordFile(chordFile, theme));
 
     onMount(() => {
         alignChordIcons();

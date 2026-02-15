@@ -31,8 +31,8 @@
   }
   
   function handleTranspose(offset: number) {
-    if (currentFile && editedContent) {
-      editorService.transpose(currentFile, editedContent, offset);
+    if (currentFile) {
+      editorService.transpose(currentFile, offset);
     }
   }
 </script>
@@ -126,6 +126,7 @@
           onclick={() => handleTranspose(-7)}
           title="Transpose down"
           class="small-btn"
+          disabled={viewMode === 'text'}
         >
           −
         </button>
@@ -134,6 +135,7 @@
           onclick={() => handleTranspose(7)}
           title="Transpose up"
           class="small-btn"
+          disabled={viewMode === 'text'}
         >
           +
         </button>

@@ -2,12 +2,13 @@
   import ChordView from '../../chords/ChordView.svelte';
   import { editorStore } from '../../stores/editorStore';
   import { themeStore } from '../../stores/themeStore';
+  import type { ChordFile } from '../../models/ChordFile';
   
   let { 
-    content, 
+    chordFile,
     showRootNumbers 
   }: { 
-    content: string; 
+    chordFile: ChordFile;
     showRootNumbers: boolean;
   } = $props();
   
@@ -20,7 +21,7 @@
 
 <div class="chord-view-container">
   <ChordView 
-    {content}
+    {chordFile}
     {zoomLevel}
     {isAutoscrolling}
     {autoscrollSpeed}

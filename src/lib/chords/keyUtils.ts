@@ -28,7 +28,7 @@ export const NOTE_TO_NUMBER = {
  */
 export const NUMBER_TO_NOTE = {
   0: 'Ab', 1: 'Eb', 2: 'Bb', 3: 'F', 4: 'C', 5: 'G',
-  6: 'D', 7: 'A', 8: 'E', 9: 'B', 10: 'F#', 11: 'C#'
+  6: 'D', 7: 'A', 8: 'E', 9: 'B', 10: 'Gb', 11: 'Db'
 };
 
 /**
