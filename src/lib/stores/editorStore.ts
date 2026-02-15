@@ -139,7 +139,8 @@ function createEditorStore() {
         ...state,
         editedContent: content,
         lastSavedContent: content,
-        keyNumber: (keyNumber % 12 + 12) % 12
+        keyNumber: (keyNumber % 12 + 12) % 12,
+        parsedChordFile: null // Clear cached ChordFile when loading new file
       }));
     },
     

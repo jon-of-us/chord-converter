@@ -12,16 +12,18 @@
   let viewMode = $derived($editorStore.viewMode);
   let parsedChordFile = $derived($editorStore.parsedChordFile);
   let currentFile = $derived($fileStore.currentFile);
+  let previousContent = $state('');
   
-  // Parse ChordFile when entering visual modes
+  // Parse ChordFile when entering visual modes or content changes
   $effect(() => {
     if (viewMode !== 'text' && content && currentFile) {
-      // Parse and cache ChordFile when switching to structure/chords mode
-      if (!parsedChordFile) {
+      // Parse and cache ChordFile when switching to structure/chords mode or content changes
+      if (!parsedChordFile || content !== previousContent) {
         const chordFile = chordFileService.parseChordFile(content);
         
         // Ensure numeric key on the already-parsed ChordFile
         editorService.ensureNumericKey(currentFile, chordFile);
+        previousContent = content;
       }
     } else if (viewMode === 'text') {
       // Clear cached ChordFile when switching to text mode
