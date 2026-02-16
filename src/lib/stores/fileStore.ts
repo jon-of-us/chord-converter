@@ -6,13 +6,13 @@ export type StorageMode = 'browser' | 'filesystem';
 export interface FileEntry {
   name: string;
   path: string; // Full path relative to root (e.g., "subfolder/file.chords")
-  handle?: FileSystemFileHandle; // Optional for browser mode
-  content?: string; // Used in browser mode
+  handle?: FileSystemFileHandle; // filesystem mode
+  content?: string; // browser mode
 }
 
 export interface AppState {
   storageMode: StorageMode;
-  folderHandle: FileSystemDirectoryHandle | null;
+  folderHandle: FileSystemDirectoryHandle | null; // browser mode 
   files: FileEntry[];
   currentFile: FileEntry | null;
   currentContent: string;

@@ -30,8 +30,6 @@
   function handleClick() {
     if (node.isFolder) {
       fileManagerStore.toggleFolder(node.path);
-      fileStore.setCurrentFile(null);
-      fileStore.setCurrentContent('');
     } else if (node.file) {
       fileManagerStore.select(node.path);
       onSelectFile(node.file);
