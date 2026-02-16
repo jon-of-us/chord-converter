@@ -11,19 +11,20 @@
     const CHORD_ICON_GAP = 8; // px minimal horizontal gap between consecutive chord icons
 
     // Parse chordFile from fileStore (ground truth)
-    let chordFile = $derived(chordFileService.parseChordFile($fileStore.currentContent));
+    let chordFile = $derived(
+        chordFileService.parseChordFile($fileStore.currentContent),
+    );
     let viewContainer: HTMLDivElement;
     let chordSVGs = $state.raw(new Map<string, string>());
-
 
     $effect(() => {
         // Regenerate SVGs when viewMode, theme, or content changes
         $editorStore.viewMode;
         chordFile.lines.forEach((line) => {
-            if (line.type === 'chords' && line.chordsOrWords) {
+            if (line.type === "chords" && line.chordsOrWords) {
                 line.chordsOrWords.forEach((cow) => {
                     if (cow.content instanceof chordTypes.Chord) {
-                        const key = cow.content.id() + '-' + $themeStore;
+                        const key = cow.content.id() + "-" + $themeStore;
                         if (!chordSVGs.has(key)) {
                             chordSVGs.set(
                                 key,
@@ -34,9 +35,8 @@
                 });
             }
         });
-        chordSVGs; 
-    })
- 
+        chordSVGs;
+    });
 
     function alignChordIcons() {
         if (!viewContainer) return;
@@ -63,7 +63,8 @@
                 const markerId = m.id;
 
                 containers.forEach((container) => {
-                    const isWord = container.classList.contains('word-container');
+                    const isWord =
+                        container.classList.contains("word-container");
                     items.push({
                         type: isWord ? "word" : "chord",
                         element: container,
@@ -137,7 +138,10 @@
             // Scale with zoom level - higher zoom = faster scroll
             const zoomMultiplier = $editorStore.zoomLevel / 100;
             const pixelsPerFrame =
-                ($editorStore.autoscrollSpeed * editorConfig.autoscrollPixelsPerSecond * zoomMultiplier) / 60;
+                ($editorStore.autoscrollSpeed *
+                    editorConfig.autoscrollPixelsPerSecond *
+                    zoomMultiplier) /
+                60;
             scrollAccumulator += pixelsPerFrame;
 
             // Only apply integer pixels to scrollTop
@@ -164,7 +168,8 @@
 <div
     class="chord-view"
     bind:this={viewContainer}
-    style="font-size: {$editorStore.zoomLevel}%; background-color: {$themeStore === 'light'
+    style="font-size: {$editorStore.zoomLevel}%; background-color: {$themeStore ===
+    'light'
         ? '#ffffff'
         : '#1e1e1e'}; color: {$themeStore === 'light' ? '#333333' : '#e0e0e0'};"
 >
@@ -187,29 +192,41 @@
         {:else if line.type === "chords"}
             <div class="chord-line-wrapper">
                 <div class="lyrics chord-markers">
-                    {#each Array(line.maxChordPosition).fill(" ") as char, idx}
-                        {#if line.chordsOrWords?.some((c) => c.position === idx)}
-                            {#each line.chordsOrWords.filter((c) => c.position === idx) as cow}
-                                <span class="marker chord-marker" id={cow.markerId}>
-                                {#if cow.content instanceof chordTypes.Chord}
-                                    <div class="chord-container">
-                                    {#if $editorStore.viewMode === 'chords'}
-                                        <span class="root-number">
-                                            {(cow.content.root + $editorStore.keyNumber + 8 ) % 12}
-                                        </span>
+                    {#each Array(line.maxChordPosition + 1) as _, idx}
+                        {#each line.chordsOrWords?.filter((c) => c.position === idx) as cow}
+                                <span
+                                    class="marker chord-marker"
+                                    id={cow.markerId}
+                                >
+                                    {#if cow.content instanceof chordTypes.Chord}
+                                        <div class="chord-container">
+                                            {#if $editorStore.viewMode === "chords"}
+                                                <span class="root-number">
+                                                    {(cow.content.root +
+                                                        $editorStore.keyNumber +
+                                                        8) %
+                                                        12}
+                                                </span>
+                                            {/if}
+                                            {@html chordSVGs.get(
+                                                cow.content.id() +
+                                                    "-" +
+                                                    $themeStore,
+                                            ) || ""}
+                                        </div>
+                                    {:else}
+                                        <div
+                                            class="chord-container word-container"
+                                            data-marker={cow.markerId}
+                                        >
+                                            <span class="chord-word">
+                                                {cow.content}
+                                            </span>
+                                        </div>
                                     {/if}
-                                    {@html chordSVGs.get(cow.content.id() + '-' + $themeStore) || ''}
-                                    </div>
-                                {:else}
-                                    <div class="chord-container word-container" data-marker={cow.markerId}>
-                                        <span class="chord-word">
-                                            {cow.content}
-                                        </span>
-                                    </div>
-                                {/if}</span>
-                            {/each}
-                        {/if}
-                        {char}
+                                </span>
+                        {/each}<!--
+                        -->{" "}
                     {/each}
                 </div>
             </div>
@@ -219,7 +236,8 @@
 
 <style>
     .chord-view {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        font-family:
+            ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
             "Liberation Mono", "Courier New", monospace;
         line-height: 1.4;
         padding: 2rem 2rem 2rem 3rem;
@@ -283,7 +301,7 @@
         height: 3.2em;
         overflow: visible;
     }
-    
+
     .chord-word {
         font-size: 1em;
         font-weight: bold;
