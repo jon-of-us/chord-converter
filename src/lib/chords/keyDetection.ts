@@ -3,7 +3,6 @@
  * Analyzes all chords in a file and determines the most likely key
  */
 
-import { NUMBER_TO_NOTE } from './keyUtils';
 
 // Krumhansl-Schmuckler weights for major keys
 // These weights represent how likely each scale degree is in a major key
@@ -58,35 +57,15 @@ function findBestKeyOffset(noteCount: number[]): number {
 }
 
 /**
- * Detect key from chords using convolution with Krumhansl-Schmuckler weights
  * This algorithm computes the offset to key C major (4)
- * @param chords - Array of parsed chords
- * @returns Numeric key (0-11) or null if no chords found
+ * @returns Numeric key (0-11) or 4 if no chords found
  */
-export function detectKeyFromChords(chords: any[]): number | null {
+export function detectKeyFromChords(chords: any[]): number {
   // If no chords found, can't detect key
-  if (chords.length === 0) return null;
+  if (chords.length === 0) return 4;
   
   const noteCount = countNoteOccurrences(chords);
-  // console.log('Note counts from chords:', noteCount);
-  
   const bestOffset = findBestKeyOffset(noteCount);
   
   return (bestOffset + 4) % 12; // Convert offset from C (4) to actual key
-}
-
-/**
- * Calculate the transposition offset needed to move all chords to key 0 (C)
- * Used for normalized visualization
- * 
- * @param chords - Array of parsed chords
- * @returns The offset value to transpose to C
- */
-export function calculateTransposeToCOffset(chords: any[]): number {
-  if (chords.length === 0) return 0;
-
-  const noteCount = countNoteOccurrences(chords);
-  const bestOffset = findBestKeyOffset(noteCount);
-
-  return bestOffset;
 }

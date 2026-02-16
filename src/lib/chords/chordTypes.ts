@@ -8,10 +8,15 @@ export interface ChordType {
   bass_coord?: [number, number];
 }
 
-export interface Chord {
-  root: number;
-  type: ChordType;
-  bass: number;
+export class Chord {
+  constructor(
+    public root: number, // numeric root (0-11)
+    public type: ChordType,
+    public bass: number = 0 // interval from root
+  ) {}
+  id() {
+    return `${this.root}-${this.type.name}-${this.bass}`;
+  }
 }
 
 interface ChordData {

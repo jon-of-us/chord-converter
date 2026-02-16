@@ -13,16 +13,21 @@ export interface ChordFileMetadata {
   [key: string]: string; // Allow any additional metadata fields
 }
 
-export interface ChordOrWord {
-  content: Chord | string;
-  isChord: boolean;
-  position: number; // Character position in line
+export class ChordOrWord {
+  constructor(
+    public content: Chord | string,
+    public position: number, // Character position in line
+    public markerId: string // Unique ID for linking chords to lyrics
+  ) {}
 }
 
-export interface ParsedLine {
-  type: 'empty' | 'heading' | 'subheading' | 'chords' | 'lyrics';
-  content: string; // Original line content
-  chordsOrWords?: ChordOrWord[]; // Only for 'chords' type lines
+export class ParsedLine {
+  constructor(
+    public type: 'empty' | 'heading' | 'subheading' | 'chords' | 'lyrics',
+    public content: string,
+    public maxChordPosition: number = 0,
+    public chordsOrWords?: ChordOrWord[]
+  ) {}
 }
 
 /**
@@ -33,5 +38,4 @@ export interface ChordFile {
   specifiedKey: number | null; // Parsed numeric key from metadata (0-11)
   detectedKey: number | null; // Key detected from chords (0-11)
   lines: ParsedLine[];
-  allChords: Chord[]; // All chords in the file (for convenience)
 }

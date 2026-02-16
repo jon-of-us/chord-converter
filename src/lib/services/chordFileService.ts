@@ -3,8 +3,8 @@
  * Parses .chords file content into structured ChordFile objects
  */
 
-import type { ChordFile, ChordFileMetadata, ParsedLine, ChordOrWord } from '../models/ChordFile';
-import type { Chord } from '../chords/chordTypes';
+import * as chordFile from '../models/ChordFile';
+import * as chordTypes from '../chords/chordTypes';
 import * as ChordParser from '../chords/chordParser';
 import * as KeyUtils from '../chords/keyUtils';
 import * as KeyDetection from '../chords/keyDetection';
@@ -36,11 +36,11 @@ function getLineType(line: string): 'empty' | 'subheading' | 'chords' | 'lyrics'
  * Parse metadata from the beginning of file content
  */
 function parseMetadata(lines: string[]): {
-  metadata: ChordFileMetadata;
+  metadata: chordFile.ChordFileMetadata;
   specifiedKeyStr: string;
   metadataEndIndex: number;
 } {
-  const metadata: ChordFileMetadata = {
+  const metadata: chordFile.ChordFileMetadata = {
     title: fileConfig.defaultTitle,
     artist: fileConfig.defaultArtist,
     key: fileConfig.defaultKey,
@@ -117,8 +117,8 @@ function parseMetadata(lines: string[]): {
 /**
  * Parse chords from a chord line
  */
-function parseChordsFromLine(line: string): ChordOrWord[] {
-  const result: ChordOrWord[] = [];
+function parseChordsFromLine(line: string, lineIndex: number): chordFile.ChordOrWord[] {
+  const result: chordFile.ChordOrWord[] = [];
   const split = line.split(' ');
   let position = 0;
 
@@ -129,22 +129,26 @@ function parseChordsFromLine(line: string): ChordOrWord[] {
     }
 
     const parsed = ChordParser.parseChord(tok);
-    result.push({
-      content: parsed || tok,
-      isChord: parsed !== null,
-      position,
-    });
-
+    result.push(
+      new chordFile.ChordOrWord(
+        parsed || tok,
+        position,
+        `mk-${lineIndex}-${position}`
+      )
+    );
     position += tok.length + 1;
   }
 
   return result;
 }
 
+
+
 /**
  * Parse .chords file content into a structured ChordFile object
+ * the chords are always stored in c major 
  */
-export function parseChordFile(content: string): ChordFile {
+export function parseChordFile(content: string): chordFile.ChordFile {
   const lines = content.split('\n');
 
   // Parse metadata
@@ -155,8 +159,8 @@ export function parseChordFile(content: string): ChordFile {
 
   // Parse lines after metadata
   const contentLines = lines.slice(metadataEndIndex);
-  const parsedLines: ParsedLine[] = [];
-  const allChords: Chord[] = [];
+  const parsedLines: chordFile.ParsedLine[] = [];
+  const allChords: chordTypes.Chord[] = [];
 
   // Track metadata end for blank line insertion
   let metadataEndIdx = metadataEndIndex > 0 ? 0 : -1; // First line after metadata
@@ -168,7 +172,7 @@ export function parseChordFile(content: string): ChordFile {
 
     // Skip empty lines
     if (trimmedLine === '') {
-      parsedLines.push({ type: 'empty', content: line });
+      parsedLines.push(new chordFile.ParsedLine('empty', line));
       continue;
     }
 
@@ -178,56 +182,70 @@ export function parseChordFile(content: string): ChordFile {
       if (titleContent.toLowerCase().startsWith('title:')) {
         titleContent = titleContent.substring(6).trim();
       }
-      parsedLines.push({ type: 'heading', content: titleContent });
+      parsedLines.push(new chordFile.ParsedLine('heading', titleContent));
       continue;
     }
 
     // Add blank line after metadata ends
     if (!metadataEnded && metadataEndIdx === 0) {
-      parsedLines.push({ type: 'empty', content: '' });
+      parsedLines.push(new chordFile.ParsedLine("empty", ''));
       metadataEnded = true;
     }
 
     const lineType = getLineType(line);
 
     if (lineType === 'chords') {
-      const chordsOrWords = parseChordsFromLine(line);
-      // Collect all chords
+      const chordsOrWords = parseChordsFromLine(line, i);
+      // Collect all chords and find max chord position 
+      let maxChordPosition = 0;
       for (const cow of chordsOrWords) {
-        if (cow.isChord) {
-          allChords.push(cow.content as Chord);
+        if (cow.content instanceof chordTypes.Chord) {
+          allChords.push(cow.content);
+          maxChordPosition = Math.max(maxChordPosition, cow.position);
         }
       }
-      parsedLines.push({
-        type: 'chords',
-        content: line,
-        chordsOrWords,
-      });
+
+      parsedLines.push(new chordFile.ParsedLine(
+        'chords',
+        line,
+        maxChordPosition,
+        chordsOrWords
+      ));
     } else if (lineType === 'subheading') {
-      parsedLines.push({ type: 'subheading', content: line });
+      parsedLines.push( new chordFile.ParsedLine('subheading', line));
     } else if (lineType === 'lyrics') {
-      parsedLines.push({ type: 'lyrics', content: line });
+      parsedLines.push(new chordFile.ParsedLine('lyrics', line));
     } else {
-      parsedLines.push({ type: 'empty', content: line });
+      parsedLines.push(new chordFile.ParsedLine('empty', line));
     }
   }
 
-  // Detect key from all chords
+  // transpose to C major
   const detectedKey = KeyDetection.detectKeyFromChords(allChords);
+  const offset = (12 + 4 - detectedKey) % 12; 
+
+  for (const line of parsedLines) {
+    if (line.type === 'chords' && line.chordsOrWords) {
+      for (const cow of line.chordsOrWords) {
+        if (cow.content instanceof chordTypes.Chord) {
+          cow.content.root = (cow.content.root + offset) % 12;
+        }
+      }
+    }
+  }
 
   return {
     metadata,
     specifiedKey,
     detectedKey,
     lines: parsedLines,
-    allChords,
   };
 }
 
 /**
  * Serialize a ChordFile back to string format
  */
-export function serializeChordFile(chordFile: ChordFile): string {
+export function serializeChordFile(chordFile: chordFile.ChordFile): string {
   const parts: string[] = [];
   const knownFields = ['title', 'artist', 'key', 'info'];
 

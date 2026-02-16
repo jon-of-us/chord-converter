@@ -1,4 +1,4 @@
-import { CHORD_TYPES, type Chord } from './chordTypes.ts';
+import * as chordTypes from './chordTypes';
 
 function mod(n: number, m: number): number {
   return ((n % m) + m) % m;
@@ -22,7 +22,7 @@ const chord_table = old_chords
   .map((old, idx) => [old, new_chords[idx]] as [string, number])
   .sort((a, b) => b[0].length - a[0].length); // Sort by length descending
 
-export function parseChord(str: string): Chord | null {
+export function parseChord(str: string): chordTypes.Chord | null {
   const split = str.split('/');
   const chordStr = split[0];
   
@@ -39,7 +39,7 @@ export function parseChord(str: string): Chord | null {
   
   if (root === undefined) return null;
   
-  for (const chordType of CHORD_TYPES) {
+  for (const chordType of chordTypes.CHORD_TYPES) {
     for (const alias of chordType.aliases) {
       if (rest === alias) {
         let bass = 0;
@@ -55,11 +55,7 @@ export function parseChord(str: string): Chord | null {
           }
         }
         
-        return {
-          root,
-          type: chordType,
-          bass
-        };
+        return new chordTypes.Chord(root, chordType, bass);
       }
     }
   }

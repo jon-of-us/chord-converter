@@ -4,10 +4,8 @@
   import { editorStore, hasChanges } from '../stores/editorStore';
   import { fileStore } from '../stores/fileStore';
   import * as editorService from '../services/editorService';
-  import * as chordFileService from '../services/chordFileService';
   
   let editedContent = $state('');
-  let previousViewMode = $state($editorStore.viewMode);
   let lastLoadedFilePath = $state<string | null>(null);
   
   // Sync content when file changes
@@ -33,21 +31,6 @@
     if (editedContent !== $editorStore.editedContent) {
       editorStore.setEditedContent(editedContent);
     }
-  });
-  
-  // When switching to structure/chords view, ensure numeric key
-  $effect(() => {
-    const viewMode = $editorStore.viewMode;
-    const currentFile = $fileStore.currentFile;
-    
-    if ((viewMode === 'structure' || viewMode === 'chords') && 
-        previousViewMode === 'text' && 
-        currentFile && 
-        currentFile.path.endsWith('.chords')) {
-      const chordFile = chordFileService.parseChordFile(editedContent);
-      editorService.ensureNumericKey(currentFile, chordFile);
-    }
-    previousViewMode = viewMode;
   });
   
   // Keyboard shortcuts

@@ -1,161 +1,42 @@
 <script lang="ts">
     import { generateChordSVG, generateChordShapeSVG } from "./chordToSVG";
-    import type { Chord } from "./chordTypes";
     import { onMount } from "svelte";
     import { editorConfig } from "../config";
-    import * as KeyDetection from "./keyDetection";
-    import type { ChordFile } from "../models/ChordFile";
     import * as chordFileService from "../services/chordFileService";
     import { editorStore } from "../stores/editorStore";
     import { themeStore } from "../stores/themeStore";
+    import { fileStore } from "../stores/fileStore";
+    import * as chordTypes from "./chordTypes";
 
     const CHORD_ICON_GAP = 8; // px minimal horizontal gap between consecutive chord icons
 
-    // Derive all data from stores
-    let editedContent = $derived($editorStore.editedContent);
-    let viewMode = $derived($editorStore.viewMode);
-    let zoomLevel = $derived($editorStore.zoomLevel);
-    let isAutoscrolling = $derived($editorStore.isAutoscrolling);
-    let autoscrollSpeed = $derived($editorStore.autoscrollSpeed);
-    let keyNumber = $derived($editorStore.keyNumber);
-    let theme = $derived($themeStore);
-    let showRootNumbers = $derived(viewMode === 'chords');
-    
-    // Parse chordFile from content
-    let chordFile = $derived(chordFileService.parseChordFile(editedContent));
-    
+    // Parse chordFile from fileStore (ground truth)
+    let chordFile = $derived(chordFileService.parseChordFile($fileStore.currentContent));
     let viewContainer: HTMLDivElement;
+    let chordSVGs = $state.raw(new Map<string, string>());
 
-    function transposeChordToC(chord: Chord, offsetToC: number): Chord {
-        return {
-            ...chord,
-            root: (chord.root - offsetToC + 12) % 12,
-        };
-    }
 
-    interface ProcessedLine {
-        type: string;
-        content: string;
-        chords?: Array<{
-            pos: number;
-            svg: string;
-            word: string;
-            markerId: string;
-            rootNumber?: number;
-        }>;
-        maxPos?: number;
-    }
-
-    function processChordFile(
-        chordFile: ChordFile,
-        themeMode: "dark" | "light",
-    ): ProcessedLine[] {
-
-        // Calculate offset to transpose to C for visualization
-        const offsetToC = KeyDetection.calculateTransposeToCOffset(chordFile.allChords);
-        const svgCache = new Map<string, string>();
-
-        const result: ProcessedLine[] = [];
-
-        // Add title as heading
-        let titleContent = chordFile.metadata.title;
-        if (titleContent.toLowerCase().startsWith("title:")) {
-            titleContent = titleContent.substring(6).trim();
-        }
-        titleContent = titleContent.toUpperCase();
-        result.push({
-            type: "heading",
-            content: titleContent,
-        });
-
-        // Add blank line after title
-        result.push({ type: "empty", content: "" });
-        result.push({ type: "empty", content: "" });
-
-        // Process each line
-        for (let lineIdx = 0; lineIdx < chordFile.lines.length; lineIdx++) {
-            const line = chordFile.lines[lineIdx];
-
-            if (line.type === 'empty') {
-                result.push({ type: "empty", content: line.content });
-            } else if (line.type === 'heading') {
-                // Skip - already added title above
-                continue;
-            } else if (line.type === 'subheading') {
-                result.push({ type: "subheading", content: line.content });
-            } else if (line.type === 'lyrics') {
-                result.push({ type: "lyrics", content: line.content });
-            } else if (line.type === 'chords' && line.chordsOrWords) {
-                // Transpose all chords to C for visualization
-                const transposedChordsOrWords = line.chordsOrWords.map(cow => {
-                    if (cow.isChord) {
-                        return {
-                            ...cow,
-                            content: transposeChordToC(cow.content as Chord, offsetToC),
-                        };
-                    }
-                    return cow;
-                });
-
-                // Find max position
-                let maxPos = 0;
-                for (const cow of transposedChordsOrWords) {
-                    maxPos = Math.max(maxPos, cow.position);
-                }
-
-                const chordData = transposedChordsOrWords.map((cow) => {
-                    const markerId = `mk-${lineIdx}-${cow.position}`;
-
-                    if (cow.isChord) {
-                        const chord = cow.content as Chord;
-                        const cachePrefix = showRootNumbers ? 'simplified' : 'full';
-                        const key = `${cachePrefix}-${chord.root}-${chord.type.intervals.join(",")}-${chord.bass}-${themeMode}`;
-
-                        if (!svgCache.has(key)) {
-                            const adjustedChord = {
-                                ...chord,
-                                root: chord.root - 3,
-                            }; // transpose to C major for display
-
-                            // Use simplified SVG for structure mode, full SVG for chords mode
-                            const svgGenerator = showRootNumbers ? generateChordShapeSVG : generateChordSVG;
-                            svgCache.set(
+    $effect(() => {
+        // Regenerate SVGs when viewMode, theme, or content changes
+        $editorStore.viewMode;
+        chordFile.lines.forEach((line) => {
+            if (line.type === 'chords' && line.chordsOrWords) {
+                line.chordsOrWords.forEach((cow) => {
+                    if (cow.content instanceof chordTypes.Chord) {
+                        const key = cow.content.id() + '-' + $themeStore;
+                        if (!chordSVGs.has(key)) {
+                            chordSVGs.set(
                                 key,
-                                svgGenerator(adjustedChord, themeMode),
+                                generateChordSVG(cow.content, $themeStore),
                             );
                         }
-
-                        return {
-                            pos: cow.position,
-                            svg: svgCache.get(key)!,
-                            word: "",
-                            markerId,
-                            rootNumber: chord.root, // Store the actual root number (transposed to current key)
-                        };
-                    } else {
-                        // For words, show full word
-                        const wordStr = cow.content as string;
-                        return {
-                            pos: cow.position,
-                            svg: "",
-                            word: wordStr,
-                            markerId,
-                            rootNumber: undefined,
-                        };
                     }
                 });
-
-                result.push({
-                    type: "chords",
-                    content: line.content,
-                    chords: chordData,
-                    maxPos: maxPos + 2,
-                });
             }
-        }
-
-        return result;
-    }
+        });
+        chordSVGs; 
+    })
+ 
 
     function alignChordIcons() {
         if (!viewContainer) return;
@@ -219,8 +100,6 @@
         });
     }
 
-    let processedLines = $derived(processChordFile(chordFile, theme));
-
     onMount(() => {
         alignChordIcons();
         window.addEventListener("resize", alignChordIcons);
@@ -232,8 +111,8 @@
 
     $effect(() => {
         // Re-align when content or zoom changes
-        processedLines;
-        zoomLevel;
+        chordFile.lines;
+        $editorStore.zoomLevel;
         setTimeout(alignChordIcons, 0);
     });
 
@@ -242,7 +121,7 @@
 
     $effect(() => {
         // Autoscroll effect
-        if (!isAutoscrolling || !viewContainer) {
+        if (!$editorStore.isAutoscrolling || !viewContainer) {
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
@@ -252,13 +131,13 @@
 
         scrollAccumulator = 0; // Reset accumulator when starting
         const scroll = () => {
-            if (!isAutoscrolling || !viewContainer) return;
+            if (!$editorStore.isAutoscrolling || !viewContainer) return;
 
             // Convert speed multiplier to pixels per frame (at 60fps)
             // Scale with zoom level - higher zoom = faster scroll
-            const zoomMultiplier = zoomLevel / 100;
+            const zoomMultiplier = $editorStore.zoomLevel / 100;
             const pixelsPerFrame =
-                (autoscrollSpeed * editorConfig.autoscrollPixelsPerSecond * zoomMultiplier) / 60;
+                ($editorStore.autoscrollSpeed * editorConfig.autoscrollPixelsPerSecond * zoomMultiplier) / 60;
             scrollAccumulator += pixelsPerFrame;
 
             // Only apply integer pixels to scrollTop
@@ -285,41 +164,54 @@
 <div
     class="chord-view"
     bind:this={viewContainer}
-    style="font-size: {zoomLevel}%; background-color: {theme === 'light'
+    style="font-size: {$editorStore.zoomLevel}%; background-color: {$themeStore === 'light'
         ? '#ffffff'
-        : '#1e1e1e'}; color: {theme === 'light' ? '#333333' : '#e0e0e0'};"
+        : '#1e1e1e'}; color: {$themeStore === 'light' ? '#333333' : '#e0e0e0'};"
 >
-    {#each processedLines as line, idx}
+    {#each chordFile.lines as line, idx}
         {#if line.type === "heading"}
-            <pre class="lyrics heading">{line.content}</pre>
+            <div class="lyrics heading">{line.content}</div>
             {#if chordFile.metadata.artist}
-                <pre class="lyrics">Artist: {chordFile.metadata.artist}</pre>
+                <div class="lyrics">Artist: {chordFile.metadata.artist}</div>
             {/if}
-            <pre class="lyrics">Key: {keyNumber}</pre>
+            <div class="lyrics">Key: {$editorStore.keyNumber}</div>
             {#if chordFile.metadata.info}
-                <pre class="lyrics">Info: {chordFile.metadata.info}</pre>
+                <div class="lyrics">Info: {chordFile.metadata.info}</div>
             {/if}
         {:else if line.type === "empty"}
-            <pre class="lyrics"></pre>
+            <div class="lyrics"></div>
         {:else if line.type === "subheading"}
             <div class="subheading">{line.content}</div>
         {:else if line.type === "lyrics"}
-            <pre class="lyrics">{line.content}</pre>
+            <div class="lyrics">{line.content}</div>
         {:else if line.type === "chords"}
             <div class="chord-line-wrapper">
-                <pre
-                    class="lyrics chord-markers">{#each Array(line.maxPos).fill(" ") as char, idx}{#if line.chords?.some((c) => c.pos === idx)}{#each line.chords.filter((c) => c.pos === idx) as chord}<span
-                                    class="marker chord-marker"
-                                    id={chord.markerId}
-                                    >{#if chord.svg}<div
-                                            class="chord-container">{#if showRootNumbers && chord.rootNumber !== undefined}<span
-                                                    class="root-number"
-                                                    >{(chord.rootNumber + keyNumber + 8 ) % 12}</span
-                                            >{/if}{@html chord.svg}</div>{:else if chord.word}<div
-                                            class="chord-container word-container"
-                                            data-marker={chord.markerId}
-                                        ><span class="chord-word">{chord.word}</span></div>{/if}</span
-                                >{/each}{/if}{char}{/each}</pre>
+                <div class="lyrics chord-markers">
+                    {#each Array(line.maxChordPosition).fill(" ") as char, idx}
+                        {#if line.chordsOrWords?.some((c) => c.position === idx)}
+                            {#each line.chordsOrWords.filter((c) => c.position === idx) as cow}
+                                <span class="marker chord-marker" id={cow.markerId}>
+                                {#if cow.content instanceof chordTypes.Chord}
+                                    <div class="chord-container">
+                                    {#if $editorStore.viewMode === 'chords'}
+                                        <span class="root-number">
+                                            {(cow.content.root + $editorStore.keyNumber + 8 ) % 12}
+                                        </span>
+                                    {/if}
+                                    {@html chordSVGs.get(cow.content.id() + '-' + $themeStore) || ''}
+                                    </div>
+                                {:else}
+                                    <div class="chord-container word-container" data-marker={cow.markerId}>
+                                        <span class="chord-word">
+                                            {cow.content}
+                                        </span>
+                                    </div>
+                                {/if}</span>
+                            {/each}
+                        {/if}
+                        {char}
+                    {/each}
+                </div>
             </div>
         {/if}
     {/each}
@@ -336,7 +228,7 @@
         overflow-x: hidden;
     }
 
-    pre {
+    .lyrics {
         margin: 0.01rem;
         white-space: pre;
     }
@@ -408,5 +300,6 @@
 
     .chord-markers {
         position: relative;
+        white-space: pre;
     }
 </style>
