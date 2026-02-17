@@ -117,7 +117,6 @@
           onclick={() => handleTranspose(-7)}
           title="Transpose down"
           class="small-btn"
-          disabled={editorStore.viewMode === 'text'}
         >
           −
         </button>
@@ -126,7 +125,6 @@
           onclick={() => handleTranspose(7)}
           title="Transpose up"
           class="small-btn"
-          disabled={editorStore.viewMode === 'text'}
         >
           +
         </button>

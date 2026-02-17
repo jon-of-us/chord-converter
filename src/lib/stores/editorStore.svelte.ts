@@ -59,6 +59,7 @@ class EditorStore {
    */
   async transpose(offset: number): Promise<void> {
     try {
+      this.saveFile() 
       const file = fileManagerStore.getSelectedFile();
       if (!file) {
         throw new Error('No file selected');
