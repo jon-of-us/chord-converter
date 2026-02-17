@@ -1,6 +1,8 @@
 <script lang="ts">
   import * as Svelte from 'svelte';
   import { fileStore } from '../stores/fileStore.svelte';
+  import { fileManagerStore } from '../stores/fileManagerStore.svelte';
+  import { editorStore } from '../stores/editorStore.svelte';
   import * as indexedDB from '../utils/indexedDB';
   import DownloadButton from './DownloadButton.svelte';
   import Button from '../components/Button.svelte';
@@ -97,18 +99,19 @@
         
         // Auto-open first file
         const firstFile = files[0];
-        fileStore.currentFile = firstFile;
-        fileStore.currentContent = firstFile.content || '';
+        fileManagerStore.selectedPath = firstFile.path;
+        await fileManagerStore.loadSelectedContent();
+        editorStore.editedContent = fileManagerStore.cachedContent;
       } else {
         fileStore.setFiles([]);
-        fileStore.currentFile = null;
-        fileStore.currentContent = '';
+        fileManagerStore.selectedPath = null;
+        fileManagerStore.cachedContent = '';
       }
     } catch (error) {
       console.error('Error loading browser files:', error);
       fileStore.setFiles([]);
-      fileStore.currentFile = null;
-      fileStore.currentContent = '';
+      fileManagerStore.selectedPath = null;
+      fileManagerStore.cachedContent = '';
     }
   }
   

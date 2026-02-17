@@ -13,17 +13,17 @@
     leftSidebarVisible: boolean;
   } = $props();
   
-  let currentFile = $derived(fileManagerStore.getSelectedFile(fileStore.files));
+  let currentFile = $derived(fileManagerStore.getSelectedFile());
   
   function handleSave() {
     if (currentFile && editorStore.hasChanges && !editorStore.isSaving) {
-      editorStore.saveFile(currentFile);
+      editorStore.saveFile();
     }
   }
   
   function handleTranspose(offset: number) {
     if (currentFile) {
-      editorStore.transpose(currentFile, offset);
+      editorStore.transpose(offset);
     }
   }
 </script>

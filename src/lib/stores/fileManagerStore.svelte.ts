@@ -1,5 +1,5 @@
+import { fileStore } from './fileStore.svelte';
 import type { FileEntry } from './fileStore.svelte';
-import type { IFileStorage } from '../storage/IFileStorage';
 
 /**
  * File Manager Store
@@ -25,9 +25,26 @@ class FileManagerStore {
   // ===== Tree Building =====
 
   /**
-   * Build tree structure from files and folders
+   * Extract folder paths from files
    */
-  buildFileTree(files: FileEntry[], folders: Set<string>): TreeNode[] {
+  private extractFolders(files: FileEntry[]): Set<string> {
+    const folders = new Set<string>();
+    for (const file of files) {
+      const parts = file.path.split('/');
+      for (let i = 0; i < parts.length - 1; i++) {
+        const folderPath = parts.slice(0, i + 1).join('/');
+        folders.add(folderPath);
+      }
+    }
+    return folders;
+  }
+
+  /**
+   * Build tree structure from files
+   */
+  buildFileTree(): TreeNode[] {
+    const files = fileStore.files;
+    const folders = this.extractFolders(files);
     const root: TreeNode[] = [];
     const folderMap = new Map<string, TreeNode>();
 
@@ -114,23 +131,23 @@ class FileManagerStore {
   /**
    * Get the selected file (returns null if folder or nothing selected)
    */
-  getSelectedFile(files: FileEntry[]): FileEntry | null {
+  getSelectedFile(): FileEntry | null {
     if (!this.selectedPath) return null;
-    return files.find(f => f.path === this.selectedPath) || null;
+    return fileStore.files.find(f => f.path === this.selectedPath) || null;
   }
 
   /**
    * Load content for selected file and cache it
    */
-  async loadSelectedContent(files: FileEntry[], storage: IFileStorage): Promise<void> {
-    const file = this.getSelectedFile(files);
+  async loadSelectedContent(): Promise<void> {
+    const file = this.getSelectedFile();
     if (!file) {
       this.cachedContent = '';
       return;
     }
     
     try {
-      const content = await storage.readFile(file);
+      const content = await fileStore.storage.readFile(file);
       this.cachedContent = content;
     } catch (error) {
       console.error('Error loading file content:', error);
@@ -149,11 +166,11 @@ class FileManagerStore {
   /**
    * Get folder context for creating new files
    */
-  getSelectedFolderPath(files: FileEntry[]): string {
+  getSelectedFolderPath(): string {
     if (!this.selectedPath) return '';
 
     // Check if selected path is a file
-    const selectedFile = files.find(f => f.path === this.selectedPath);
+    const selectedFile = fileStore.files.find(f => f.path === this.selectedPath);
     if (selectedFile) {
       // Extract folder from file path
       const parts = selectedFile.path.split('/');

@@ -29,11 +29,14 @@ class EditorStore {
   /**
    * Save edited content to file
    */
-  async saveFile(file: FileEntry): Promise<void> {
+  async saveFile(): Promise<void> {
     try {
       this.isSaving = true;
       fileStore.error = null;
-
+      const file = fileManagerStore.getSelectedFile();
+      if (!file) {
+        throw new Error('No file selected');
+      }
       await fileStore.storage.writeFile(file, this.editedContent);
 
       fileManagerStore.updateCachedContent(this.editedContent);
@@ -54,8 +57,13 @@ class EditorStore {
    * Transpose key by semitone offset
    * Parses content, transposes, and saves
    */
-  async transpose(file: FileEntry, offset: number): Promise<void> {
+  async transpose(offset: number): Promise<void> {
     try {
+      const file = fileManagerStore.getSelectedFile();
+      if (!file) {
+        throw new Error('No file selected');
+      }
+      
       // Parse, transpose, and serialize
       const chordFile = ChordFileModel.ChordFile.parse(fileManagerStore.cachedContent);
       chordFile.transpose(offset);

@@ -33,7 +33,7 @@
         // Auto-open first file
         const firstFile = files[0];
         fileManagerStore.selectedPath = firstFile.path;
-        await fileManagerStore.loadSelectedContent(fileStore.files, fileStore.storage);
+        await fileManagerStore.loadSelectedContent();
         editorStore.editedContent = fileManagerStore.cachedContent;
       }
     } catch (error) {

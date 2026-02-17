@@ -4,20 +4,8 @@
   import { editorStore } from '../stores/editorStore.svelte';
   import FileTreeItem from './FileTreeItem.svelte';
   
-  // Extract folders from file paths
-  let allFolders = $derived.by(() => {
-    const folders = new Set<string>();
-    for (const file of fileStore.files) {
-      const parts = file.path.split('/');
-      for (let i = 1; i < parts.length; i++) {
-        folders.add(parts.slice(0, i).join('/'));
-      }
-    }
-    return folders;
-  });
-  
-  // Build tree from files and folders
-  let tree = $derived(fileManagerStore.buildFileTree(fileStore.files, allFolders));
+  // Build tree from files
+  let tree = $derived(fileManagerStore.buildFileTree());
   
   // Drag and drop state
   let isDragging = $state(false);
@@ -41,7 +29,7 @@
   
   async function handleSelectFile(path: string) {
     fileManagerStore.selectedPath = path;
-    await fileManagerStore.loadSelectedContent(fileStore.files, fileStore.storage);
+    await fileManagerStore.loadSelectedContent();
     editorStore.editedContent = fileManagerStore.cachedContent;
   }
   
@@ -52,7 +40,7 @@
     const input = prompt(`Create new file${contextMsg}:\n\nEnter filename, or use:\n- "subfolder/file" to create in subfolder\n- "folder/" to create empty folder`);
     if (!input) return;
     
-    const selectedFolderPath = fileManagerStore.getSelectedFolderPath(fileStore.files);
+    const selectedFolderPath = fileManagerStore.getSelectedFolderPath();
     
     try {
       await fileStore.createFile(input, selectedFolderPath);

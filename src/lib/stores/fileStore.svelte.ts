@@ -100,7 +100,7 @@ class FileStore {
       
       // Select the new file and load its content
       fileManagerStore.selectedPath = newFile.path;
-      await fileManagerStore.loadSelectedContent(this.files, this.storage);
+      await fileManagerStore.loadSelectedContent();
     } catch (error: any) {
       this.error = `Error creating file: ${error.message}`;
       throw error;
@@ -247,7 +247,18 @@ class FileStore {
   ): Promise<void> {
     for (const browserFile of browserFiles) {
       try {
-        const fileHandle = await handle.getFileHandle(browserFile.name, { create: true });
+        // Parse the path to handle subfolders
+        const pathParts = browserFile.name.split('/');
+        const fileName = pathParts.pop()!;
+        
+        // Navigate to or create the target directory
+        let currentDir = handle;
+        for (const folderName of pathParts) {
+          currentDir = await currentDir.getDirectoryHandle(folderName, { create: true });
+        }
+        
+        // Create the file in the target directory
+        const fileHandle = await currentDir.getFileHandle(fileName, { create: true });
         const writable = await fileHandle.createWritable();
         await writable.write(browserFile.content);
         await writable.close();
