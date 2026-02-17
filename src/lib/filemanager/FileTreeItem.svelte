@@ -68,6 +68,11 @@
     if (!confirmed) return;
     
     try {
+      // If the deleted item was selected, clear selection      
+      if (fileManagerStore.selectedPath === node.path) {
+        fileManagerStore.selectedPath = null;
+        fileManagerStore.cachedContent = '';
+      }
       if (node.isFolder) {
         await fileStore.deleteFolder(node.path);
       } else if (node.file) {
