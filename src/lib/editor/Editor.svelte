@@ -4,50 +4,6 @@
   import { fileStore } from '../stores/fileStore.svelte';
   import ChordView from './ChordView.svelte';
   import TextView from './TextView.svelte'; 
-  // let editedContent = $state('');
-  // let lastLoadedFilePath = $state<string | null>(null);
-  
-  // // Sync content when file changes
-  // $effect(() => {
-  //   const currentFile = fileStore.currentFile;
-  //   if (currentFile && currentFile.path !== lastLoadedFilePath) {
-  //     editorService.loadFile(currentFile);
-  //     lastLoadedFilePath = currentFile.path;
-  //   } else if (!currentFile) {
-  //     editorStore.reset();
-  //     editedContent = '';
-  //     lastLoadedFilePath = null;
-  //   }
-  // });
-  
-  // // Sync editedContent from store
-  // $effect(() => {
-  //   editedContent = $editorStore.editedContent;
-  // });
-  
-  // // Sync editedContent changes back to store
-  // $effect(() => {
-  //   if (editedContent !== $editorStore.editedContent) {
-  //     editorStore.setEditedContent(editedContent);
-  //   }
-  // });
-  
-  // // Keyboard shortcuts
-  // Svelte.onMount(() => {
-  //   function handleKeydown(event: KeyboardEvent) {
-  //     if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-  //       event.preventDefault();
-  //       const currentFile = fileStore.currentFile;
-  //       const hasChangesValue = editorStore.hasChanges;
-  //       if (currentFile && hasChangesValue) {
-  //         editorService.saveFile(currentFile, editedContent);
-  //       }
-  //     }
-  //   }
-    
-  //   document.addEventListener('keydown', handleKeydown);
-  //   return () => document.removeEventListener('keydown', handleKeydown);
-  // });
 </script>
 
 <div class="editor">

@@ -9,13 +9,7 @@ import * as KeyUtils from '../chords/keyUtils';
 import * as KeyDetection from '../chords/keyDetection';
 import { fileConfig } from '../config';
 
-export interface ChordFileMetadata {
-  title: string;
-  artist: string;
-  key: string; // The key specified in metadata (can be various formats)
-  info: string;
-  [key: string]: string; // Allow any additional metadata fields
-}
+// Metadata is now stored directly in parsedLines with type="metadata"
 
 export class ChordOrWord {
   constructor(
@@ -27,10 +21,11 @@ export class ChordOrWord {
 
 export class ParsedLine {
   constructor(
-    public type: "empty" | "heading" | "subheading" | "chords" | "lyrics",
+    public type: "empty" | "heading" | "subheading" | "chords" | "lyrics" | "metadata" | "spacer",
     public content: string,
     public maxChordPosition: number = 0,
     public chordsOrWords?: ChordOrWord[],
+    public metadataField?: string, // For metadata lines: "title", "artist", "key", "info", etc.
   ) {}
 }
 
@@ -39,7 +34,6 @@ export class ParsedLine {
  */
 export class ChordFile {
   constructor(
-    public metadata: ChordFileMetadata,
     public specifiedKey: number, // Parsed numeric key from metadata (0-11)
     public detectedKey: number, // Key detected from chords (0-11)
     public lines: ParsedLine[],
@@ -52,17 +46,21 @@ export class ChordFile {
   static parse(content: string): ChordFile {
     const lines = content.split('\n');
 
-    // Parse metadata
-    const { metadata, specifiedKeyStr, metadataEndIndex } = ChordFile.parseMetadata(lines);
-
-    // Parse lines after metadata
-    const contentLines = lines.slice(metadataEndIndex);
     const parsedLines: ParsedLine[] = [];
     const allChords: chordTypes.Chord[] = [];
+    
+    // Parse metadata and add to parsedLines
+    const { metadataLines, specifiedKeyStr, contentStartIndex } = ChordFile.parseMetadata(lines);
+    parsedLines.push(...metadataLines);
 
-    // Track metadata end for blank line insertion
-    let metadataEndIdx = metadataEndIndex > 0 ? 0 : -1; // First line after metadata
-    let metadataEnded = false;
+    // Add blank lines after metadata if we have metadata
+    if (metadataLines.length > 0) {
+      parsedLines.push(new ParsedLine('spacer', ''));
+      parsedLines.push(new ParsedLine('spacer', ''));
+    }
+
+    // Parse lines after metadata
+    const contentLines = lines.slice(contentStartIndex);
 
     for (let i = 0; i < contentLines.length; i++) {
       const line = contentLines[i];
@@ -72,22 +70,6 @@ export class ChordFile {
       if (trimmedLine === '') {
         parsedLines.push(new ParsedLine('empty', line));
         continue;
-      }
-
-      // First non-empty line is the heading (title) if not in metadata
-      if (i === 0 && metadataEndIndex === 0) {
-        let titleContent = line;
-        if (titleContent.toLowerCase().startsWith('title:')) {
-          titleContent = titleContent.substring(6).trim();
-        }
-        parsedLines.push(new ParsedLine('heading', titleContent));
-        continue;
-      }
-
-      // Add blank line after metadata ends
-      if (!metadataEnded && metadataEndIdx === 0) {
-        parsedLines.push(new ParsedLine("empty", ''));
-        metadataEnded = true;
       }
 
       const lineType = ChordFile.getLineType(line);
@@ -135,7 +117,7 @@ export class ChordFile {
       }
     }
 
-    return new ChordFile(metadata, specifiedKey, detectedKey, parsedLines);
+    return new ChordFile(specifiedKey, detectedKey, parsedLines);
   }
 
   /**
@@ -143,49 +125,30 @@ export class ChordFile {
    */
   serialize(): string {
     const parts: string[] = [];
-    const knownFields = ['title', 'artist', 'key', 'info'];
 
-    // Always include title first
-    const title = this.metadata.title || fileConfig.defaultTitle;
-    parts.push(`Title: ${title}`);
-
-    // Then artist if present
-    if (this.metadata.artist) {
-      parts.push(`Artist: ${this.metadata.artist}`);
-    }
-
-    // Then key (convert to numeric format if valid)
-    if (this.metadata.key && this.metadata.key.trim() !== '') {
-      const keyNum = KeyUtils.parseKeyString(this.metadata.key);
-      if (keyNum !== null) {
-        parts.push(`Key: ${keyNum.toString()}`);
-      } else {
-        // Keep original if parsing fails
-        parts.push(`Key: ${this.metadata.key}`);
-      }
-    }
-
-    // Then info if present
-    if (this.metadata.info) {
-      parts.push(`Info: ${this.metadata.info}`);
-    }
-
-    // Add any additional metadata fields not in the known list
-    for (const [key, value] of Object.entries(this.metadata)) {
-      if (!knownFields.includes(key.toLowerCase()) && typeof value === 'string') {
-        parts.push(`${key}: ${value}`);
-      }
-    }
-
-    // Add empty lines between metadata and content if there are lines
-    if (parts.length > 0 && this.lines.length > 0) {
-      parts.push('');
-      parts.push('');
-    }
-
-    // Add all lines (they contain their original content)
+    // Serialize from parsedLines
     for (const line of this.lines) {
-      parts.push(line.content);
+      if (line.type === 'metadata' && line.metadataField) {
+        // Format metadata line with proper capitalization
+        const fieldName = line.metadataField.charAt(0).toUpperCase() + line.metadataField.slice(1);
+        
+        // Special handling for key field - convert to numeric if possible
+        if (line.metadataField.toLowerCase() === 'key') {
+          const keyNum = KeyUtils.parseKeyString(line.content);
+          if (keyNum !== null) {
+            parts.push(`${fieldName}: ${keyNum.toString()}`);
+          } else {
+            parts.push(`${fieldName}: ${line.content}`);
+          }
+        } else {
+          parts.push(`${fieldName}: ${line.content}`);
+        }
+      } else if (line.type === 'empty') {
+        parts.push('');
+      } else {
+        // For all other line types, use original content
+        parts.push(line.content);
+      }
     }
 
     return parts.join('\n');
@@ -217,18 +180,12 @@ export class ChordFile {
    * Parse metadata from the beginning of file content
    */
   private static parseMetadata(lines: string[]): {
-    metadata: ChordFileMetadata;
+    metadataLines: ParsedLine[];
     specifiedKeyStr: string;
-    metadataEndIndex: number;
+    contentStartIndex: number;
   } {
-    const metadata: ChordFileMetadata = {
-      title: fileConfig.defaultTitle,
-      artist: fileConfig.defaultArtist,
-      key: fileConfig.defaultKey,
-      info: fileConfig.defaultInfo,
-    };
-
-    let metadataEndIndex = 0;
+    const metadataLines: ParsedLine[] = [];
+    let contentStartIndex = 0;
     let firstNonEmptyLineIdx = -1;
     let hasTitle = false;
     let specifiedKeyStr = '';
@@ -241,7 +198,7 @@ export class ChordFile {
       // Skip empty lines at beginning or within metadata
       if (trimmedLine === '') {
         if (inMetadataSection) {
-          metadataEndIndex = i + 1;
+          contentStartIndex = i + 1;
           continue;
         }
       }
@@ -253,23 +210,16 @@ export class ChordFile {
         const fieldValue = trimmedLine.substring(colonIndex + 1).trim();
         const lowerFieldName = fieldName.toLowerCase();
 
-        // Store in appropriate field
+        // Store as metadata line
+        metadataLines.push(new ParsedLine('metadata', fieldValue, 0, undefined, lowerFieldName));
+        
         if (lowerFieldName === 'title') {
-          metadata.title = fieldValue;
           hasTitle = true;
-        } else if (lowerFieldName === 'artist') {
-          metadata.artist = fieldValue;
         } else if (lowerFieldName === 'key') {
           specifiedKeyStr = fieldValue;
-          metadata.key = fieldValue;
-        } else if (lowerFieldName === 'info') {
-          metadata.info = fieldValue;
-        } else {
-          // Store any other metadata field
-          metadata[fieldName] = fieldValue;
         }
 
-        metadataEndIndex = i + 1;
+        contentStartIndex = i + 1;
       } else if (trimmedLine !== '') {
         // Found first non-metadata line (no colon)
         if (firstNonEmptyLineIdx === -1) {
@@ -288,11 +238,14 @@ export class ChordFile {
     // Handle first non-empty line if no Title was found
     if (!hasTitle && firstNonEmptyLineIdx >= 0) {
       const firstLine = lines[firstNonEmptyLineIdx].trim();
-      metadata.title = firstLine;
-      metadataEndIndex = firstNonEmptyLineIdx + 1;
+      metadataLines.unshift(new ParsedLine('metadata', firstLine, 0, undefined, 'title'));
+      contentStartIndex = firstNonEmptyLineIdx + 1;
+    } else if (!hasTitle) {
+      // Add default title if none found
+      metadataLines.unshift(new ParsedLine('metadata', fileConfig.defaultTitle, 0, undefined, 'title'));
     }
 
-    return { metadata, specifiedKeyStr, metadataEndIndex };
+    return { metadataLines, specifiedKeyStr, contentStartIndex };
   }
 
   /**
@@ -326,18 +279,21 @@ export class ChordFile {
   /**
    * Ensure the ChordFile has a numeric key in metadata (0-11)
    * If no key exists or it's non-numeric, use detected or specified key
-   * Mutates the metadata.key if needed
+   * Mutates the key line in parsedLines if needed
    * Returns the key number
    */
   ensureNumericKey(): number {
+    // Find key line in parsedLines
+    const keyLine = this.lines.find(l => l.type === 'metadata' && l.metadataField?.toLowerCase() === 'key');
+    
     // Check if the current key is already in numeric format (0-11)
-    const currentKeyIsNumeric = this.metadata.key && 
-      /^\d+$/.test(this.metadata.key.trim()) &&
-      parseInt(this.metadata.key.trim()) >= 0 && 
-      parseInt(this.metadata.key.trim()) <= 11;
+    const currentKeyIsNumeric = keyLine && keyLine.content &&
+      /^\d+$/.test(keyLine.content.trim()) &&
+      parseInt(keyLine.content.trim()) >= 0 && 
+      parseInt(keyLine.content.trim()) <= 11;
 
     if (currentKeyIsNumeric) {
-      return parseInt(this.metadata.key.trim());
+      return parseInt(keyLine.content.trim());
     }
 
     // Determine key to use
@@ -348,15 +304,26 @@ export class ChordFile {
       keyNumber = this.detectedKey ?? 0;
     }
 
-    // Update metadata with numeric key
-    this.metadata.key = keyNumber.toString();
-    
+    // Update key line in parsedLines
+    if (keyLine) {
+      keyLine.content = keyNumber.toString();
+    } else {
+      // Add key line after title if it doesn't exist
+      const titleIdx = this.lines.findIndex(l => l.type === 'metadata' && l.metadataField?.toLowerCase() === 'title');
+      if (titleIdx >= 0) {
+        this.lines.splice(titleIdx + 1, 0, new ParsedLine('metadata', keyNumber.toString(), 0, undefined, 'key'));
+      } else {
+        // Add at beginning
+        this.lines.unshift(new ParsedLine('metadata', keyNumber.toString(), 0, undefined, 'key'));
+      }
+    }
+
     return keyNumber;
   }
 
   /**
    * Transpose the key by semitone offset
-   * Mutates the metadata.key
+   * Mutates the key line in parsedLines
    */
   transpose(offset: number): void {
     // First ensure we have numeric key
@@ -365,7 +332,10 @@ export class ChordFile {
     // Calculate new key
     const newKey = ((currentKey + offset) % 12 + 12) % 12;
     
-    // Update metadata
-    this.metadata.key = newKey.toString();
+    // Update key line in parsedLines
+    const keyLine = this.lines.find(l => l.type === 'metadata' && l.metadataField?.toLowerCase() === 'key');
+    if (keyLine) {
+      keyLine.content = newKey.toString();
+    }
   }
 }

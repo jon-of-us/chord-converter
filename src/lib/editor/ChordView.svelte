@@ -174,7 +174,15 @@
         : '#1e1e1e'}; color: {themeStore.current === 'light' ? '#333333' : '#e0e0e0'};"
 >
     {#each chordFile.lines as line, idx}
-        {#if line.type === "heading"}
+        {#if line.type === "metadata" && line.metadataField === "title"}
+            <div class="heading">
+                {line.content}
+            </div>
+        {:else if line.type === "metadata"}
+            <div class="metadata">
+                <span class="metadata-field">{line.metadataField}:</span> {line.content}
+            </div>
+        {:else if line.type === "heading"}
             <div class="heading">
                 {line.content}
             </div>
@@ -222,6 +230,8 @@
                     {/each}
                 </div>
             </div>
+        {:else if line.type === "spacer"}
+            <pre class="lyrics"> </pre>
         {/if}
     {/each}
 </div>
