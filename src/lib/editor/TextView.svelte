@@ -1,16 +1,20 @@
 <script lang="ts">
+  import * as svlete from 'svelte';
   import { editorStore } from '../stores/editorStore.svelte';
   import { themeStore } from '../stores/themeStore.svelte';
-  
-  let { content = $bindable('') }: { content: string } = $props();
+  import { fileStore } from '../stores/fileStore.svelte';
+  import * as editorService from '../services/editorService';
+    import { file } from 'jszip';
   
   let textareaRef = $state<HTMLTextAreaElement>();
+  $effect(() => {
+    editorStore.editedContent = fileStore.currentFile?.content || '';
+  });
+
   
   function handleKeydown(event: KeyboardEvent) {
-    // Ctrl/Cmd + S to save - but we don't handle save here, it's in Editor
     if ((event.ctrlKey || event.metaKey) && event.key === 's') {
       event.preventDefault();
-      // Let the Editor component handle this via document event listener
     }
     // Ctrl/Cmd + Plus to zoom in
     if ((event.ctrlKey || event.metaKey) && (event.key === '+' || event.key === '=')) {
@@ -27,7 +31,7 @@
 
 <textarea
   bind:this={textareaRef}
-  bind:value={content}
+  bind:value={editorStore.editedContent}
   onkeydown={handleKeydown}
   spellcheck="false"
   placeholder="File content..."

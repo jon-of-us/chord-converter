@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Svelte from 'svelte';
   import { fileStore } from '../stores/fileStore.svelte';
-  import * as indexedDBModule from '../utils/indexedDB';
+  import * as indexedDB from '../utils/indexedDB';
   import * as fileService from '../services/fileService';
   import * as fileManagerService from '../services/fileManagerService';
   import DownloadButton from './DownloadButton.svelte';
@@ -23,7 +23,7 @@
   async function restoreFolderHandle() {
     try {
       fileStore.setLoading(true);
-      const handle = await indexedDBModule.loadFolderHandle();
+      const handle = await indexedDB.loadFolderHandle();
       
       if (handle) {
         const permission = await (handle as any).queryPermission({ mode: 'readwrite' });
@@ -58,7 +58,7 @@
       });
 
       // Check for browser files to migrate
-      const browserFiles = await indexedDBModule.loadAllBrowserFiles();
+      const browserFiles = await indexedDB.loadAllBrowserFiles();
       
       if (browserFiles.length > 0) {
         const shouldMigrate = confirm(
@@ -70,7 +70,7 @@
         }
       }
 
-      await indexedDBModule.saveFolderHandle(handle);
+      await indexedDB.saveFolderHandle(handle);
       fileStore.setFolderHandle(handle);
       await fileManagerService.loadFilesFromFolder(handle);
       
@@ -87,7 +87,7 @@
   }
 
   async function disconnectFolder() {
-    await indexedDBModule.clearFolderHandle();
+    await indexedDB.clearFolderHandle();
     fileStore.setFolderHandle(null);
     
     // Load browser files after disconnecting
@@ -162,11 +162,11 @@
     style="display: none;"
   />
   
-  {#if !$fileStore.folderHandle}
+  {#if !fileStore.folderHandle}
     <div class="top-buttons">
       <Button
         onclick={selectFolder}
-        disabled={$fileStore.loading || !isSupported}
+        disabled={fileStore.loading || !isSupported}
         title={isSupported ? '' : 'File System Access is only supported in Chrome, Edge, and Opera. Please use one of these browsers to connect a folder.'}
         variant="primary"
         class={!isSupported ? 'unsupported' : ''}
@@ -175,7 +175,7 @@
       </Button>
       <Button
         onclick={triggerFileInput}
-        disabled={$fileStore.loading}
+        disabled={fileStore.loading}
         title="Import folder with .chords files"
       >
         Import Folder
@@ -183,23 +183,23 @@
     </div>
   {/if}
   
-  {#if $fileStore.folderHandle}
+  {#if fileStore.folderHandle}
     <div class="folder-info">
-      <span class="folder-name">{$fileStore.folderHandle.name}</span>
-      <span class="file-count">({$fileStore.files.length} files)</span>
+      <span class="folder-name">{fileStore.folderHandle.name}</span>
+      <span class="file-count">({fileStore.files.length} files)</span>
     </div>
     
     <div class="folder-actions">
       <Button
         onclick={selectFolder}
-        disabled={$fileStore.loading}
+        disabled={fileStore.loading}
         title="Change folder"
       >
         Change Folder
       </Button>
       <Button
         onclick={disconnectFolder}
-        disabled={$fileStore.loading}
+        disabled={fileStore.loading}
         title="Disconnect folder"
       >
         Disconnect

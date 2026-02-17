@@ -54,7 +54,7 @@
   {#if fileStore.currentFile}
     <div class="editor-view">
       {#if editorStore.viewMode === 'text'}
-        <TextView bind:content={editorStore.editedContent} />
+        <TextView/>
       {:else if editorStore.viewMode === 'structure' || editorStore.viewMode === 'chords'}
         <ChordView />
       {/if}
