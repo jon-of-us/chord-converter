@@ -12,6 +12,7 @@ const HORIZONTAL_DISTANCE = 200;
 const VERTICAL_DISTANCE = HORIZONTAL_DISTANCE * Math.sqrt(3) / 2;
 const ROW_SHIFT = -HORIZONTAL_DISTANCE / 2;
 const TONIC_POINT_INDICES: [number, number][] = [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [1, 2]];
+const OCTAVE_SHIFTS: Point[] = [[0, 0], [-1, 3], [1, -3], [-4, 0], [4, 0]];
 
 // Color schemes
 const LIGHT_MODE = {
@@ -46,11 +47,10 @@ function intervalToIndex(interval: number): Point {
 
 function bassToIndex(bass: number, chordIndices: Point[]): Point {
   const idx = intervalToIndex(bass);
-  const octaveShifts: Point[] = [[0, 0], [-1, 3], [1, -3], [-2, 6], [2, -6]];
   let bestIdx: Point | null = null;
   let bestDist = Infinity;
   
-  for (const octaveShift of octaveShifts) {
+  for (const octaveShift of OCTAVE_SHIFTS) {
     const shiftedIdx = add(idx, octaveShift);
     for (const chordIdx of chordIndices) {
       const dist = Math.sqrt(
@@ -110,7 +110,6 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   bassIndex = bassIndex.map(idx => add(idx, rootIndex));
   
   // Determine octave of points
-  const octaveShifts: Point[] = [[0, 0], [-1, 3], [1, -3]];
   const rewardRoot: Point = [1, 2];
   const rewards = [
     [0.0, 0.0, 0.2, 0.2, 0.2, 0.3, 0.0, 0.0],
@@ -122,7 +121,7 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   let bestOctave: Point | null = null;
   let bestReward = -1;
   
-  for (const octaveShift of octaveShifts) {
+  for (const octaveShift of OCTAVE_SHIFTS) {
     const shiftedCoords = chordPointIndices.map(idx => 
       add(add(idx, octaveShift), rewardRoot)
     );

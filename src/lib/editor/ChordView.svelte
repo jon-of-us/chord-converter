@@ -214,7 +214,7 @@
         {:else if line.type === "lyrics"}
             <div class="lyrics">{line.content}</div>
         {:else if line.type === "chords"}
-            <div class="chord-line-wrapper">
+            <div class="chord-line-wrapper" class:follows-chord-line={idx > 0 && chordFile.lines[idx - 1]?.type === "chords"}>
                 <div class="lyrics chord-markers">
                     {#each Array(line.content.length + 1) as _, idx}
                         {#each line.chordsOrWords?.filter((c) => c.position === idx) as cow}
@@ -296,6 +296,10 @@
         position: relative;
         margin: 0;
         padding: 0;
+    }
+
+    .chord-line-wrapper.follows-chord-line {
+        margin-top: 0.5rem;
     }
 
     .chord-line-wrapper .lyrics {
