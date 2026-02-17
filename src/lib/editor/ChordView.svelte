@@ -37,6 +37,29 @@
         console.log("Regenerated SVGs, total:", svgs.size);
         return svgs;
     });
+    let chordShapeSVGs = $derived.by(() => {
+        const svgs = new Map<string, string>();
+        chordFile.lines.forEach((line) => {
+            if (line.type === "chords" && line.chordsOrWords) {
+                line.chordsOrWords.forEach((cow) => {
+                    if (cow.content instanceof chordTypes.Chord) {
+                        const key = cow.content.id() + "-" + themeStore.current;
+                        if (!svgs.has(key)) {
+                            svgs.set(
+                                key,
+                                generateChordShapeSVG(
+                                    cow.content,
+                                    themeStore.current,
+                                ),
+                            );
+                        }
+                    }
+                });
+            }
+        });
+        console.log("Regenerated shape SVGs, total:", svgs.size);
+        return svgs;
+    });
 
     function alignChordIcons() {
         if (!viewContainer) return;
@@ -207,12 +230,18 @@
                                                     8) %
                                                     12}
                                             </span>
+                                            {@html chordShapeSVGs.get(
+                                                cow.content.id() +
+                                                    "-" +
+                                                    themeStore.current,
+                                            ) || ""}
+                                        {:else}
+                                            {@html chordSVGs.get(
+                                                cow.content.id() +
+                                                    "-" +
+                                                    themeStore.current,
+                                            ) || ""}
                                         {/if}
-                                        {@html chordSVGs.get(
-                                            cow.content.id() +
-                                                "-" +
-                                                themeStore.current,
-                                        ) || ""}
                                     </div>
                                 {:else}
                                     <div
