@@ -22,7 +22,7 @@ interface ChordFile {
 
 ### **1. File Loading**
 - **editorService.loadFile()** → Reads file as string
-- **chordFileService.parseChordFile(string)** → Parses to ChordFile  
+- **ChordFile.parse(string)** → Parses to ChordFile  
 - **metadataService.ensureNumericKey(ChordFile)** → Normalizes key metadata
 - **Stores:** String in `editorStore.editedContent`, key number in `editorStore.keyNumber`
 
@@ -46,9 +46,9 @@ interface ChordFile {
 
 ## Key Services
 
-### **chordFileService**
-- `parseChordFile(string)` → ChordFile - Parse .chords file content
-- `serializeChordFile(ChordFile)` → string - Convert back to file format
+### **ChordFile class methods**
+- `ChordFile.parse(string)` → ChordFile - Parse .chords file content (static method)
+- `chordFile.serialize()` → string - Convert instance back to file format (instance method)
 
 ### **metadataService**
 - `ensureNumericKey(ChordFile)` → KeyUpdateResult - Normalize key to 0-11

@@ -1,5 +1,4 @@
-import { parseChordFile, serializeChordFile } from './chordFileService';
-import type { ChordFile } from '../models/ChordFile';
+import * as ChordFileModel from '../models/ChordFile';
 
 /**
  * Metadata Service
@@ -8,7 +7,7 @@ import type { ChordFile } from '../models/ChordFile';
 
 export interface KeyUpdateResult {
   updated: boolean;
-  chordFile: ChordFile;
+  chordFile: ChordFileModel.ChordFile;
   content: string;
   keyNumber: number;
 }
@@ -18,7 +17,7 @@ export interface KeyUpdateResult {
  * If no key exists or it's non-numeric, use detected key
  * Returns whether content was updated, the ChordFile, new content, and the key number
  */
-export function ensureNumericKey(chordFile: ChordFile): KeyUpdateResult {
+export function ensureNumericKey(chordFile: ChordFileModel.ChordFile): KeyUpdateResult {
   // Check if the current key is already in numeric format (0-11)
   const currentKeyIsNumeric = chordFile.metadata.key && 
     /^\d+$/.test(chordFile.metadata.key.trim()) &&
@@ -30,7 +29,7 @@ export function ensureNumericKey(chordFile: ChordFile): KeyUpdateResult {
     return {
       updated: false,
       chordFile,
-      content: serializeChordFile(chordFile),
+      content: chordFile.serialize(),
       keyNumber: parseInt(chordFile.metadata.key.trim()),
     };
   }
@@ -44,11 +43,13 @@ export function ensureNumericKey(chordFile: ChordFile): KeyUpdateResult {
   }
 
   // Update metadata with numeric key
-  const updatedChordFile = {
-    ...chordFile,
-    metadata: { ...chordFile.metadata, key: keyNumber.toString() }
-  };
-  const updatedContent = serializeChordFile(updatedChordFile);
+  const updatedChordFile = new ChordFileModel.ChordFile(
+    { ...chordFile.metadata, key: keyNumber.toString() },
+    chordFile.specifiedKey,
+    chordFile.detectedKey,
+    chordFile.lines
+  );
+  const updatedContent = updatedChordFile.serialize();
 
   return {
     updated: true,
@@ -61,7 +62,7 @@ export function ensureNumericKey(chordFile: ChordFile): KeyUpdateResult {
 /**
  * Transpose ChordFile by offset
  */
-export function transposeKey(chordFile: ChordFile, offset: number): KeyUpdateResult {
+export function transposeKey(chordFile: ChordFileModel.ChordFile, offset: number): KeyUpdateResult {
   // First ensure we have numeric key
   const ensureResult = ensureNumericKey(chordFile);
   
@@ -69,11 +70,13 @@ export function transposeKey(chordFile: ChordFile, offset: number): KeyUpdateRes
   const newKeyNumber = ((ensureResult.keyNumber + offset) % 12 + 12) % 12;
   
   // Update metadata
-  const updatedChordFile = {
-    ...ensureResult.chordFile,
-    metadata: { ...ensureResult.chordFile.metadata, key: newKeyNumber.toString() }
-  };
-  const updatedContent = serializeChordFile(updatedChordFile);
+  const updatedChordFile = new ChordFileModel.ChordFile(
+    { ...ensureResult.chordFile.metadata, key: newKeyNumber.toString() },
+    ensureResult.chordFile.specifiedKey,
+    ensureResult.chordFile.detectedKey,
+    ensureResult.chordFile.lines
+  );
+  const updatedContent = updatedChordFile.serialize();
 
   return {
     updated: true,

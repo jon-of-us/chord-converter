@@ -1,10 +1,9 @@
 import { get } from 'svelte/store';
 import * as fileService from './fileService';
 import * as metadataService from './metadataService';
-import * as chordFileService from './chordFileService';
+import * as ChordFileModel from '../models/ChordFile';
 import {fileStore, FileEntry} from '../stores/fileStore.svelte';
 import {editorStore} from '../stores/editorStore.svelte';
-import type { ChordFile } from '../models/ChordFile';
 
 /**
  * Editor Service
@@ -22,7 +21,7 @@ export async function loadFile(file: FileEntry): Promise<void> {
     // Only process metadata for .chords files
     if (file.path.endsWith('.chords')) {
       // Parse and ensure numeric key
-      const chordFile = chordFileService.parseChordFile(content);
+      const chordFile = ChordFileModel.ChordFile.parse(content);
       const keyResult = metadataService.ensureNumericKey(chordFile);
       const finalContent = keyResult.content;
       
@@ -85,7 +84,7 @@ export async function transpose(
   try {
     
     // Parse, transpose, and serialize
-    const chordFile = chordFileService.parseChordFile(fileStore.currentContent);
+    const chordFile = ChordFileModel.ChordFile.parse(fileStore.currentContent);
     const result = metadataService.transposeKey(chordFile, offset);
     
     // Update fileStore and save directly
@@ -104,7 +103,7 @@ export async function transpose(
  */
 export async function ensureNumericKey(
   file: FileEntry,
-  chordFile: ChordFile
+  chordFile: ChordFileModel.ChordFile
 ): Promise<void> {
   // Only process metadata for .chords files
   if (!file.path.endsWith('.chords')) return;

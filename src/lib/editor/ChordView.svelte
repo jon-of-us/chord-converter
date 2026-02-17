@@ -2,7 +2,7 @@
     import { generateChordSVG, generateChordShapeSVG } from "../chords/chordToSVG";
     import { onMount } from "svelte";
     import { editorConfig } from "../config";
-    import * as chordFileService from "../services/chordFileService";
+    import * as ChordFileModel from "../models/ChordFile";
     import { editorStore } from "../stores/editorStore.svelte";
     import { themeStore } from "../stores/themeStore.svelte";
     import { fileStore } from "../stores/fileStore.svelte";
@@ -12,7 +12,7 @@
 
     // Parse chordFile from fileStore (ground truth)
     let chordFile = $derived(
-        chordFileService.parseChordFile(fileStore.currentContent),
+        ChordFileModel.ChordFile.parse(fileStore.currentContent),
     );
     let viewContainer: HTMLDivElement;
 
