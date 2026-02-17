@@ -322,4 +322,50 @@ export class ChordFile {
 
     return result;
   }
+
+  /**
+   * Ensure the ChordFile has a numeric key in metadata (0-11)
+   * If no key exists or it's non-numeric, use detected or specified key
+   * Mutates the metadata.key if needed
+   * Returns the key number
+   */
+  ensureNumericKey(): number {
+    // Check if the current key is already in numeric format (0-11)
+    const currentKeyIsNumeric = this.metadata.key && 
+      /^\d+$/.test(this.metadata.key.trim()) &&
+      parseInt(this.metadata.key.trim()) >= 0 && 
+      parseInt(this.metadata.key.trim()) <= 11;
+
+    if (currentKeyIsNumeric) {
+      return parseInt(this.metadata.key.trim());
+    }
+
+    // Determine key to use
+    let keyNumber: number;
+    if (this.specifiedKey !== null) {
+      keyNumber = this.specifiedKey;
+    } else {
+      keyNumber = this.detectedKey ?? 0;
+    }
+
+    // Update metadata with numeric key
+    this.metadata.key = keyNumber.toString();
+    
+    return keyNumber;
+  }
+
+  /**
+   * Transpose the key by semitone offset
+   * Mutates the metadata.key
+   */
+  transpose(offset: number): void {
+    // First ensure we have numeric key
+    const currentKey = this.ensureNumericKey();
+    
+    // Calculate new key
+    const newKey = ((currentKey + offset) % 12 + 12) % 12;
+    
+    // Update metadata
+    this.metadata.key = newKey.toString();
+  }
 }

@@ -1,6 +1,5 @@
 import { get } from 'svelte/store';
 import * as fileService from './fileService';
-import * as metadataService from './metadataService';
 import * as ChordFileModel from '../models/ChordFile';
 import {fileStore, FileEntry} from '../stores/fileStore.svelte';
 import {editorStore} from '../stores/editorStore.svelte';
@@ -22,16 +21,16 @@ export async function loadFile(file: FileEntry): Promise<void> {
     if (file.path.endsWith('.chords')) {
       // Parse and ensure numeric key
       const chordFile = ChordFileModel.ChordFile.parse(content);
-      const keyResult = metadataService.ensureNumericKey(chordFile);
-      const finalContent = keyResult.content;
+      const keyNumber = chordFile.ensureNumericKey();
+      const finalContent = chordFile.serialize();
       
       // If key was updated, save it immediately
-      if (keyResult.updated) {
+      if (finalContent !== content) {
         await fileService.saveFile(file, finalContent);
       }
       
       fileStore.setCurrentContent(finalContent);
-      editorStore.loadContent(finalContent, keyResult.keyNumber);
+      editorStore.loadContent(finalContent, keyNumber);
     } else {
       // For non-.chords files, just load the content as-is
       fileStore.setCurrentContent(content);
@@ -85,11 +84,12 @@ export async function transpose(
     
     // Parse, transpose, and serialize
     const chordFile = ChordFileModel.ChordFile.parse(fileStore.currentContent);
-    const result = metadataService.transposeKey(chordFile, offset);
+    chordFile.transpose(offset);
+    const newContent = chordFile.serialize();
     
     // Update fileStore and save directly
-    fileStore.setCurrentContent(result.content);
-    await fileService.saveFile(file, result.content);
+    fileStore.setCurrentContent(newContent);
+    await fileService.saveFile(file, newContent);
     
   } catch (error: any) {
     console.error('Error transposing:', error);
@@ -109,15 +109,18 @@ export async function ensureNumericKey(
   if (!file.path.endsWith('.chords')) return;
   
   try {
-    const keyResult = metadataService.ensureNumericKey(chordFile);
-    if (keyResult.updated) {
+    const originalContent = chordFile.serialize();
+    const keyNumber = chordFile.ensureNumericKey();
+    const newContent = chordFile.serialize();
+    
+    if (newContent !== originalContent) {
       // Update content and key number
-      editorStore.setEditedContent(keyResult.content);
-      editorStore.setKeyNumber(keyResult.keyNumber);
-      await saveFile(file, keyResult.content);
+      editorStore.setEditedContent(newContent);
+      editorStore.setKeyNumber(keyNumber);
+      await saveFile(file, newContent);
     } else {
       // Just update key number (content unchanged)
-      editorStore.setKeyNumber(keyResult.keyNumber);
+      editorStore.setKeyNumber(keyNumber);
     }
   } catch (error: any) {
     console.error('Error updating key metadata:', error);
