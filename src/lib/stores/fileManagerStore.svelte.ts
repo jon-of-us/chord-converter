@@ -125,6 +125,7 @@ class FileManagerStore {
   // ===== Selection =====
 
   select(path: string | null) {
+    
     this.selectedPath = path;
   }
 
