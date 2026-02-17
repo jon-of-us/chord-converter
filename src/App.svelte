@@ -3,7 +3,7 @@
   import FolderPicker from './lib/filemanager/FolderPicker.svelte'
   import FileManager from './lib/filemanager/FileManager.svelte'
   import Editor from './lib/editor/Editor.svelte'
-  import EditorControls from './lib/editor/controls/EditorControls.svelte'
+  import EditorControls from './lib/controls/EditorControls.svelte'
   import { fileStore } from './lib/stores/fileStore';
   import * as fileService from './lib/services/fileService';
   import { sidebarConfig } from './lib/config';

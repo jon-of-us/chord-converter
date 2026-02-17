@@ -12,7 +12,7 @@
 
     // Parse chordFile from fileStore (ground truth)
     let chordFile = $derived(
-        chordFileService.parseChordFile($fileStore.currentContent),
+        chordFileService.parseChordFile(fileStore.currentContent),
     );
     let viewContainer: HTMLDivElement;
 
@@ -23,11 +23,11 @@
             if (line.type === "chords" && line.chordsOrWords) {
                 line.chordsOrWords.forEach((cow) => {
                     if (cow.content instanceof chordTypes.Chord) {
-                        const key = cow.content.id() + "-" + $themeStore;
+                        const key = cow.content.id() + "-" + themeStore.current;
                         if (!svgs.has(key)) {
                             svgs.set(
                                 key,
-                                generateChordSVG(cow.content, $themeStore),
+                                generateChordSVG(cow.content, themeStore.current),
                             );
                         }
                     }
@@ -104,7 +104,7 @@
     // Re-align when content or zoom changes
     $effect(() => {
         chordFile.lines;
-        $editorStore.zoomLevel;
+        editorStore.zoomLevel;
         setTimeout(alignChordIcons, 0);
     });
 
@@ -113,7 +113,7 @@
     let scrollAccumulator = 0;
 
     $effect(() => {
-        if (!$editorStore.isAutoscrolling || !viewContainer) {
+        if (!editorStore.isAutoscrolling || !viewContainer) {
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
@@ -123,13 +123,13 @@
 
         scrollAccumulator = 0; // Reset accumulator when starting
         const scroll = () => {
-            if (!$editorStore.isAutoscrolling || !viewContainer) return;
+            if (!editorStore.isAutoscrolling || !viewContainer) return;
 
             // Convert speed multiplier to pixels per frame (at 60fps)
             // Scale with zoom level - higher zoom = faster scroll
-            const zoomMultiplier = $editorStore.zoomLevel / 100;
+            const zoomMultiplier = editorStore.zoomLevel / 100;
             const pixelsPerFrame =
-                ($editorStore.autoscrollSpeed *
+                (editorStore.autoscrollSpeed *
                     editorConfig.autoscrollPixelsPerSecond *
                     zoomMultiplier) /
                 60;
@@ -168,10 +168,10 @@
 <div
     class="chord-view"
     bind:this={viewContainer}
-    style="font-size: {$editorStore.zoomLevel}%; background-color: {$themeStore ===
+    style="font-size: {editorStore.zoomLevel}%; background-color: {themeStore.current ===
     'light'
         ? '#ffffff'
-        : '#1e1e1e'}; color: {$themeStore === 'light' ? '#333333' : '#e0e0e0'};"
+        : '#1e1e1e'}; color: {themeStore.current === 'light' ? '#333333' : '#e0e0e0'};"
 >
     {#each chordFile.lines as line, idx}
         {#if line.type === "heading"}
@@ -192,7 +192,7 @@
                             <span class="marker chord-marker" id={cow.markerId}>
                                 {#if cow.content instanceof chordTypes.Chord}
                                     <div class="chord-container">
-                                        {#if $editorStore.viewMode === "chords"}
+                                        {#if editorStore.viewMode === "chords"}
                                             <span class="root-number">
                                                 {(cow.content.root +
                                                     chordFile.specifiedKey +
@@ -203,7 +203,7 @@
                                         {@html chordSVGs.get(
                                             cow.content.id() +
                                                 "-" +
-                                                $themeStore,
+                                                themeStore.current,
                                         ) || ""}
                                     </div>
                                 {:else}

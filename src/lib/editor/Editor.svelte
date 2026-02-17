@@ -1,7 +1,6 @@
 <script lang="ts">
   import * as Svelte from 'svelte';
-  import EditorView from './view/EditorView.svelte';
-  import { editorStore, hasChanges } from '../stores/editorStore';
+  import { editorStore} from '../stores/editorStore';
   import { fileStore } from '../stores/fileStore';
   import * as editorService from '../services/editorService';
   
@@ -10,7 +9,7 @@
   
   // Sync content when file changes
   $effect(() => {
-    const currentFile = $fileStore.currentFile;
+    const currentFile = fileStore.currentFile;
     if (currentFile && currentFile.path !== lastLoadedFilePath) {
       editorService.loadFile(currentFile);
       lastLoadedFilePath = currentFile.path;
@@ -38,8 +37,8 @@
     function handleKeydown(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
-        const currentFile = $fileStore.currentFile;
-        const hasChangesValue = $hasChanges;
+        const currentFile = fileStore.currentFile;
+        const hasChangesValue = editorStore.hasChanges;
         if (currentFile && hasChangesValue) {
           editorService.saveFile(currentFile, editedContent);
         }
@@ -52,7 +51,7 @@
 </script>
 
 <div class="editor">
-  {#if $fileStore.currentFile}
+  {#if fileStore.currentFile}
     <EditorView bind:content={editedContent} />
   {:else}
     <div class="no-file-selected">
@@ -60,9 +59,9 @@
     </div>
   {/if}
   
-  {#if $fileStore.error}
+  {#if fileStore.error}
     <div class="error-message">
-      {$fileStore.error}
+      {fileStore.error}
       <button onclick={() => fileStore.setError(null)}>Dismiss</button>
     </div>
   {/if}

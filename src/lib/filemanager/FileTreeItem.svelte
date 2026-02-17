@@ -23,8 +23,8 @@
   } = $props();
   
   let expanded = $derived($fileManagerStore.expandedFolders.has(node.path));
-  let isEditing = $derived($fileManagerStore.editingPath === node.path);
-  let editValue = $derived($fileManagerStore.editingValue);
+  let isEditing = $derived($fileManagerStore.renamingPath === node.path);
+  let editValue = $derived($fileManagerStore.renamingValue);
   let isSelected = $derived($fileManagerStore.selectedPath === node.path);
   
   function handleClick() {

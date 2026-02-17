@@ -109,12 +109,8 @@ export async function selectFile(file: fileStoreModule.FileEntry): Promise<void>
  */
 export async function createFile(fileName: string): Promise<void> {
   // Get selected folder context
-  let selectedFolderPath = '';
-  let currentFiles: fileStoreModule.FileEntry[] = [];
-  fileStoreModule.fileStore.subscribe(state => { currentFiles = state.files; })();
-  fileManagerStoreModule.fileManagerStore.subscribe(state => {
-    selectedFolderPath = fileManagerStoreModule.fileManagerStore.getSelectedFolderPath(state, currentFiles);
-  })();
+  const currentFiles = fileStoreModule.fileStore.files;
+  const selectedFolderPath = fileManagerStoreModule.fileManagerStore.getSelectedFolderPath(currentFiles);
   
   // Parse folder path and file name
   let folderPath = selectedFolderPath; // Start with selected folder
@@ -131,9 +127,7 @@ export async function createFile(fileName: string): Promise<void> {
   // If fileName ends with /, create folder by creating a .keep file
   if (fileName.endsWith('/')) {
     // Check if we're in filesystem mode (folder connected)
-    let folderHandle: FileSystemDirectoryHandle | undefined;
-    const files = fileStoreModule.fileStore;
-    files.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
+    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
     
     const keepFileName = '.keep';
     
@@ -184,8 +178,7 @@ export async function createFile(fileName: string): Promise<void> {
     fileStoreModule.fileStore.setLoading(true);
     fileStoreModule.fileStore.setError(null);
     
-    let folderHandle: FileSystemDirectoryHandle | undefined;
-    fileStoreModule.fileStore.subscribe(state => { folderHandle = state.folderHandle || undefined; })();
+    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
     
     const newFile = await fileService.createFile(fullFileName, folderPath, folderHandle, isEmpty);
     
@@ -210,10 +203,7 @@ export async function renameFile(file: fileStoreModule.FileEntry, newName: strin
   try {
     fileStoreModule.fileStore.setLoading(true);
     
-    let folderHandle: FileSystemDirectoryHandle | undefined;
-    fileStoreModule.fileStore.subscribe(state => { 
-      folderHandle = state.folderHandle || undefined; 
-    })();
+    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
     
     const newFile = await fileService.renameFile(file, newName, folderHandle);
     
@@ -221,11 +211,9 @@ export async function renameFile(file: fileStoreModule.FileEntry, newName: strin
     fileStoreModule.fileStore.addFile(newFile);
     
     // Update current file if it was renamed
-    fileStoreModule.fileStore.subscribe(state => {
-      if (state.currentFile?.path === file.path) {
-        fileStoreModule.fileStore.setCurrentFile(newFile);
-      }
-    })();
+    if (fileStoreModule.fileStore.currentFile?.path === file.path) {
+      fileStoreModule.fileStore.setCurrentFile(newFile);
+    }
     
     fileManagerStoreModule.fileManagerStore.cancelEditing();
   } catch (error: any) {
@@ -244,8 +232,7 @@ export async function renameFolder(oldPath: string, newName: string): Promise<vo
     fileStoreModule.fileStore.setLoading(true);
     
     // Get all files in the folder
-    let currentFiles: fileStoreModule.FileEntry[] = [];
-    fileStoreModule.fileStore.subscribe(state => { currentFiles = state.files; })();
+    const currentFiles = fileStoreModule.fileStore.files;
     
     const filesToRename = currentFiles.filter(f => f.path.startsWith(oldPath + '/'));
     
@@ -254,10 +241,7 @@ export async function renameFolder(oldPath: string, newName: string): Promise<vo
       throw new Error('Cannot rename empty folder');
     }
     
-    let folderHandle: FileSystemDirectoryHandle | undefined;
-    fileStoreModule.fileStore.subscribe(state => { 
-      folderHandle = state.folderHandle || undefined; 
-    })();
+    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
     
     // Rename each file in the folder
     for (const file of filesToRename) {
@@ -293,10 +277,7 @@ export async function deleteFile(file: fileStoreModule.FileEntry): Promise<void>
   try {
     fileStoreModule.fileStore.setLoading(true);
     
-    let folderHandle: FileSystemDirectoryHandle | undefined;
-    fileStoreModule.fileStore.subscribe(state => { 
-      folderHandle = state.folderHandle || undefined; 
-    })();
+    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
     
     await fileService.deleteFile(file, folderHandle);
     fileStoreModule.fileStore.deleteFile(file.path);
@@ -316,8 +297,7 @@ export async function deleteFolder(folderPath: string): Promise<void> {
     fileStoreModule.fileStore.setLoading(true);
     
     // Get all files in the folder
-    let currentFiles: fileStoreModule.FileEntry[] = [];
-    fileStoreModule.fileStore.subscribe(state => { currentFiles = state.files; })();
+    const currentFiles = fileStoreModule.fileStore.files;
     
     const filesToDelete = currentFiles.filter(f => f.path.startsWith(folderPath + '/'));
     
@@ -326,10 +306,7 @@ export async function deleteFolder(folderPath: string): Promise<void> {
       throw new Error('Folder is empty');
     }
     
-    let folderHandle: FileSystemDirectoryHandle | undefined;
-    fileStoreModule.fileStore.subscribe(state => { 
-      folderHandle = state.folderHandle || undefined; 
-    })();
+    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
     
     // Delete all files in the folder
     for (const file of filesToDelete) {
@@ -588,8 +565,7 @@ export async function importFilesDirectly(filesToImport: Array<{ path: string; c
     }
     
     // Check for duplicates
-    let currentFiles: fileStoreModule.FileEntry[] = [];
-    fileStoreModule.fileStore.subscribe(state => { currentFiles = state.files; })();
+    const currentFiles = fileStoreModule.fileStore.files;
     
     const existingPaths = new Set(currentFiles.map(f => f.path));
     const duplicates = filesToImport.filter(f => existingPaths.has(f.path));

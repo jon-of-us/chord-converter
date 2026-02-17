@@ -154,9 +154,6 @@ export function parseChordFile(content: string): chordFile.ChordFile {
   // Parse metadata
   const { metadata, specifiedKeyStr, metadataEndIndex } = parseMetadata(lines);
 
-  // Parse specified key
-  const specifiedKey = specifiedKeyStr ? KeyUtils.parseKeyString(specifiedKeyStr) : null;
-
   // Parse lines after metadata
   const contentLines = lines.slice(metadataEndIndex);
   const parsedLines: chordFile.ParsedLine[] = [];
@@ -223,6 +220,9 @@ export function parseChordFile(content: string): chordFile.ChordFile {
   // transpose to C major
   const detectedKey = KeyDetection.detectKeyFromChords(allChords);
   const offset = (12 + 4 - detectedKey) % 12; 
+
+  // Parse specified key
+  const specifiedKey = KeyUtils.parseKeyString(specifiedKeyStr) ?? detectedKey;
 
   for (const line of parsedLines) {
     if (line.type === 'chords' && line.chordsOrWords) {

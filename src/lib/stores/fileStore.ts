@@ -1,94 +1,88 @@
-import { writable } from 'svelte/store';
 import * as fileService from '../services/fileService';
 
 export type StorageMode = 'browser' | 'filesystem';
 
-export interface FileEntry {
-  name: string;
-  path: string; // Full path relative to root (e.g., "subfolder/file.chords")
-  handle?: FileSystemFileHandle; // filesystem mode
-  content?: string; // browser mode
+export class FileEntry {
+  constructor(
+    public name: string,
+    public path: string, // Full path relative to root (e.g., "subfolder/file.chords")
+    public handle?: FileSystemFileHandle, // filesystem mode
+    public content?: string // browser mode
+  ) {}
 }
 
-export interface AppState {
-  storageMode: StorageMode;
-  folderHandle: FileSystemDirectoryHandle | null; // browser mode 
-  files: FileEntry[];
-  currentFile: FileEntry | null;
-  currentContent: string;
-  error: string | null;
-  loading: boolean;
+class FileStore {
+  storageMode = $state<StorageMode>('browser');
+  folderHandle = $state<FileSystemDirectoryHandle | null>(null);
+  files = $state<FileEntry[]>([]);
+  currentFile = $state<FileEntry | null>(null);
+  currentContent = $state('');
+  error = $state<string | null>(null);
+  loading = $state(false);
+
+  setStorageMode(mode: StorageMode) {
+    this.storageMode = mode;
+  }
+
+  setFolderHandle(handle: FileSystemDirectoryHandle | null) {
+    // Update storage implementation
+    fileService.setStorage(handle);
+    
+    this.folderHandle = handle;
+    this.storageMode = handle ? 'filesystem' : 'browser';
+    if (handle) {
+      this.files = [];
+    }
+  }
+
+  setFiles(files: FileEntry[]) {
+    this.files = files;
+  }
+
+  addFile(file: FileEntry) {
+    this.files = [...this.files, file].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  updateFile(oldName: string, newFile: FileEntry) {
+    this.files = this.files.map(f => f.name === oldName ? newFile : f).sort((a, b) => a.name.localeCompare(b.name));
+    if (this.currentFile?.name === oldName) {
+      this.currentFile = newFile;
+    }
+  }
+
+  deleteFile(path: string) {
+    this.files = this.files.filter(f => f.path !== path);
+    if (this.currentFile?.path === path) {
+      this.currentFile = null;
+      this.currentContent = '';
+    }
+  }
+
+  setCurrentFile(file: FileEntry | null) {
+    this.currentFile = file;
+  }
+
+  setCurrentContent(content: string) {
+    this.currentContent = content;
+  }
+
+  setError(error: string | null) {
+    this.error = error;
+  }
+
+  setLoading(loading: boolean) {
+    this.loading = loading;
+  }
+
+  reset() {
+    this.storageMode = 'browser';
+    this.folderHandle = null;
+    this.files = [];
+    this.currentFile = null;
+    this.currentContent = '';
+    this.error = null;
+    this.loading = false;
+  }
 }
 
-const initialState: AppState = {
-  storageMode: 'browser',
-  folderHandle: null,
-  files: [],
-  currentFile: null,
-  currentContent: '',
-  error: null,
-  loading: false,
-};
-
-function createFileStore() {
-  const { subscribe, set, update } = writable<AppState>(initialState);
-
-  return {
-    subscribe,
-    setStorageMode: (mode: StorageMode) => {
-      update(state => ({ ...state, storageMode: mode }));
-    },
-    setFolderHandle: (handle: FileSystemDirectoryHandle | null) => {
-      // Update storage implementation
-      fileService.setStorage(handle);
-      
-      update(state => ({ 
-        ...state, 
-        folderHandle: handle, 
-        storageMode: handle ? 'filesystem' : 'browser',
-        files: handle ? [] : state.files 
-      }));
-    },
-    setFiles: (files: FileEntry[]) => {
-      update(state => ({ ...state, files }));
-    },
-    addFile: (file: FileEntry) => {
-      update(state => ({
-        ...state,
-        files: [...state.files, file].sort((a, b) => a.name.localeCompare(b.name))
-      }));
-    },
-    updateFile: (oldName: string, newFile: FileEntry) => {
-      update(state => ({
-        ...state,
-        files: state.files.map(f => f.name === oldName ? newFile : f).sort((a, b) => a.name.localeCompare(b.name)),
-        currentFile: state.currentFile?.name === oldName ? newFile : state.currentFile
-      }));
-    },
-    deleteFile: (path: string) => {
-      update(state => ({
-        ...state,
-        files: state.files.filter(f => f.path !== path),
-        currentFile: state.currentFile?.path === path ? null : state.currentFile,
-        currentContent: state.currentFile?.path === path ? '' : state.currentContent
-      }));
-    },
-    setCurrentFile: (file: FileEntry | null) => {
-      update(state => ({ ...state, currentFile: file }));
-    },
-    setCurrentContent: (content: string) => {
-      update(state => ({ ...state, currentContent: content }));
-    },
-    setError: (error: string | null) => {
-      update(state => ({ ...state, error }));
-    },
-    setLoading: (loading: boolean) => {
-      update(state => ({ ...state, loading }));
-    },
-    reset: () => {
-      set(initialState);
-    },
-  };
-}
-
-export const fileStore = createFileStore();
+export const fileStore = new FileStore();

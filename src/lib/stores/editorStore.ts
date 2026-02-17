@@ -1,4 +1,3 @@
-import { writable, derived } from 'svelte/store';
 import { editorConfig } from '../config';
 
 /**
@@ -8,134 +7,104 @@ import { editorConfig } from '../config';
 
 export type ViewMode = 'text' | 'structure' | 'chords';
 
+class EditorStore {
+  viewMode = $state<ViewMode>('text');
+  zoomLevel = $state(editorConfig.defaultZoom);
+  isAutoscrolling = $state(false);
+  autoscrollSpeed = $state(editorConfig.defaultAutoscrollSpeed);
+  editedContent = $state('');
+  lastSavedContent = $state('');
+  isSaving = $state(false);
+  saveSuccess = $state(false);
+  keyNumber = $state(0);
 
-export class EditorState {
-  constructor(
-    public viewMode: ViewMode = 'text',
-    public zoomLevel: number = editorConfig.defaultZoom,
-    public isAutoscrolling: boolean = false,
-    public autoscrollSpeed: number = editorConfig.defaultAutoscrollSpeed,
-    public editedContent: string = '',
-    public lastSavedContent: string = '',
-    public isSaving: boolean = false,
-    public saveSuccess: boolean = false
-  ) {}
+  // Derived property for hasChanges
+  get hasChanges(): boolean {
+    return this.editedContent !== this.lastSavedContent;
+  }
+
+  // View mode
+  setViewMode(mode: ViewMode) {
+    this.viewMode = mode;
+  }
+
+  // Zoom
+  setZoomLevel(level: number) {
+    this.zoomLevel = Math.max(editorConfig.minZoom, Math.min(editorConfig.maxZoom, level));
+  }
+
+  zoomIn() {
+    this.zoomLevel = Math.min(this.zoomLevel + 10, editorConfig.maxZoom);
+  }
+
+  zoomOut() {
+    this.zoomLevel = Math.max(this.zoomLevel - 10, editorConfig.minZoom);
+  }
+
+  // Autoscroll
+  setAutoscrolling(enabled: boolean) {
+    this.isAutoscrolling = enabled;
+  }
+
+  toggleAutoscroll() {
+    this.isAutoscrolling = !this.isAutoscrolling;
+  }
+
+  setAutoscrollSpeed(speed: number) {
+    this.autoscrollSpeed = Math.max(
+      editorConfig.minAutoscrollSpeed,
+      Math.min(editorConfig.maxAutoscrollSpeed, speed)
+    );
+  }
+
+  increaseAutoscrollSpeed() {
+    this.autoscrollSpeed = Math.min(
+      this.autoscrollSpeed + editorConfig.autoscrollStepSize,
+      editorConfig.maxAutoscrollSpeed
+    );
+  }
+
+  decreaseAutoscrollSpeed() {
+    this.autoscrollSpeed = Math.max(
+      this.autoscrollSpeed - editorConfig.autoscrollStepSize,
+      editorConfig.minAutoscrollSpeed
+    );
+  }
+
+  // Key
+  setKeyNumber(key: number) {
+    this.keyNumber = (key % 12 + 12) % 12;
+  }
+
+  // Content
+  setEditedContent(content: string) {
+    this.editedContent = content;
+  }
+
+  setLastSavedContent(content: string) {
+    this.lastSavedContent = content;
+    this.editedContent = content;
+  }
+
+  // Combined updates
+  loadContent(content: string, keyNumber: number) {
+    this.editedContent = content;
+    this.lastSavedContent = content;
+    this.keyNumber = (keyNumber % 12 + 12) % 12;
+  }
+
+  // Save state
+  setSaving(saving: boolean) {
+    this.isSaving = saving;
+  }
+
+  setSaveSuccess(success: boolean) {
+    this.saveSuccess = success;
+  }
+
 }
 
-const initialState = new EditorState();
+export const editorStore = new EditorStore();
 
-function createEditorStore() {
-  const { subscribe, set, update } = writable<EditorState>(initialState);
-
-  return {
-    subscribe,
-    
-    // View mode
-    setViewMode: (mode: ViewMode) => {
-      update(state => ({ ...state, viewMode: mode }));
-    },
-    
-    // Zoom
-    setZoomLevel: (level: number) => {
-      update(state => ({ 
-        ...state, 
-        zoomLevel: Math.max(editorConfig.minZoom, Math.min(editorConfig.maxZoom, level))
-      }));
-    },
-    zoomIn: () => {
-      update(state => ({
-        ...state,
-        zoomLevel: Math.min(state.zoomLevel + 10, editorConfig.maxZoom)
-      }));
-    },
-    zoomOut: () => {
-      update(state => ({
-        ...state,
-        zoomLevel: Math.max(state.zoomLevel - 10, editorConfig.minZoom)
-      }));
-    },
-    
-    // Autoscroll
-    setAutoscrolling: (enabled: boolean) => {
-      update(state => ({ ...state, isAutoscrolling: enabled }));
-    },
-    toggleAutoscroll: () => {
-      update(state => ({ ...state, isAutoscrolling: !state.isAutoscrolling }));
-    },
-    setAutoscrollSpeed: (speed: number) => {
-      update(state => ({
-        ...state,
-        autoscrollSpeed: Math.max(
-          editorConfig.minAutoscrollSpeed,
-          Math.min(editorConfig.maxAutoscrollSpeed, speed)
-        )
-      }));
-    },
-    increaseAutoscrollSpeed: () => {
-      update(state => ({
-        ...state,
-        autoscrollSpeed: Math.min(
-          state.autoscrollSpeed + editorConfig.autoscrollStepSize,
-          editorConfig.maxAutoscrollSpeed
-        )
-      }));
-    },
-    decreaseAutoscrollSpeed: () => {
-      update(state => ({
-        ...state,
-        autoscrollSpeed: Math.max(
-          state.autoscrollSpeed - editorConfig.autoscrollStepSize,
-          editorConfig.minAutoscrollSpeed
-        )
-      }));
-    },
-    
-    // Key
-    setKeyNumber: (key: number) => {
-      update(state => ({ ...state, keyNumber: (key % 12 + 12) % 12 }));
-    },
-    
-    // Content
-    setEditedContent: (content: string) => {
-      update(state => ({ ...state, editedContent: content }));
-    },
-    setLastSavedContent: (content: string) => {
-      update(state => ({ 
-        ...state, 
-        lastSavedContent: content,
-        editedContent: content
-      }));
-    },
-    
-    // Combined updates
-    loadContent: (content: string, keyNumber: number) => {
-      update(state => ({
-        ...state,
-        editedContent: content,
-        lastSavedContent: content,
-        keyNumber: (keyNumber % 12 + 12) % 12
-      }));
-    },
-    
-    // Save state
-    setSaving: (saving: boolean) => {
-      update(state => ({ ...state, isSaving: saving }));
-    },
-    setSaveSuccess: (success: boolean) => {
-      update(state => ({ ...state, saveSuccess: success }));
-    },
-    
-    // Reset
-    reset: () => {
-      set(initialState);
-    },
-  };
-}
-
-export const editorStore = createEditorStore();
-
-// Derived store for hasChanges
-export const hasChanges = derived(
-  editorStore,
-  $editor => $editor.editedContent !== $editor.lastSavedContent
-);
+// Export hasChanges as a getter that can be used directly
+export const hasChanges = $derived(editorStore.hasChanges);

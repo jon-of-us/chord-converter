@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fileStore } from '../stores/fileStore';
   import { themeStore } from '../stores/themeStore';
-  import { editorStore, hasChanges } from '../stores/editorStore';
+  import { editorStore } from '../stores/editorStore';
   import { editorConfig } from '../config';
   import * as editorService from '../services/editorService';
   
@@ -13,37 +13,26 @@
     leftSidebarVisible: boolean;
   } = $props();
   
-  let theme = $derived($themeStore);
-  let viewMode = $derived($editorStore.viewMode);
-  let zoomLevel = $derived($editorStore.zoomLevel);
-  let isAutoscrolling = $derived($editorStore.isAutoscrolling);
-  let autoscrollSpeed = $derived($editorStore.autoscrollSpeed);
-  let isSaving = $derived($editorStore.isSaving);
-  let saveSuccess = $derived($editorStore.saveSuccess);
-  let hasChangesValue = $derived($hasChanges);
-  let currentFile = $derived($fileStore.currentFile);
-  let editedContent = $derived($editorStore.editedContent);
-  
   function handleSave() {
-    if (currentFile && hasChangesValue && !isSaving) {
-      editorService.saveFile(currentFile, editedContent);
+    if (fileStore.currentFile && editorStore.hasChanges && !editorStore.isSaving) {
+      editorService.saveFile(fileStore.currentFile, editorStore.editedContent);
     }
   }
   
   function handleTranspose(offset: number) {
-    if (currentFile) {
-      editorService.transpose(currentFile, offset);
+    if (fileStore.currentFile) {
+      editorService.transpose(fileStore.currentFile, offset);
     }
   }
 </script>
 
 <div class="controls-sidebar">
   
-  {#if currentFile}
+  {#if fileStore.currentFile}
     <div class="control-section">
       <button 
         class="control-button"
-        class:active={viewMode === 'text'}
+        class:active={editorStore.viewMode === 'text'}
         onclick={() => editorStore.setViewMode('text')}
         title="Text view"
       >
@@ -51,7 +40,7 @@
       </button>
       <button 
         class="control-button"
-        class:active={viewMode === 'structure'}
+        class:active={editorStore.viewMode === 'structure'}
         onclick={() => editorStore.setViewMode('structure')}
         title="Structure view"
       >
@@ -59,7 +48,7 @@
       </button>
       <button 
         class="control-button"
-        class:active={viewMode === 'chords'}
+        class:active={editorStore.viewMode === 'chords'}
         onclick={() => editorStore.setViewMode('chords')}
         title="Chord view with numbers"
       >
@@ -77,7 +66,7 @@
         >
           −
         </button>
-        <span class="value">{zoomLevel}%</span>
+        <span class="value">{editorStore.zoomLevel}%</span>
         <button 
           onclick={() => editorStore.zoomIn()}
           title="Zoom in (Ctrl/+)"
@@ -93,26 +82,26 @@
       <button 
         onclick={() => editorStore.toggleAutoscroll()}
         class="control-button"
-        class:active={isAutoscrolling}
+        class:active={editorStore.isAutoscrolling}
         title="Toggle autoscroll"
       >
-        {isAutoscrolling ? 'Pause' : 'Play'}
+        {editorStore.isAutoscrolling ? 'Pause' : 'Play'}
       </button>
       <div class="control-row">
         <button 
           onclick={() => editorStore.decreaseAutoscrollSpeed()}
           title="Decrease speed"
           class="small-btn"
-          disabled={autoscrollSpeed <= editorConfig.minAutoscrollSpeed}
+          disabled={editorStore.autoscrollSpeed <= editorConfig.minAutoscrollSpeed}
         >
           −
         </button>
-        <span class="value">{autoscrollSpeed.toFixed(1)}x</span>
+        <span class="value">{editorStore.autoscrollSpeed.toFixed(1)}x</span>
         <button 
           onclick={() => editorStore.increaseAutoscrollSpeed()}
           title="Increase speed"
           class="small-btn"
-          disabled={autoscrollSpeed >= editorConfig.maxAutoscrollSpeed}
+          disabled={editorStore.autoscrollSpeed >= editorConfig.maxAutoscrollSpeed}
         >
           +
         </button>
@@ -126,7 +115,7 @@
           onclick={() => handleTranspose(-7)}
           title="Transpose down"
           class="small-btn"
-          disabled={viewMode === 'text'}
+          disabled={editorStore.viewMode === 'text'}
         >
           −
         </button>
@@ -135,7 +124,7 @@
           onclick={() => handleTranspose(7)}
           title="Transpose up"
           class="small-btn"
-          disabled={viewMode === 'text'}
+          disabled={editorStore.viewMode === 'text'}
         >
           +
         </button>
@@ -148,7 +137,7 @@
         class="control-button"
         title="Toggle dark/light mode"
       >
-        {theme === 'dark' ? '☀' : '🌙'}
+        {themeStore.theme === 'dark' ? '☀' : '🌙'}
       </button>
       <button 
         onclick={toggleLeftSidebar}
@@ -162,16 +151,16 @@
 
 
     <div class="control-section save-section">
-      {#if saveSuccess}
+      {#if editorStore.saveSuccess}
         <div class="success-indicator">✓</div>
       {/if}
       <button 
         onclick={handleSave}
-        disabled={!hasChangesValue || isSaving}
+        disabled={!editorStore.hasChanges || editorStore.isSaving}
         class="control-button save-button"
         title="Save (Ctrl+S)"
       >
-        {isSaving ? 'Saving...' : 'Save'}
+        {editorStore.isSaving ? 'Saving...' : 'Save'}
       </button>
     </div>
   {/if}
