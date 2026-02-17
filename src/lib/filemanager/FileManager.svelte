@@ -1,7 +1,6 @@
 <script lang="ts">
   import { fileStore } from '../stores/fileStore.svelte';
   import { fileManagerStore } from '../stores/fileManagerStore.svelte';
-  import * as fileManagerService from '../services/fileManagerService';
   import FileTreeItem from './FileTreeItem.svelte';
   
   // Extract folders from file paths
@@ -17,7 +16,7 @@
   });
   
   // Build tree from files and folders
-  let tree = $derived(fileManagerService.buildFileTree(fileStore.files, allFolders));
+  let tree = $derived(fileManagerStore.buildFileTree(fileStore.files, allFolders));
   
   // Drag and drop state
   let isDragging = $state(false);
@@ -46,10 +45,12 @@
     const input = prompt(`Create new file${contextMsg}:\n\nEnter filename, or use:\n- "subfolder/file" to create in subfolder\n- "folder/" to create empty folder`);
     if (!input) return;
     
+    const selectedFolderPath = fileManagerStore.getSelectedFolderPath(fileStore.files);
+    
     try {
-      await fileManagerService.createFile(input);
+      await fileStore.createFile(input, selectedFolderPath);
     } catch (error) {
-      // Error already handled in service
+      // Error already handled in store
     }
   }
   
@@ -75,9 +76,9 @@
     if (!e.dataTransfer) return;
     
     try {
-      await fileManagerService.handleFileDrop(e.dataTransfer);
+      await fileStore.handleFileDrop(e.dataTransfer);
     } catch (error) {
-      // Error already handled in service
+      // Error already handled in store
     }
   }
 </script>
@@ -103,7 +104,7 @@
     {:else}
       <ul class="tree">
         {#each tree as node}
-          <FileTreeItem {node} onSelectFile={fileManagerService.selectFile} />
+          <FileTreeItem {node} onSelectFile={fileStore.selectFile.bind(fileStore)} />
         {/each}
       </ul>
     {/if}

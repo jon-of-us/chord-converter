@@ -1,26 +1,25 @@
 <script lang="ts">
   import { fileStore } from '../stores/fileStore.svelte';
-  import * as fileManagerService from '../services/fileManagerService';
   import Button from '../components/Button.svelte';
 
   async function downloadAllFiles() {
     try {
-      await fileManagerService.downloadAllFiles(fileStore.files);
+      await fileStore.downloadAllFiles(fileStore.files);
     } catch (error) {
-      // Error already handled in service
+      // Error already handled in store
     }
   }
 
   async function downloadCurrentFile() {
     if (!fileStore.currentFile) {
-      fileStore.setError('No file selected');
+      fileStore.error = 'No file selected';
       return;
     }
 
     try {
-      await fileManagerService.downloadFile(fileStore.currentFile);
+      await fileStore.downloadFile(fileStore.currentFile);
     } catch (error) {
-      // Error already handled in service
+      // Error already handled in store
     }
   }
 </script>

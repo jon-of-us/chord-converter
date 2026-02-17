@@ -2,8 +2,6 @@
   import * as Svelte from 'svelte';
   import { fileStore } from '../stores/fileStore.svelte';
   import * as indexedDB from '../utils/indexedDB';
-  import * as fileService from '../services/fileService';
-  import * as fileManagerService from '../services/fileManagerService';
   import DownloadButton from './DownloadButton.svelte';
   import Button from '../components/Button.svelte';
 
@@ -22,7 +20,7 @@
 
   async function restoreFolderHandle() {
     try {
-      fileStore.setLoading(true);
+      fileStore.loading = true;
       const handle = await indexedDB.loadFolderHandle();
       
       if (handle) {
@@ -30,28 +28,28 @@
         
         if (permission === 'granted') {
           fileStore.setFolderHandle(handle);
-          await fileManagerService.loadFilesFromFolder(handle);
-          fileStore.setError(null);
+          await fileStore.loadFilesFromFolder(handle);
+          fileStore.error = null;
         } else if (permission === 'prompt') {
           const newPermission = await (handle as any).requestPermission({ mode: 'readwrite' });
           if (newPermission === 'granted') {
             fileStore.setFolderHandle(handle);
-            await fileManagerService.loadFilesFromFolder(handle);
-            fileStore.setError(null);
+            await fileStore.loadFilesFromFolder(handle);
+            fileStore.error = null;
           }
         }
       }
     } catch (error) {
       console.error('Error restoring folder handle:', error);
     } finally {
-      fileStore.setLoading(false);
+      fileStore.loading = false;
     }
   }
 
   async function selectFolder() {
     try {
-      fileStore.setLoading(true);
-      fileStore.setError(null);
+      fileStore.loading = true;
+      fileStore.error = null;
 
       const handle = await (window as any).showDirectoryPicker({
         mode: 'readwrite',
@@ -66,23 +64,23 @@
         );
 
         if (shouldMigrate) {
-          await fileManagerService.migrateBrowserFilesToFolder(handle, browserFiles);
+          await fileStore.migrateBrowserFilesToFolder(handle, browserFiles);
         }
       }
 
       await indexedDB.saveFolderHandle(handle);
       fileStore.setFolderHandle(handle);
-      await fileManagerService.loadFilesFromFolder(handle);
+      await fileStore.loadFilesFromFolder(handle);
       
     } catch (error: any) {
       if (error.name === 'AbortError') {
         // User cancelled - no error message needed
         console.log('Folder selection cancelled');
       } else {
-        fileStore.setError(`Error selecting folder: ${error.message}`);
+        fileStore.error = `Error selecting folder: ${error.message}`;
       }
     } finally {
-      fileStore.setLoading(false);
+      fileStore.loading = false;
     }
   }
 
@@ -92,25 +90,25 @@
     
     // Load browser files after disconnecting
     try {
-      const files = await fileService.loadBrowserFiles();
+      const files = await fileStore.loadBrowserFiles();
       
       if (files.length > 0) {
         fileStore.setFiles(files);
         
         // Auto-open first file
         const firstFile = files[0];
-        fileStore.setCurrentFile(firstFile);
-        fileStore.setCurrentContent(firstFile.content || '');
+        fileStore.currentFile = firstFile;
+        fileStore.currentContent = firstFile.content || '';
       } else {
         fileStore.setFiles([]);
-        fileStore.setCurrentFile(null);
-        fileStore.setCurrentContent('');
+        fileStore.currentFile = null;
+        fileStore.currentContent = '';
       }
     } catch (error) {
       console.error('Error loading browser files:', error);
       fileStore.setFiles([]);
-      fileStore.setCurrentFile(null);
-      fileStore.setCurrentContent('');
+      fileStore.currentFile = null;
+      fileStore.currentContent = '';
     }
   }
   
@@ -135,7 +133,7 @@
       }
       
       if (filesToImport.length > 0) {
-        await fileManagerService.importFilesDirectly(filesToImport);
+        await fileStore.importFiles(filesToImport);
       }
       
       // Reset input so the same folder can be selected again

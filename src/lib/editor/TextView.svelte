@@ -3,8 +3,6 @@
   import { editorStore } from '../stores/editorStore.svelte';
   import { themeStore } from '../stores/themeStore.svelte';
   import { fileStore } from '../stores/fileStore.svelte';
-  import * as editorService from '../services/editorService';
-    import { file } from 'jszip';
   
   let textareaRef = $state<HTMLTextAreaElement>();
   $effect(() => {

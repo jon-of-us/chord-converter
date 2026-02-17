@@ -1,4 +1,6 @@
 import { editorConfig } from '../config';
+import { fileStore, type FileEntry } from './fileStore.svelte';
+import * as ChordFileModel from '../models/ChordFile';
 
 /**
  * Editor Store
@@ -13,22 +15,71 @@ class EditorStore {
   isAutoscrolling = $state(false);
   autoscrollSpeed = $state(editorConfig.defaultAutoscrollSpeed);
   editedContent = $state('');
-  lastSavedContent = $state('');
+  private lastSavedContent = $state('');
   isSaving = $state(false);
   saveSuccess = $state(false);
-  keyNumber = $state(0);
 
   // Derived property for hasChanges
   get hasChanges(): boolean {
     return this.editedContent !== this.lastSavedContent;
   }
 
-  // View mode
+  // ===== File Operations =====
+
+  /**
+   * Save currentContent (might be modified) to current file
+   */
+  async saveFile(file: FileEntry): Promise<void> {
+    try {
+      this.isSaving = true;
+      fileStore.error = null;
+
+      await fileStore.saveFile(file, this.editedContent);
+
+      fileStore.currentContent = this.editedContent;
+      this.lastSavedContent = this.editedContent;
+      this.saveSuccess = true;
+
+      setTimeout(() => {
+        this.saveSuccess = false;
+      }, 2000);
+    } catch (error: any) {
+      fileStore.error = `Error saving file: ${error.message}`;
+      throw error;
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  /**
+   * Transpose key by semitone offset
+   * Parses content, transposes, and saves
+   */
+  async transpose(file: FileEntry, offset: number): Promise<void> {
+    try {
+      // Parse, transpose, and serialize
+      const chordFile = ChordFileModel.ChordFile.parse(fileStore.currentContent);
+      chordFile.transpose(offset);
+      const newContent = chordFile.serialize();
+
+      // Update fileStore and save directly
+      fileStore.currentContent = newContent;
+      await fileStore.saveFile(file, newContent);
+    } catch (error: any) {
+      console.error('Error transposing:', error);
+      fileStore.error = `Error transposing: ${error.message}`;
+      throw error;
+    }
+  }
+
+  // ===== View Mode =====
+
   setViewMode(mode: ViewMode) {
     this.viewMode = mode;
   }
 
-  // Zoom
+  // ===== Zoom =====
+
   setZoomLevel(level: number) {
     this.zoomLevel = Math.max(editorConfig.minZoom, Math.min(editorConfig.maxZoom, level));
   }
@@ -41,7 +92,8 @@ class EditorStore {
     this.zoomLevel = Math.max(this.zoomLevel - 10, editorConfig.minZoom);
   }
 
-  // Autoscroll
+  // ===== Autoscroll =====
+
   setAutoscrolling(enabled: boolean) {
     this.isAutoscrolling = enabled;
   }
@@ -70,38 +122,6 @@ class EditorStore {
       editorConfig.minAutoscrollSpeed
     );
   }
-
-  // Key
-  setKeyNumber(key: number) {
-    this.keyNumber = (key % 12 + 12) % 12;
-  }
-
-  // Content
-  setEditedContent(content: string) {
-    this.editedContent = content;
-  }
-
-  setLastSavedContent(content: string) {
-    this.lastSavedContent = content;
-    this.editedContent = content;
-  }
-
-  // Combined updates
-  loadContent(content: string, keyNumber: number) {
-    this.editedContent = content;
-    this.lastSavedContent = content;
-    this.keyNumber = (keyNumber % 12 + 12) % 12;
-  }
-
-  // Save state
-  setSaving(saving: boolean) {
-    this.isSaving = saving;
-  }
-
-  setSaveSuccess(success: boolean) {
-    this.saveSuccess = success;
-  }
-
 }
 
 export const editorStore = new EditorStore();

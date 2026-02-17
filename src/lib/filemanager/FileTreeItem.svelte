@@ -11,7 +11,6 @@
 <script lang="ts">
   import { fileStore, type FileEntry } from '../stores/fileStore.svelte';
   import { fileManagerStore } from '../stores/fileManagerStore.svelte';
-  import * as fileManagerService from '../services/fileManagerService';
   import FileTreeItem from './FileTreeItem.svelte';
   
   let { 
@@ -54,12 +53,13 @@
     
     try {
       if (node.isFolder) {
-        await fileManagerService.renameFolder(node.path, editValue);
+        await fileStore.renameFolder(node.path, editValue);
       } else if (node.file) {
-        await fileManagerService.renameFile(node.file, editValue);
+        await fileStore.renameFile(node.file, editValue);
       }
+      fileManagerStore.cancelEditing();
     } catch (error: any) {
-      // Error already handled in service
+      // Error already handled in store
     }
   }
   
@@ -70,12 +70,12 @@
     
     try {
       if (node.isFolder) {
-        await fileManagerService.deleteFolder(node.path);
+        await fileStore.deleteFolder(node.path);
       } else if (node.file) {
-        await fileManagerService.deleteFile(node.file);
+        await fileStore.deleteFile(node.file);
       }
     } catch (error: any) {
-      // Error already handled in service
+      // Error already handled in store
     }
   }
   

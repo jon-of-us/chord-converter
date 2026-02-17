@@ -3,7 +3,6 @@
   import { themeStore } from '../stores/themeStore.svelte';
   import { editorStore } from '../stores/editorStore.svelte';
   import { editorConfig } from '../config';
-  import * as editorService from '../services/editorService';
   
   let {
     toggleLeftSidebar,
@@ -15,13 +14,13 @@
   
   function handleSave() {
     if (fileStore.currentFile && editorStore.hasChanges && !editorStore.isSaving) {
-      editorService.saveFile(fileStore.currentFile, editorStore.editedContent);
+      editorStore.saveFile(fileStore.currentFile, editorStore.editedContent);
     }
   }
   
   function handleTranspose(offset: number) {
     if (fileStore.currentFile) {
-      editorService.transpose(fileStore.currentFile, offset);
+      editorStore.transpose(fileStore.currentFile, offset);
     }
   }
 </script>

@@ -1,7 +1,17 @@
+import type { FileEntry } from './fileStore.svelte';
+
 /**
  * File Manager Store
  * Manages UI state for the file tree (expanded folders, editing, selection)
  */
+
+export interface TreeNode {
+  name: string;
+  path: string;
+  isFolder: boolean;
+  file?: FileEntry;
+  children: TreeNode[];
+}
 
 class FileManagerStore {
   expandedFolders = $state(new Set<string>());
@@ -9,7 +19,78 @@ class FileManagerStore {
   renamingValue = $state('');
   selectedPath = $state<string | null>(null);
 
-  // Folder expansion
+  // ===== Tree Building =====
+
+  /**
+   * Build tree structure from files and folders
+   */
+  buildFileTree(files: FileEntry[], folders: Set<string>): TreeNode[] {
+    const root: TreeNode[] = [];
+    const folderMap = new Map<string, TreeNode>();
+
+    // Create folder nodes
+    for (const folderPath of folders) {
+      const parts = folderPath.split('/');
+      let currentLevel = root;
+      let currentPath = '';
+
+      for (let i = 0; i < parts.length; i++) {
+        currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+
+        if (!folderMap.has(currentPath)) {
+          const folderNode: TreeNode = {
+            name: parts[i],
+            path: currentPath,
+            isFolder: true,
+            children: [],
+          };
+          folderMap.set(currentPath, folderNode);
+          currentLevel.push(folderNode);
+        }
+
+        currentLevel = folderMap.get(currentPath)!.children;
+      }
+    }
+
+    // Add files
+    for (const file of files) {
+      const parts = file.path.split('/');
+      let currentLevel = root;
+      let currentPath = '';
+
+      // Navigate to parent folder
+      for (let i = 0; i < parts.length - 1; i++) {
+        currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+
+        if (!folderMap.has(currentPath)) {
+          const folderNode: TreeNode = {
+            name: parts[i],
+            path: currentPath,
+            isFolder: true,
+            children: [],
+          };
+          folderMap.set(currentPath, folderNode);
+          currentLevel.push(folderNode);
+        }
+
+        currentLevel = folderMap.get(currentPath)!.children;
+      }
+
+      // Add file node
+      currentLevel.push({
+        name: file.name,
+        path: file.path,
+        isFolder: false,
+        file,
+        children: [],
+      });
+    }
+
+    return root;
+  }
+
+  // ===== Folder Expansion =====
+
   toggleFolder(path: string) {
     const newExpanded = new Set(this.expandedFolders);
     if (newExpanded.has(path)) {
@@ -43,15 +124,18 @@ class FileManagerStore {
     this.expandedFolders = newExpanded;
   }
 
-  // Selection (file or folder)
+  // ===== Selection =====
+
   select(path: string | null) {
     this.selectedPath = path;
   }
 
-  // Get folder context for creating new files
-  getSelectedFolderPath(files: any[]): string {
+  /**
+   * Get folder context for creating new files
+   */
+  getSelectedFolderPath(files: FileEntry[]): string {
     if (!this.selectedPath) return '';
-    
+
     // Check if selected path is a file
     const selectedFile = files.find(f => f.path === this.selectedPath);
     if (selectedFile) {
@@ -60,12 +144,13 @@ class FileManagerStore {
       parts.pop(); // Remove filename
       return parts.join('/');
     }
-    
+
     // Otherwise it's a folder path
     return this.selectedPath;
   }
 
-  // Editing
+  // ===== Editing =====
+
   startEditing(path: string, currentName: string) {
     this.renamingPath = path;
     this.renamingValue = currentName;
@@ -80,7 +165,8 @@ class FileManagerStore {
     this.renamingValue = '';
   }
 
-  // Reset
+  // ===== Reset =====
+
   reset() {
     this.expandedFolders = new Set<string>();
     this.renamingPath = null;
