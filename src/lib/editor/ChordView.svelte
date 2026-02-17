@@ -16,6 +16,9 @@
     );
     let viewContainer: HTMLDivElement;
 
+    $effect(() => {
+        console.log(`detected key: ${chordFile.detectedKey}`);
+    });
     // Generate SVGs based on chordFile and theme
     let chordSVGs = $derived.by(() => {
         const svgs = new Map<string, string>();
@@ -34,7 +37,6 @@
                 });
             }
         });
-        console.log("Regenerated SVGs, total:", svgs.size);
         return svgs;
     });
     let chordShapeSVGs = $derived.by(() => {
@@ -57,7 +59,6 @@
                 });
             }
         });
-        console.log("Regenerated shape SVGs, total:", svgs.size);
         return svgs;
     });
 
