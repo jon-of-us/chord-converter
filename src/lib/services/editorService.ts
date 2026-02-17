@@ -83,21 +83,20 @@ export async function transpose(
   offset: number
 ): Promise<void> {
   try {
-    // Get current content from store
-    const state = get(editorStore.editorStore);
-    const content = state.editedContent;
+    // Get current content from fileStore
+    const content = get(fileStore.fileStore).currentContent;
     
     // Parse, transpose, and serialize
     const chordFile = chordFileService.parseChordFile(content);
     const result = metadataService.transposeKey(chordFile, offset);
     
-    // Update content and key number
-    editorStore.editorStore.setEditedContent(result.content);
-    editorStore.editorStore.setKeyNumber(result.keyNumber);
+    // Update fileStore and save directly
+    fileStore.fileStore.setCurrentContent(result.content);
+    await fileService.saveFile(file, result.content);
     
-    await saveFile(file, result.content);
   } catch (error: any) {
     console.error('Error transposing:', error);
+    fileStore.fileStore.setError(`Error transposing: ${error.message}`);
     throw error;
   }
 }
