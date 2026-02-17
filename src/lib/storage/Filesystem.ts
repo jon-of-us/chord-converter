@@ -1,5 +1,5 @@
 import type { IFileStorage } from './IFileStorage';
-import type { FileEntry } from '../../stores/fileStore.svelte';
+import type { FileEntry } from '../stores/fileStore.svelte';
 
 /**
  * Filesystem - File System Access API implementation
