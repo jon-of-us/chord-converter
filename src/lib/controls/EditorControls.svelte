@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { fileStore } from '../../stores/fileStore';
-  import { themeStore } from '../../stores/themeStore';
-  import { editorStore, hasChanges } from '../../stores/editorStore';
-  import { editorConfig } from '../../config';
-  import * as editorService from '../../services/editorService';
+  import { fileStore } from '../stores/fileStore';
+  import { themeStore } from '../stores/themeStore';
+  import { editorStore, hasChanges } from '../stores/editorStore';
+  import { editorConfig } from '../config';
+  import * as editorService from '../services/editorService';
   
   let {
     toggleLeftSidebar,

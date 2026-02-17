@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { generateChordSVG, generateChordShapeSVG } from "./chordToSVG";
+    import { generateChordSVG, generateChordShapeSVG } from "../chords/chordToSVG";
     import { onMount } from "svelte";
     import { editorConfig } from "../config";
     import * as chordFileService from "../services/chordFileService";
     import { editorStore } from "../stores/editorStore";
     import { themeStore } from "../stores/themeStore";
     import { fileStore } from "../stores/fileStore";
-    import * as chordTypes from "./chordTypes";
+    import * as chordTypes from "../chords/chordTypes";
 
     const CHORD_ICON_GAP = 8; // px minimal horizontal gap between consecutive chord icons
 
@@ -15,18 +15,17 @@
         chordFileService.parseChordFile($fileStore.currentContent),
     );
     let viewContainer: HTMLDivElement;
-    let chordSVGs = $state.raw(new Map<string, string>());
 
-    $effect(() => {
-        // Regenerate SVGs when viewMode, theme, or content changes
-        $editorStore.viewMode;
+    // Generate SVGs based on chordFile and theme
+    let chordSVGs = $derived.by(() => {
+        const svgs = new Map<string, string>();
         chordFile.lines.forEach((line) => {
             if (line.type === "chords" && line.chordsOrWords) {
                 line.chordsOrWords.forEach((cow) => {
                     if (cow.content instanceof chordTypes.Chord) {
                         const key = cow.content.id() + "-" + $themeStore;
-                        if (!chordSVGs.has(key)) {
-                            chordSVGs.set(
+                        if (!svgs.has(key)) {
+                            svgs.set(
                                 key,
                                 generateChordSVG(cow.content, $themeStore),
                             );
@@ -35,7 +34,8 @@
                 });
             }
         });
-        chordSVGs;
+        console.log("Regenerated SVGs, total:", svgs.size);
+        return svgs;
     });
 
     function alignChordIcons() {
@@ -101,27 +101,18 @@
         });
     }
 
-    onMount(() => {
-        alignChordIcons();
-        window.addEventListener("resize", alignChordIcons);
-
-        return () => {
-            window.removeEventListener("resize", alignChordIcons);
-        };
-    });
-
+    // Re-align when content or zoom changes
     $effect(() => {
-        // Re-align when content or zoom changes
         chordFile.lines;
         $editorStore.zoomLevel;
         setTimeout(alignChordIcons, 0);
     });
 
+    // Autoscroll effect
     let animationFrameId: number | null = null;
     let scrollAccumulator = 0;
 
     $effect(() => {
-        // Autoscroll effect
         if (!$editorStore.isAutoscrolling || !viewContainer) {
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
@@ -163,6 +154,15 @@
             }
         };
     });
+
+    onMount(() => {
+        alignChordIcons();
+        window.addEventListener("resize", alignChordIcons);
+
+        return () => {
+            window.removeEventListener("resize", alignChordIcons);
+        };
+    });
 </script>
 
 <div
@@ -175,14 +175,9 @@
 >
     {#each chordFile.lines as line, idx}
         {#if line.type === "heading"}
-            <div class="lyrics heading">{line.content}</div>
-            {#if chordFile.metadata.artist}
-                <div class="lyrics">Artist: {chordFile.metadata.artist}</div>
-            {/if}
-            <div class="lyrics">Key: {$editorStore.keyNumber}</div>
-            {#if chordFile.metadata.info}
-                <div class="lyrics">Info: {chordFile.metadata.info}</div>
-            {/if}
+            <div class="heading">
+                {line.content}
+            </div>
         {:else if line.type === "empty"}
             <div class="lyrics"></div>
         {:else if line.type === "subheading"}
@@ -194,37 +189,34 @@
                 <div class="lyrics chord-markers">
                     {#each Array(line.maxChordPosition + 1) as _, idx}
                         {#each line.chordsOrWords?.filter((c) => c.position === idx) as cow}
-                                <span
-                                    class="marker chord-marker"
-                                    id={cow.markerId}
-                                >
-                                    {#if cow.content instanceof chordTypes.Chord}
-                                        <div class="chord-container">
-                                            {#if $editorStore.viewMode === "chords"}
-                                                <span class="root-number">
-                                                    {(cow.content.root +
-                                                        $editorStore.keyNumber +
-                                                        8) %
-                                                        12}
-                                                </span>
-                                            {/if}
-                                            {@html chordSVGs.get(
-                                                cow.content.id() +
-                                                    "-" +
-                                                    $themeStore,
-                                            ) || ""}
-                                        </div>
-                                    {:else}
-                                        <div
-                                            class="chord-container word-container"
-                                            data-marker={cow.markerId}
-                                        >
-                                            <span class="chord-word">
-                                                {cow.content}
+                            <span class="marker chord-marker" id={cow.markerId}>
+                                {#if cow.content instanceof chordTypes.Chord}
+                                    <div class="chord-container">
+                                        {#if $editorStore.viewMode === "chords"}
+                                            <span class="root-number">
+                                                {(cow.content.root +
+                                                    chordFile.specifiedKey +
+                                                    8) %
+                                                    12}
                                             </span>
-                                        </div>
-                                    {/if}
-                                </span>
+                                        {/if}
+                                        {@html chordSVGs.get(
+                                            cow.content.id() +
+                                                "-" +
+                                                $themeStore,
+                                        ) || ""}
+                                    </div>
+                                {:else}
+                                    <div
+                                        class="chord-container word-container"
+                                        data-marker={cow.markerId}
+                                    >
+                                        <span class="chord-word">
+                                            {cow.content}
+                                        </span>
+                                    </div>
+                                {/if}
+                            </span>
                         {/each}<!--
                         -->{" "}
                     {/each}

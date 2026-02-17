@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { editorStore } from '../../stores/editorStore';
-  import { themeStore } from '../../stores/themeStore';
+  import { editorStore } from '../stores/editorStore';
+  import { themeStore } from '../stores/themeStore';
   
   let { content = $bindable('') }: { content: string } = $props();
   

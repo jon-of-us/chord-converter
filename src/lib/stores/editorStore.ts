@@ -8,29 +8,21 @@ import { editorConfig } from '../config';
 
 export type ViewMode = 'text' | 'structure' | 'chords';
 
-export interface EditorState {
-  viewMode: ViewMode;
-  zoomLevel: number;
-  isAutoscrolling: boolean;
-  autoscrollSpeed: number;
-  keyNumber: number; // Current key for display (0-11)
-  editedContent: string; // Local edit buffer
-  lastSavedContent: string; // Last saved content to compare against
-  isSaving: boolean;
-  saveSuccess: boolean;
+
+export class EditorState {
+  constructor(
+    public viewMode: ViewMode = 'text',
+    public zoomLevel: number = editorConfig.defaultZoom,
+    public isAutoscrolling: boolean = false,
+    public autoscrollSpeed: number = editorConfig.defaultAutoscrollSpeed,
+    public editedContent: string = '',
+    public lastSavedContent: string = '',
+    public isSaving: boolean = false,
+    public saveSuccess: boolean = false
+  ) {}
 }
 
-const initialState: EditorState = {
-  viewMode: 'text',
-  zoomLevel: editorConfig.defaultZoom,
-  isAutoscrolling: false,
-  autoscrollSpeed: editorConfig.defaultAutoscrollSpeed,
-  keyNumber: 0,
-  editedContent: '',
-  lastSavedContent: '',
-  isSaving: false,
-  saveSuccess: false,
-};
+const initialState = new EditorState();
 
 function createEditorStore() {
   const { subscribe, set, update } = writable<EditorState>(initialState);

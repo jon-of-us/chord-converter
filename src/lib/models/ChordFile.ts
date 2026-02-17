@@ -3,7 +3,7 @@
  * Represents a parsed .chords file with all its content structured
  */
 
-import type { Chord } from '../chords/chordTypes';
+import type { Chord } from "../chords/chordTypes";
 
 export interface ChordFileMetadata {
   title: string;
@@ -17,25 +17,27 @@ export class ChordOrWord {
   constructor(
     public content: Chord | string,
     public position: number, // Character position in line
-    public markerId: string // Unique ID for linking chords to lyrics
+    public markerId: string, // Unique ID for linking chords to lyrics
   ) {}
 }
 
 export class ParsedLine {
   constructor(
-    public type: 'empty' | 'heading' | 'subheading' | 'chords' | 'lyrics',
+    public type: "empty" | "heading" | "subheading" | "chords" | "lyrics",
     public content: string,
     public maxChordPosition: number = 0,
-    public chordsOrWords?: ChordOrWord[]
+    public chordsOrWords?: ChordOrWord[],
   ) {}
 }
 
 /**
  * Represents a fully parsed chord file
  */
-export interface ChordFile {
-  metadata: ChordFileMetadata;
-  specifiedKey: number | null; // Parsed numeric key from metadata (0-11)
-  detectedKey: number | null; // Key detected from chords (0-11)
-  lines: ParsedLine[];
+export class ChordFile {
+  constructor(
+    public metadata: ChordFileMetadata,
+    public specifiedKey: number, // Parsed numeric key from metadata (0-11)
+    public detectedKey: number, // Key detected from chords (0-11)
+    public lines: ParsedLine[],
+  ) {}
 }
