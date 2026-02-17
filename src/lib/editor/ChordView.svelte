@@ -3,9 +3,9 @@
     import { onMount } from "svelte";
     import { editorConfig } from "../config";
     import * as chordFileService from "../services/chordFileService";
-    import { editorStore } from "../stores/editorStore";
-    import { themeStore } from "../stores/themeStore";
-    import { fileStore } from "../stores/fileStore";
+    import { editorStore } from "../stores/editorStore.svelte";
+    import { themeStore } from "../stores/themeStore.svelte";
+    import { fileStore } from "../stores/fileStore.svelte";
     import * as chordTypes from "../chords/chordTypes";
 
     const CHORD_ICON_GAP = 8; // px minimal horizontal gap between consecutive chord icons

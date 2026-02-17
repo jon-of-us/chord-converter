@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Svelte from 'svelte';
-  import { fileStore } from '../stores/fileStore';
+  import { fileStore } from '../stores/fileStore.svelte';
   import * as indexedDBModule from '../utils/indexedDB';
   import * as fileService from '../services/fileService';
   import * as fileManagerService from '../services/fileManagerService';

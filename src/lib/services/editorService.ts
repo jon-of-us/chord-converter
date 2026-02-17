@@ -2,8 +2,8 @@ import { get } from 'svelte/store';
 import * as fileService from './fileService';
 import * as metadataService from './metadataService';
 import * as chordFileService from './chordFileService';
-import * as fileStore from '../stores/fileStore';
-import * as editorStore from '../stores/editorStore';
+import {fileStore, FileEntry} from '../stores/fileStore.svelte';
+import {editorStore} from '../stores/editorStore.svelte';
 import type { ChordFile } from '../models/ChordFile';
 
 /**
@@ -14,9 +14,9 @@ import type { ChordFile } from '../models/ChordFile';
 /**
  * Load file content into editor
  */
-export async function loadFile(file: fileStore.FileEntry): Promise<void> {
+export async function loadFile(file: FileEntry): Promise<void> {
   try {
-    fileStore.fileStore.setLoading(true);
+    fileStore.setLoading(true);
     const content = await fileService.readFile(file);
     
     // Only process metadata for .chords files
@@ -31,18 +31,18 @@ export async function loadFile(file: fileStore.FileEntry): Promise<void> {
         await fileService.saveFile(file, finalContent);
       }
       
-      fileStore.fileStore.setCurrentContent(finalContent);
-      editorStore.editorStore.loadContent(finalContent, keyResult.keyNumber);
+      fileStore.setCurrentContent(finalContent);
+      editorStore.loadContent(finalContent, keyResult.keyNumber);
     } else {
       // For non-.chords files, just load the content as-is
-      fileStore.fileStore.setCurrentContent(content);
-      editorStore.editorStore.loadContent(content, 0);
+      fileStore.setCurrentContent(content);
+      editorStore.loadContent(content, 0);
     }
   } catch (error: any) {
-    fileStore.fileStore.setError(`Error loading file: ${error.message}`);
+    fileStore.setError(`Error loading file: ${error.message}`);
     throw error;
   } finally {
-    fileStore.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
@@ -50,27 +50,27 @@ export async function loadFile(file: fileStore.FileEntry): Promise<void> {
  * Save current file content
  */
 export async function saveFile(
-  file: fileStore.FileEntry, 
+  file: FileEntry, 
   content: string
 ): Promise<void> {
   try {
-    editorStore.editorStore.setSaving(true);
-    fileStore.fileStore.setError(null);
+    editorStore.setSaving(true);
+    fileStore.setError(null);
     
     await fileService.saveFile(file, content);
     
-    fileStore.fileStore.setCurrentContent(content);
-    editorStore.editorStore.setLastSavedContent(content);
-    editorStore.editorStore.setSaveSuccess(true);
+    fileStore.setCurrentContent(content);
+    editorStore.setLastSavedContent(content);
+    editorStore.setSaveSuccess(true);
     
     setTimeout(() => {
-      editorStore.editorStore.setSaveSuccess(false);
+      editorStore.setSaveSuccess(false);
     }, 2000);
   } catch (error: any) {
-    fileStore.fileStore.setError(`Error saving file: ${error.message}`);
+    fileStore.setError(`Error saving file: ${error.message}`);
     throw error;
   } finally {
-    editorStore.editorStore.setSaving(false);
+    editorStore.setSaving(false);
   }
 }
 
@@ -79,24 +79,22 @@ export async function saveFile(
  * Parses content, transposes, and saves
  */
 export async function transpose(
-  file: fileStore.FileEntry,
+  file: FileEntry,
   offset: number
 ): Promise<void> {
   try {
-    // Get current content from fileStore
-    const content = get(fileStore.fileStore).currentContent;
     
     // Parse, transpose, and serialize
-    const chordFile = chordFileService.parseChordFile(content);
+    const chordFile = chordFileService.parseChordFile(fileStore.currentContent);
     const result = metadataService.transposeKey(chordFile, offset);
     
     // Update fileStore and save directly
-    fileStore.fileStore.setCurrentContent(result.content);
+    fileStore.setCurrentContent(result.content);
     await fileService.saveFile(file, result.content);
     
   } catch (error: any) {
     console.error('Error transposing:', error);
-    fileStore.fileStore.setError(`Error transposing: ${error.message}`);
+    fileStore.setError(`Error transposing: ${error.message}`);
     throw error;
   }
 }
@@ -105,7 +103,7 @@ export async function transpose(
  * Ensure numeric key when switching to structure/chords view
  */
 export async function ensureNumericKey(
-  file: fileStore.FileEntry,
+  file: FileEntry,
   chordFile: ChordFile
 ): Promise<void> {
   // Only process metadata for .chords files
@@ -115,12 +113,12 @@ export async function ensureNumericKey(
     const keyResult = metadataService.ensureNumericKey(chordFile);
     if (keyResult.updated) {
       // Update content and key number
-      editorStore.editorStore.setEditedContent(keyResult.content);
-      editorStore.editorStore.setKeyNumber(keyResult.keyNumber);
+      editorStore.setEditedContent(keyResult.content);
+      editorStore.setKeyNumber(keyResult.keyNumber);
       await saveFile(file, keyResult.content);
     } else {
       // Just update key number (content unchanged)
-      editorStore.editorStore.setKeyNumber(keyResult.keyNumber);
+      editorStore.setKeyNumber(keyResult.keyNumber);
     }
   } catch (error: any) {
     console.error('Error updating key metadata:', error);

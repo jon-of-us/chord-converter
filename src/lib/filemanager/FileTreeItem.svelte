@@ -9,8 +9,8 @@
 </script>
 
 <script lang="ts">
-  import { fileStore, type FileEntry } from '../stores/fileStore';
-  import { fileManagerStore } from '../stores/fileManagerStore';
+  import { fileStore, type FileEntry } from '../stores/fileStore.svelte';
+  import { fileManagerStore } from '../stores/fileManagerStore.svelte';
   import * as fileManagerService from '../services/fileManagerService';
   import FileTreeItem from './FileTreeItem.svelte';
   
@@ -22,10 +22,10 @@
     onSelectFile: (file: FileEntry) => void;
   } = $props();
   
-  let expanded = $derived($fileManagerStore.expandedFolders.has(node.path));
-  let isEditing = $derived($fileManagerStore.renamingPath === node.path);
-  let editValue = $derived($fileManagerStore.renamingValue);
-  let isSelected = $derived($fileManagerStore.selectedPath === node.path);
+  let expanded = $derived(fileManagerStore.expandedFolders.has(node.path));
+  let isEditing = $derived(fileManagerStore.renamingPath === node.path);
+  let editValue = $derived(fileManagerStore.renamingValue);
+  let isSelected = $derived(fileManagerStore.selectedPath === node.path);
   
   function handleClick() {
     if (node.isFolder) {
@@ -100,7 +100,7 @@
         class="item-button"
         class:folder={node.isFolder}
         onclick={handleClick}
-        disabled={$fileStore.loading}
+        disabled={fileStore.loading}
         title={node.name}
       >
         {#if node.isFolder}
@@ -114,7 +114,7 @@
           <button
             class="action-btn"
             onclick={startRename}
-            disabled={$fileStore.loading}
+            disabled={fileStore.loading}
             title="Rename"
           >
             ✎
@@ -122,7 +122,7 @@
           <button
             class="action-btn delete"
             onclick={handleDelete}
-            disabled={$fileStore.loading}
+            disabled={fileStore.loading}
             title="Delete"
           >
             🗑

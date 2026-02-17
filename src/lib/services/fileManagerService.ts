@@ -1,7 +1,7 @@
 import * as fileService from './fileService';
-import * as fileStoreModule from '../stores/fileStore';
-import * as fileManagerStoreModule from '../stores/fileManagerStore';
-import * as indexedDBModule from '../utils/indexedDB';
+import {fileStore, FileEntry} from '../stores/fileStore.svelte';
+import {fileManagerStore} from '../stores/fileManagerStore.svelte';
+import * as indexedDB from '../utils/indexedDB';
 
 /**
  * File Manager Service
@@ -12,14 +12,14 @@ export interface TreeNode {
   name: string;
   path: string;
   isFolder: boolean;
-  file?: fileStoreModule.FileEntry;
+  file?: FileEntry;
   children: TreeNode[];
 }
 
 /**
  * Build tree structure from files and folders
  */
-export function buildFileTree(files: fileStoreModule.FileEntry[], folders: Set<string>): TreeNode[] {
+export function buildFileTree(files: FileEntry[], folders: Set<string>): TreeNode[] {
   const root: TreeNode[] = [];
   const folderMap = new Map<string, TreeNode>();
   
@@ -87,20 +87,20 @@ export function buildFileTree(files: fileStoreModule.FileEntry[], folders: Set<s
 /**
  * Select and load a file
  */
-export async function selectFile(file: fileStoreModule.FileEntry): Promise<void> {
+export async function selectFile(file: FileEntry): Promise<void> {
   try {
-    fileStoreModule.fileStore.setLoading(true);
-    fileStoreModule.fileStore.setError(null);
+    fileStore.setLoading(true);
+    fileStore.setError(null);
     
     const content = await fileService.readFile(file);
     
-    fileStoreModule.fileStore.setCurrentFile(file);
-    fileStoreModule.fileStore.setCurrentContent(content);
+    fileStore.setCurrentFile(file);
+    fileStore.setCurrentContent(content);
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error reading file: ${error.message}`);
+    fileStore.setError(`Error reading file: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
@@ -109,8 +109,8 @@ export async function selectFile(file: fileStoreModule.FileEntry): Promise<void>
  */
 export async function createFile(fileName: string): Promise<void> {
   // Get selected folder context
-  const currentFiles = fileStoreModule.fileStore.files;
-  const selectedFolderPath = fileManagerStoreModule.fileManagerStore.getSelectedFolderPath(currentFiles);
+  const currentFiles = fileStore.files;
+  const selectedFolderPath = fileManagerStore.getSelectedFolderPath(currentFiles);
   
   // Parse folder path and file name
   let folderPath = selectedFolderPath; // Start with selected folder
@@ -127,24 +127,24 @@ export async function createFile(fileName: string): Promise<void> {
   // If fileName ends with /, create folder by creating a .keep file
   if (fileName.endsWith('/')) {
     // Check if we're in filesystem mode (folder connected)
-    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
+    const folderHandle = fileStore.folderHandle || undefined;
     
     const keepFileName = '.keep';
     
     try {
-      fileStoreModule.fileStore.setLoading(true);
-      fileStoreModule.fileStore.setError(null);
+      fileStore.setLoading(true);
+      fileStore.setError(null);
       
       // Create empty .keep file in the folder
       const newFile = await fileService.createFile(keepFileName, folderPath, folderHandle, true);
-      fileStoreModule.fileStore.addFile(newFile);
+      fileStore.addFile(newFile);
       
       return;
     } catch (error: any) {
-      fileStoreModule.fileStore.setError(`Error creating folder: ${error.message}`);
+      fileStore.setError(`Error creating folder: ${error.message}`);
       throw error;
     } finally {
-      fileStoreModule.fileStore.setLoading(false);
+      fileStore.setLoading(false);
     }
   }
   
@@ -170,57 +170,57 @@ export async function createFile(fileName: string): Promise<void> {
   
   // Check if file already exists (reuse currentFiles from top of function)
   if (currentFiles.some(f => f.path === fullPath)) {
-    fileStoreModule.fileStore.setError(`File "${fullPath}" already exists`);
+    fileStore.setError(`File "${fullPath}" already exists`);
     throw new Error(`File "${fullPath}" already exists`);
   }
   
   try {
-    fileStoreModule.fileStore.setLoading(true);
-    fileStoreModule.fileStore.setError(null);
+    fileStore.setLoading(true);
+    fileStore.setError(null);
     
-    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
+    const folderHandle = fileStore.folderHandle || undefined;
     
     const newFile = await fileService.createFile(fullFileName, folderPath, folderHandle, isEmpty);
     
-    fileStoreModule.fileStore.addFile(newFile);
-    fileStoreModule.fileStore.setCurrentFile(newFile);
+    fileStore.addFile(newFile);
+    fileStore.setCurrentFile(newFile);
     
     // Load initial content
     const content = await fileService.readFile(newFile);
-    fileStoreModule.fileStore.setCurrentContent(content);
+    fileStore.setCurrentContent(content);
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error creating file: ${error.message}`);
+    fileStore.setError(`Error creating file: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
 /**
  * Rename a file
  */
-export async function renameFile(file: fileStoreModule.FileEntry, newName: string): Promise<void> {
+export async function renameFile(file: FileEntry, newName: string): Promise<void> {
   try {
-    fileStoreModule.fileStore.setLoading(true);
+    fileStore.setLoading(true);
     
-    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
+    const folderHandle = fileStore.folderHandle || undefined;
     
     const newFile = await fileService.renameFile(file, newName, folderHandle);
     
-    fileStoreModule.fileStore.deleteFile(file.path);
-    fileStoreModule.fileStore.addFile(newFile);
+    fileStore.deleteFile(file.path);
+    fileStore.addFile(newFile);
     
     // Update current file if it was renamed
-    if (fileStoreModule.fileStore.currentFile?.path === file.path) {
-      fileStoreModule.fileStore.setCurrentFile(newFile);
+    if (fileStore.currentFile?.path === file.path) {
+      fileStore.setCurrentFile(newFile);
     }
     
-    fileManagerStoreModule.fileManagerStore.cancelEditing();
+    fileManagerStore.cancelEditing();
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error renaming: ${error.message}`);
+    fileStore.setError(`Error renaming: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
@@ -229,19 +229,19 @@ export async function renameFile(file: fileStoreModule.FileEntry, newName: strin
  */
 export async function renameFolder(oldPath: string, newName: string): Promise<void> {
   try {
-    fileStoreModule.fileStore.setLoading(true);
+    fileStore.setLoading(true);
     
     // Get all files in the folder
-    const currentFiles = fileStoreModule.fileStore.files;
+    const currentFiles = fileStore.files;
     
     const filesToRename = currentFiles.filter(f => f.path.startsWith(oldPath + '/'));
     
     if (filesToRename.length === 0) {
-      fileStoreModule.fileStore.setError('Cannot rename empty folder');
+      fileStore.setError('Cannot rename empty folder');
       throw new Error('Cannot rename empty folder');
     }
     
-    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
+    const folderHandle = fileStore.folderHandle || undefined;
     
     // Rename each file in the folder
     for (const file of filesToRename) {
@@ -257,35 +257,35 @@ export async function renameFolder(oldPath: string, newName: string): Promise<vo
       // Delete old file
       await fileService.deleteFile(file, folderHandle);
       
-      fileStoreModule.fileStore.deleteFile(file.path);
-      fileStoreModule.fileStore.addFile(newFile);
+      fileStore.deleteFile(file.path);
+      fileStore.addFile(newFile);
     }
     
-    fileManagerStoreModule.fileManagerStore.cancelEditing();
+    fileManagerStore.cancelEditing();
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error renaming folder: ${error.message}`);
+    fileStore.setError(`Error renaming folder: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
 /**
  * Delete a file
  */
-export async function deleteFile(file: fileStoreModule.FileEntry): Promise<void> {
+export async function deleteFile(file: FileEntry): Promise<void> {
   try {
-    fileStoreModule.fileStore.setLoading(true);
+    fileStore.setLoading(true);
     
-    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
+    const folderHandle = fileStore.folderHandle || undefined;
     
     await fileService.deleteFile(file, folderHandle);
-    fileStoreModule.fileStore.deleteFile(file.path);
+    fileStore.deleteFile(file.path);
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error deleting: ${error.message}`);
+    fileStore.setError(`Error deleting: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
@@ -294,30 +294,30 @@ export async function deleteFile(file: fileStoreModule.FileEntry): Promise<void>
  */
 export async function deleteFolder(folderPath: string): Promise<void> {
   try {
-    fileStoreModule.fileStore.setLoading(true);
+    fileStore.setLoading(true);
     
     // Get all files in the folder
-    const currentFiles = fileStoreModule.fileStore.files;
+    const currentFiles = fileStore.files;
     
     const filesToDelete = currentFiles.filter(f => f.path.startsWith(folderPath + '/'));
     
     if (filesToDelete.length === 0) {
-      fileStoreModule.fileStore.setError('Folder is empty or does not exist');
+      fileStore.setError('Folder is empty or does not exist');
       throw new Error('Folder is empty');
     }
     
-    const folderHandle = fileStoreModule.fileStore.folderHandle || undefined;
+    const folderHandle = fileStore.folderHandle || undefined;
     
     // Delete all files in the folder
     for (const file of filesToDelete) {
       await fileService.deleteFile(file, folderHandle);
-      fileStoreModule.fileStore.deleteFile(file.path);
+      fileStore.deleteFile(file.path);
     }
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error deleting folder: ${error.message}`);
+    fileStore.setError(`Error deleting folder: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
@@ -332,10 +332,10 @@ export async function loadFilesFromFolder(handle: FileSystemDirectoryHandle): Pr
     
     console.log('Total files found:', result.files.length);
     
-    fileStoreModule.fileStore.setFiles(result.files);
+    fileStore.setFiles(result.files);
   } catch (error: any) {
     console.error('Error loading files:', error);
-    fileStoreModule.fileStore.setError(`Error loading files: ${error.message}`);
+    fileStore.setError(`Error loading files: ${error.message}`);
     throw error;
   }
 }
@@ -345,7 +345,7 @@ export async function loadFilesFromFolder(handle: FileSystemDirectoryHandle): Pr
  */
 export async function migrateBrowserFilesToFolder(
   handle: FileSystemDirectoryHandle,
-  browserFiles: indexedDBModule.BrowserFile[]
+  browserFiles: indexedDB.BrowserFile[]
 ): Promise<void> {
   for (const browserFile of browserFiles) {
     try {
@@ -354,7 +354,7 @@ export async function migrateBrowserFilesToFolder(
       await writable.write(browserFile.content);
       await writable.close();
       
-      await indexedDBModule.deleteBrowserFile(browserFile.name);
+      await indexedDB.deleteBrowserFile(browserFile.name);
     } catch (fileError: any) {
       console.error(`Error migrating file ${browserFile.name}:`, fileError);
     }
@@ -364,9 +364,9 @@ export async function migrateBrowserFilesToFolder(
 /**
  * Download a single file
  */
-export async function downloadFile(file: fileStoreModule.FileEntry): Promise<void> {
+export async function downloadFile(file: FileEntry): Promise<void> {
   try {
-    fileStoreModule.fileStore.setError(null);
+    fileStore.setError(null);
 
     const content = await fileService.readFile(file);
 
@@ -380,7 +380,7 @@ export async function downloadFile(file: fileStoreModule.FileEntry): Promise<voi
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error downloading file: ${error.message}`);
+    fileStore.setError(`Error downloading file: ${error.message}`);
     throw error;
   }
 }
@@ -388,15 +388,15 @@ export async function downloadFile(file: fileStoreModule.FileEntry): Promise<voi
 /**
  * Download all files
  */
-export async function downloadAllFiles(files: fileStoreModule.FileEntry[]): Promise<void> {
+export async function downloadAllFiles(files: FileEntry[]): Promise<void> {
   if (files.length === 0) {
-    fileStoreModule.fileStore.setError('No files to download');
+    fileStore.setError('No files to download');
     throw new Error('No files to download');
   }
 
   try {
-    fileStoreModule.fileStore.setLoading(true);
-    fileStoreModule.fileStore.setError(null);
+    fileStore.setLoading(true);
+    fileStore.setError(null);
 
     // Dynamic import of JSZip
     const JSZip = (await import('jszip')).default;
@@ -421,10 +421,10 @@ export async function downloadAllFiles(files: fileStoreModule.FileEntry[]): Prom
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error downloading files: ${error.message}`);
+    fileStore.setError(`Error downloading files: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
@@ -458,8 +458,8 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
   }
   
   try {
-    fileStoreModule.fileStore.setLoading(true);
-    fileStoreModule.fileStore.setError(null);
+    fileStore.setLoading(true);
+    fileStore.setError(null);
 
     // Try modern entry API first (Chrome, Edge, etc.)
     const items = Array.from(dataTransfer.items);
@@ -489,15 +489,12 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
     console.log('Total files found:', files.length);
     
     if (files.length === 0) {
-      fileStoreModule.fileStore.setError('No files found. Try using the import button.');
+      fileStore.setError('No files found. Try using the import button.');
       return;
     }
     
-    // Check for duplicates
-    let currentFiles: fileStoreModule.FileEntry[] = [];
-    fileStoreModule.fileStore.subscribe(state => { currentFiles = state.files; })();
     
-    const existingPaths = new Set(currentFiles.map(f => f.path));
+    const existingPaths = new Set(fileStore.files.map(f => f.path));
     const duplicates = files.filter(f => existingPaths.has(f.path));
     
     let filesToImport = files;
@@ -514,7 +511,7 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
         // User chose to skip or abort - ask again
         const shouldAbort = confirm('Skip duplicate files and import the rest?');
         if (!shouldAbort) {
-          fileStoreModule.fileStore.setError('Import cancelled');
+          fileStore.setError('Import cancelled');
           return;
         }
         // Skip duplicates
@@ -524,7 +521,7 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
     }
     
     if (filesToImport.length === 0) {
-      fileStoreModule.fileStore.setError('No files to import');
+      fileStore.setError('No files to import');
       return;
     }
     
@@ -535,17 +532,17 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
     for (const file of importedFiles) {
       // Remove old file if it exists
       if (existingPaths.has(file.path)) {
-        fileStoreModule.fileStore.deleteFile(file.path);
+        fileStore.deleteFile(file.path);
       }
-      fileStoreModule.fileStore.addFile(file);
+      fileStore.addFile(file);
     }
     
-    fileStoreModule.fileStore.setError(null);
+    fileStore.setError(null);
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error importing files: ${error.message}`);
+    fileStore.setError(`Error importing files: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 
@@ -554,18 +551,18 @@ export async function handleFileDrop(dataTransfer: DataTransfer): Promise<void> 
  */
 export async function importFilesDirectly(filesToImport: Array<{ path: string; content: string }>): Promise<void> {
   try {
-    fileStoreModule.fileStore.setLoading(true);
-    fileStoreModule.fileStore.setError(null);
+    fileStore.setLoading(true);
+    fileStore.setError(null);
 
     console.log('Total files to import:', filesToImport.length);
     
     if (filesToImport.length === 0) {
-      fileStoreModule.fileStore.setError('No files found');
+      fileStore.setError('No files found');
       return;
     }
     
     // Check for duplicates
-    const currentFiles = fileStoreModule.fileStore.files;
+    const currentFiles = fileStore.files;
     
     const existingPaths = new Set(currentFiles.map(f => f.path));
     const duplicates = filesToImport.filter(f => existingPaths.has(f.path));
@@ -584,7 +581,7 @@ export async function importFilesDirectly(filesToImport: Array<{ path: string; c
         // User chose to skip or abort - ask again
         const shouldAbort = confirm('Skip duplicate files and import the rest?');
         if (!shouldAbort) {
-          fileStoreModule.fileStore.setError('Import cancelled');
+          fileStore.setError('Import cancelled');
           return;
         }
         // Skip duplicates
@@ -594,7 +591,7 @@ export async function importFilesDirectly(filesToImport: Array<{ path: string; c
     }
     
     if (finalFilesToImport.length === 0) {
-      fileStoreModule.fileStore.setError('No files to import');
+      fileStore.setError('No files to import');
       return;
     }
     
@@ -605,17 +602,17 @@ export async function importFilesDirectly(filesToImport: Array<{ path: string; c
     for (const file of importedFiles) {
       // Remove old file if it exists
       if (existingPaths.has(file.path)) {
-        fileStoreModule.fileStore.deleteFile(file.path);
+        fileStore.deleteFile(file.path);
       }
-      fileStoreModule.fileStore.addFile(file);
+      fileStore.addFile(file);
     }
     
-    fileStoreModule.fileStore.setError(null);
+    fileStore.setError(null);
   } catch (error: any) {
-    fileStoreModule.fileStore.setError(`Error importing files: ${error.message}`);
+    fileStore.setError(`Error importing files: ${error.message}`);
     throw error;
   } finally {
-    fileStoreModule.fileStore.setLoading(false);
+    fileStore.setLoading(false);
   }
 }
 

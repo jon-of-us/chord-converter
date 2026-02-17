@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { editorStore } from '../stores/editorStore';
-  import { themeStore } from '../stores/themeStore';
+  import { editorStore } from '../stores/editorStore.svelte';
+  import { themeStore } from '../stores/themeStore.svelte';
   
   let { content = $bindable('') }: { content: string } = $props();
   
   let textareaRef = $state<HTMLTextAreaElement>();
-  let zoomLevel = $derived($editorStore.zoomLevel);
-  let theme = $derived(themeStore.current);
   
   function handleKeydown(event: KeyboardEvent) {
     // Ctrl/Cmd + S to save - but we don't handle save here, it's in Editor
@@ -33,7 +31,7 @@
   onkeydown={handleKeydown}
   spellcheck="false"
   placeholder="File content..."
-  style="font-size: {zoomLevel}%; background-color: {theme === 'light' ? '#ffffff' : '#1e1e1e'}; color: {theme === 'light' ? '#333333' : '#e0e0e0'};"
+  style="font-size: {editorStore.zoomLevel}%; background-color: {themeStore.theme === 'light' ? '#ffffff' : '#1e1e1e'}; color: {themeStore.theme === 'light' ? '#333333' : '#e0e0e0'};"
 ></textarea>
 
 <style>

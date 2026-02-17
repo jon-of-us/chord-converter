@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { fileStore } from '../stores/fileStore';
-  import { themeStore } from '../stores/themeStore';
-  import { editorStore } from '../stores/editorStore';
+  import { fileStore } from '../stores/fileStore.svelte';
+  import { themeStore } from '../stores/themeStore.svelte';
+  import { editorStore } from '../stores/editorStore.svelte';
   import { editorConfig } from '../config';
   import * as editorService from '../services/editorService';
   

@@ -1,45 +1,45 @@
 <script lang="ts">
-  import { fileStore } from '../stores/fileStore';
+  import { fileStore } from '../stores/fileStore.svelte';
   import * as fileManagerService from '../services/fileManagerService';
   import Button from '../components/Button.svelte';
 
   async function downloadAllFiles() {
     try {
-      await fileManagerService.downloadAllFiles($fileStore.files);
+      await fileManagerService.downloadAllFiles(fileStore.files);
     } catch (error) {
       // Error already handled in service
     }
   }
 
   async function downloadCurrentFile() {
-    if (!$fileStore.currentFile) {
+    if (!fileStore.currentFile) {
       fileStore.setError('No file selected');
       return;
     }
 
     try {
-      await fileManagerService.downloadFile($fileStore.currentFile);
+      await fileManagerService.downloadFile(fileStore.currentFile);
     } catch (error) {
       // Error already handled in service
     }
   }
 </script>
 
-{#if $fileStore.storageMode === 'browser' && $fileStore.files.length > 0}
+{#if fileStore.storageMode === 'browser' && fileStore.files.length > 0}
   <div class="download-section">
     <Button
       onclick={downloadCurrentFile}
-      disabled={!$fileStore.currentFile || $fileStore.loading}
+      disabled={!fileStore.currentFile || fileStore.loading}
       title="Download current file"
     >
       ⬇️ Current
     </Button>
     <Button
       onclick={downloadAllFiles}
-      disabled={$fileStore.loading}
+      disabled={fileStore.loading}
       title="Download all files"
     >
-      ⬇️ All ({$fileStore.files.length})
+      ⬇️ All ({fileStore.files.length})
     </Button>
   </div>
 {/if}

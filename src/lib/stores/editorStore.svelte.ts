@@ -105,6 +105,3 @@ class EditorStore {
 }
 
 export const editorStore = new EditorStore();
-
-// Export hasChanges as a getter that can be used directly
-export const hasChanges = $derived(editorStore.hasChanges);

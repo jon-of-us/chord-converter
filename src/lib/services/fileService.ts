@@ -1,4 +1,4 @@
-import type { FileEntry } from '../stores/fileStore';
+import type { FileEntry } from '../stores/fileStore.svelte';
 import { loadAllBrowserFiles, type BrowserFile } from '../utils/indexedDB';
 import { fileConfig } from '../config';
 import type { IFileStorage } from './storage/IFileStorage';

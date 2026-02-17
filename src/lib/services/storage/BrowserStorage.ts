@@ -1,5 +1,5 @@
 import type { IFileStorage } from './IFileStorage';
-import type { FileEntry } from '../../stores/fileStore';
+import type { FileEntry } from '../../stores/fileStore.svelte';
 import * as indexedDB from '../../utils/indexedDB';
 
 /**

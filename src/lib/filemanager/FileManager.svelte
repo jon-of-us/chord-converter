@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { fileStore } from '../stores/fileStore';
-  import { fileManagerStore } from '../stores/fileManagerStore';
+  import { fileStore } from '../stores/fileStore.svelte';
+  import { fileManagerStore } from '../stores/fileManagerStore.svelte';
   import * as fileManagerService from '../services/fileManagerService';
   import FileTreeItem from './FileTreeItem.svelte';
   
   // Extract folders from file paths
   let allFolders = $derived.by(() => {
     const folders = new Set<string>();
-    for (const file of $fileStore.files) {
+    for (const file of fileStore.files) {
       const parts = file.path.split('/');
       for (let i = 1; i < parts.length; i++) {
         folders.add(parts.slice(0, i).join('/'));
@@ -17,18 +17,18 @@
   });
   
   // Build tree from files and folders
-  let tree = $derived(fileManagerService.buildFileTree($fileStore.files, allFolders));
+  let tree = $derived(fileManagerService.buildFileTree(fileStore.files, allFolders));
   
   // Drag and drop state
   let isDragging = $state(false);
   
   // Get current folder context for prompt
   let currentFolderContext = $derived.by(() => {
-    const selectedPath = $fileManagerStore.selectedPath;
+    const selectedPath = fileManagerStore.selectedPath;
     if (!selectedPath) return 'root';
     
     // Check if it's a file
-    const selectedFile = $fileStore.files.find(f => f.path === selectedPath);
+    const selectedFile = fileStore.files.find(f => f.path === selectedPath);
     if (selectedFile) {
       const parts = selectedFile.path.split('/');
       parts.pop();
@@ -92,9 +92,9 @@
   aria-label="File manager with drag and drop support"
 >
   <div class="file-list">
-    {#if $fileStore.files.length === 0}
+    {#if fileStore.files.length === 0}
       <div class="empty-state">
-        {#if $fileStore.storageMode === 'filesystem'}
+        {#if fileStore.storageMode === 'filesystem'}
           No .chords files found
         {:else}
           No files yet. Click "New +" to create one, or drag & drop .chords files here
@@ -108,7 +108,7 @@
       </ul>
     {/if}
     
-    {#if isDragging && $fileStore.storageMode === 'browser'}
+    {#if isDragging && fileStore.storageMode === 'browser'}
       <div class="drop-overlay">
         <div class="drop-message">Drop files or folders here</div>
       </div>
@@ -118,7 +118,7 @@
   <button
     class="add-button"
     onclick={addFile}
-    disabled={$fileStore.loading}
+    disabled={fileStore.loading}
     title="Create new file or folder"
   >
     New +
