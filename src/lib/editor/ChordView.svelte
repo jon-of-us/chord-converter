@@ -5,14 +5,14 @@
     import * as ChordFileModel from "../models/ChordFile";
     import { editorStore } from "../stores/editorStore.svelte";
     import { themeStore } from "../stores/themeStore.svelte";
-    import { fileStore } from "../stores/fileStore.svelte";
+    import { fileManagerStore } from "../stores/fileManagerStore.svelte";
     import * as chordTypes from "../chords/chordTypes";
 
     const CHORD_ICON_GAP = 8; // px minimal horizontal gap between consecutive chord icons
 
-    // Parse chordFile from fileStore (ground truth)
+    // Parse chordFile from fileManagerStore cache (ground truth)
     let chordFile = $derived(
-        ChordFileModel.ChordFile.parse(fileStore.currentContent),
+        ChordFileModel.ChordFile.parse(fileManagerStore.cachedContent),
     );
     let viewContainer: HTMLDivElement;
 

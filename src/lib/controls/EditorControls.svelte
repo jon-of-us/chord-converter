@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fileStore } from '../stores/fileStore.svelte';
+  import { fileManagerStore } from '../stores/fileManagerStore.svelte';
   import { themeStore } from '../stores/themeStore.svelte';
   import { editorStore } from '../stores/editorStore.svelte';
   import { editorConfig } from '../config';
@@ -12,22 +13,24 @@
     leftSidebarVisible: boolean;
   } = $props();
   
+  let currentFile = $derived(fileManagerStore.getSelectedFile(fileStore.files));
+  
   function handleSave() {
-    if (fileStore.currentFile && editorStore.hasChanges && !editorStore.isSaving) {
-      editorStore.saveFile(fileStore.currentFile, editorStore.editedContent);
+    if (currentFile && editorStore.hasChanges && !editorStore.isSaving) {
+      editorStore.saveFile(currentFile);
     }
   }
   
   function handleTranspose(offset: number) {
-    if (fileStore.currentFile) {
-      editorStore.transpose(fileStore.currentFile, offset);
+    if (currentFile) {
+      editorStore.transpose(currentFile, offset);
     }
   }
 </script>
 
 <div class="controls-sidebar">
   
-  {#if fileStore.currentFile}
+  {#if currentFile}
     <div class="control-section">
       <button 
         class="control-button"

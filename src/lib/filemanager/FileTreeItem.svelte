@@ -15,10 +15,10 @@
   
   let { 
     node,
-    onSelectFile,
+    handleSelectFile,
   }: { 
     node: TreeNode;
-    onSelectFile: (file: FileEntry) => void;
+    handleSelectFile: (path: string) => Promise<void>;
   } = $props();
   
   let expanded = $derived(fileManagerStore.expandedFolders.has(node.path));
@@ -29,9 +29,8 @@
   function handleClick() {
     if (node.isFolder) {
       fileManagerStore.toggleFolder(node.path);
-    } else if (node.file) {
-      fileManagerStore.select(node.path);
-      onSelectFile(node.file);
+    } else {
+      handleSelectFile(node.path);
     }
   }
   
@@ -135,7 +134,7 @@
   {#if node.isFolder && expanded && node.children.length > 0}
     <ul class="nested">
       {#each node.children as child}
-        <FileTreeItem node={child} {onSelectFile} />
+        <FileTreeItem node={child} {handleSelectFile} />
       {/each}
     </ul>
   {/if}

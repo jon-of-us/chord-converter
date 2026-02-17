@@ -5,6 +5,8 @@
   import Editor from './lib/editor/Editor.svelte'
   import EditorControls from './lib/controls/EditorControls.svelte'
   import { fileStore } from './lib/stores/fileStore.svelte';
+  import { fileManagerStore } from './lib/stores/fileManagerStore.svelte';
+  import { editorStore } from './lib/stores/editorStore.svelte';
   import { sidebarConfig } from './lib/config';
   
   let leftSidebarVisible = $state(true);
@@ -30,8 +32,9 @@
         
         // Auto-open first file
         const firstFile = files[0];
-        fileStore.currentFile = firstFile;
-        fileStore.currentContent = String(firstFile.content || '');
+        fileManagerStore.selectedPath = firstFile.path;
+        await fileManagerStore.loadSelectedContent(fileStore.files, fileStore.storage);
+        editorStore.editedContent = fileManagerStore.cachedContent;
       }
     } catch (error) {
       console.error('Error loading browser files:', error);

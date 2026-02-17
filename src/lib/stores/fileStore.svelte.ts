@@ -3,6 +3,7 @@ import { BrowserStorage } from '../storage/BrowserStorage';
 import { Filesystem } from '../storage/Filesystem';
 import * as indexedDB from '../utils/indexedDB';
 import { fileConfig } from '../config';
+import { fileManagerStore } from './fileManagerStore.svelte';
 
 export type StorageMode = 'browser' | 'filesystem';
 
@@ -19,22 +20,12 @@ class FileStore {
   storageMode = $state<StorageMode>('browser');
   folderHandle = $state<FileSystemDirectoryHandle | null>(null);
   files = $state<FileEntry[]>([]);
-  currentFile = $state<FileEntry | null>(null);
-  currentContent = $state('');
   error = $state<string | null>(null);
   loading = $state(false);
 
-  private storage: IFileStorage = new BrowserStorage();
+  storage: IFileStorage = new BrowserStorage();
 
   // ===== File Operations =====
-
-  async readFile(file: FileEntry): Promise<string> {
-    return this.storage.readFile(file);
-  }
-
-  async saveFile(file: FileEntry, content: string): Promise<void> {
-    return this.storage.writeFile(file, content);
-  }
 
   async createFile(
     fileName: string,
@@ -106,11 +97,10 @@ class FileStore {
       const newFile = await this.storage.createFile(fullFileName, targetFolderPath, fileContent);
 
       this.addFile(newFile);
-      this.currentFile = newFile;
-
-      // Load initial content
-      const content = await this.storage.readFile(newFile);
-      this.currentContent = content;
+      
+      // Select the new file and load its content
+      fileManagerStore.selectedPath = newFile.path;
+      await fileManagerStore.loadSelectedContent(this.files, this.storage);
     } catch (error: any) {
       this.error = `Error creating file: ${error.message}`;
       throw error;
@@ -132,9 +122,9 @@ class FileStore {
       this.removeFile(file.path);
       this.addFile(newFile);
 
-      // Update current file if it was renamed
-      if (this.currentFile?.path === file.path) {
-        this.currentFile = newFile;
+      // Update selectedPath if it was the renamed file
+      if (fileManagerStore.selectedPath === file.path) {
+        fileManagerStore.selectedPath = newFile.path;
       }
     } catch (error: any) {
       this.error = `Error renaming: ${error.message}`;
@@ -155,15 +145,24 @@ class FileStore {
         throw new Error('Cannot rename empty folder');
       }
 
+      // Extract parent folder path from oldPath
+      const pathParts = oldPath.split('/');
+      const parentPath = pathParts.slice(0, -1).join('/');
+      const newFolderPath = parentPath ? `${parentPath}/${newName}` : newName;
+
       // Rename each file in the folder
       for (const file of filesToRename) {
         const relativePath = file.path.substring(oldPath.length + 1);
-        const newPath = `${newName}/${relativePath}`;
+        const newPath = `${newFolderPath}/${relativePath}`;
         const newFileName = file.name;
+
+        // Extract the folder path for the new file (handles nested subfolders)
+        const newPathParts = newPath.split('/');
+        const newFileFolderPath = newPathParts.slice(0, -1).join('/');
 
         // Create new file
         const content = await this.storage.readFile(file);
-        const newFile = await this.storage.createFile(newFileName, newName, content);
+        const newFile = await this.storage.createFile(newFileName, newFileFolderPath, content);
 
         // Delete old file
         await this.storage.deleteFile(file);
@@ -211,23 +210,6 @@ class FileStore {
       }
     } catch (error: any) {
       this.error = `Error deleting folder: ${error.message}`;
-      throw error;
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  async selectFile(file: FileEntry): Promise<void> {
-    try {
-      this.loading = true;
-      this.error = null;
-
-      const content = await this.storage.readFile(file);
-
-      this.currentFile = file;
-      this.currentContent = content;
-    } catch (error: any) {
-      this.error = `Error reading file: ${error.message}`;
       throw error;
     } finally {
       this.loading = false;
@@ -504,21 +486,10 @@ class FileStore {
 
   private removeFile(path: string) {
     this.files = this.files.filter(f => f.path !== path);
-    if (this.currentFile?.path === path) {
-      this.currentFile = null;
-      this.currentContent = '';
+    if (fileManagerStore.selectedPath === path) {
+      fileManagerStore.selectedPath = null;
+      fileManagerStore.cachedContent = '';
     }
-  }
-
-  reset() {
-    this.storage = new BrowserStorage();
-    this.storageMode = 'browser';
-    this.folderHandle = null;
-    this.files = [];
-    this.currentFile = null;
-    this.currentContent = '';
-    this.error = null;
-    this.loading = false;
   }
 }
 

@@ -1,4 +1,4 @@
-import type { FileEntry } from '../../stores/fileStore.svelte';
+import type { FileEntry } from '../stores/fileStore.svelte';
 
 /**
  * IFileStorage - Interface for file storage operations

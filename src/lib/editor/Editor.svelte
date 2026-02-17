@@ -2,12 +2,13 @@
   import * as Svelte from 'svelte';
   import { editorStore} from '../stores/editorStore.svelte';
   import { fileStore } from '../stores/fileStore.svelte';
+  import { fileManagerStore } from '../stores/fileManagerStore.svelte';
   import ChordView from './ChordView.svelte';
   import TextView from './TextView.svelte'; 
 </script>
 
 <div class="editor">
-  {#if fileStore.currentFile}
+  {#if fileManagerStore.selectedPath}
     <div class="editor-view">
       {#if editorStore.viewMode === 'text'}
         <TextView/>
@@ -24,7 +25,7 @@
   {#if fileStore.error}
     <div class="error-message">
       {fileStore.error}
-      <button onclick={() => fileStore.setError(null)}>Dismiss</button>
+      <button onclick={() => fileStore.error = null}>Dismiss</button>
     </div>
   {/if}
 </div>

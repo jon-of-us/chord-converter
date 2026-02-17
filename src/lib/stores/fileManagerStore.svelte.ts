@@ -1,8 +1,10 @@
 import type { FileEntry } from './fileStore.svelte';
+import type { IFileStorage } from '../storage/IFileStorage';
 
 /**
  * File Manager Store
  * Manages UI state for the file tree (expanded folders, editing, selection)
+ * and caches the content of the selected file
  */
 
 export interface TreeNode {
@@ -18,6 +20,7 @@ class FileManagerStore {
   renamingPath = $state<string | null>(null);
   renamingValue = $state('');
   selectedPath = $state<string | null>(null);
+  cachedContent = $state('');
 
   // ===== Tree Building =====
 
@@ -102,32 +105,45 @@ class FileManagerStore {
     this.selectedPath = path;
   }
 
-  expandFolder(path: string) {
-    const newExpanded = new Set(this.expandedFolders);
-    newExpanded.add(path);
-    this.expandedFolders = newExpanded;
-  }
-
-  collapseFolder(path: string) {
-    const newExpanded = new Set(this.expandedFolders);
-    newExpanded.delete(path);
-    this.expandedFolders = newExpanded;
-  }
-
-  expandPath(path: string) {
-    const newExpanded = new Set(this.expandedFolders);
-    const parts = path.split('/');
-    for (let i = 1; i <= parts.length; i++) {
-      const folderPath = parts.slice(0, i).join('/');
-      if (folderPath) newExpanded.add(folderPath);
-    }
-    this.expandedFolders = newExpanded;
-  }
-
   // ===== Selection =====
 
   select(path: string | null) {
     this.selectedPath = path;
+  }
+
+  /**
+   * Get the selected file (returns null if folder or nothing selected)
+   */
+  getSelectedFile(files: FileEntry[]): FileEntry | null {
+    if (!this.selectedPath) return null;
+    return files.find(f => f.path === this.selectedPath) || null;
+  }
+
+  /**
+   * Load content for selected file and cache it
+   */
+  async loadSelectedContent(files: FileEntry[], storage: IFileStorage): Promise<void> {
+    const file = this.getSelectedFile(files);
+    if (!file) {
+      this.cachedContent = '';
+      return;
+    }
+    
+    try {
+      const content = await storage.readFile(file);
+      this.cachedContent = content;
+    } catch (error) {
+      console.error('Error loading file content:', error);
+      this.cachedContent = '';
+      throw error;
+    }
+  }
+
+  /**
+   * Update cached content (after save)
+   */
+  updateCachedContent(content: string): void {
+    this.cachedContent = content;
   }
 
   /**
@@ -163,15 +179,6 @@ class FileManagerStore {
   cancelEditing() {
     this.renamingPath = null;
     this.renamingValue = '';
-  }
-
-  // ===== Reset =====
-
-  reset() {
-    this.expandedFolders = new Set<string>();
-    this.renamingPath = null;
-    this.renamingValue = '';
-    this.selectedPath = null;
   }
 }
 

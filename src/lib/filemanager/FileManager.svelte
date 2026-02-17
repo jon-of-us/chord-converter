@@ -1,6 +1,7 @@
 <script lang="ts">
   import { fileStore } from '../stores/fileStore.svelte';
   import { fileManagerStore } from '../stores/fileManagerStore.svelte';
+  import { editorStore } from '../stores/editorStore.svelte';
   import FileTreeItem from './FileTreeItem.svelte';
   
   // Extract folders from file paths
@@ -37,6 +38,12 @@
     // It's a folder
     return selectedPath;
   });
+  
+  async function handleSelectFile(path: string) {
+    fileManagerStore.selectedPath = path;
+    await fileManagerStore.loadSelectedContent(fileStore.files, fileStore.storage);
+    editorStore.editedContent = fileManagerStore.cachedContent;
+  }
   
   async function addFile() {
     const contextMsg = currentFolderContext === 'root' 
@@ -104,7 +111,7 @@
     {:else}
       <ul class="tree">
         {#each tree as node}
-          <FileTreeItem {node} onSelectFile={fileStore.selectFile.bind(fileStore)} />
+          <FileTreeItem {node} {handleSelectFile} />
         {/each}
       </ul>
     {/if}

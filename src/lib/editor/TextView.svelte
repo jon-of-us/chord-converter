@@ -2,11 +2,12 @@
   import * as svlete from 'svelte';
   import { editorStore } from '../stores/editorStore.svelte';
   import { themeStore } from '../stores/themeStore.svelte';
-  import { fileStore } from '../stores/fileStore.svelte';
+  import { fileManagerStore } from '../stores/fileManagerStore.svelte';
   
   let textareaRef = $state<HTMLTextAreaElement>();
   $effect(() => {
-    editorStore.editedContent = fileStore.currentFile?.content || '';
+    // Load cached content into editor when file selection changes
+    editorStore.editedContent = fileManagerStore.cachedContent;
   });
   
   

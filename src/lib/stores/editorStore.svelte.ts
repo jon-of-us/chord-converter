@@ -1,5 +1,6 @@
 import { editorConfig } from '../config';
 import { fileStore, type FileEntry } from './fileStore.svelte';
+import { fileManagerStore } from './fileManagerStore.svelte';
 import * as ChordFileModel from '../models/ChordFile';
 
 /**
@@ -15,29 +16,27 @@ class EditorStore {
   isAutoscrolling = $state(false);
   autoscrollSpeed = $state(editorConfig.defaultAutoscrollSpeed);
   editedContent = $state('');
-  private lastSavedContent = $state('');
   isSaving = $state(false);
   saveSuccess = $state(false);
 
   // Derived property for hasChanges
   get hasChanges(): boolean {
-    return this.editedContent !== this.lastSavedContent;
+    return this.editedContent !== fileManagerStore.cachedContent;
   }
 
   // ===== File Operations =====
 
   /**
-   * Save currentContent (might be modified) to current file
+   * Save edited content to file
    */
   async saveFile(file: FileEntry): Promise<void> {
     try {
       this.isSaving = true;
       fileStore.error = null;
 
-      await fileStore.saveFile(file, this.editedContent);
+      await fileStore.storage.writeFile(file, this.editedContent);
 
-      fileStore.currentContent = this.editedContent;
-      this.lastSavedContent = this.editedContent;
+      fileManagerStore.updateCachedContent(this.editedContent);
       this.saveSuccess = true;
 
       setTimeout(() => {
@@ -58,13 +57,14 @@ class EditorStore {
   async transpose(file: FileEntry, offset: number): Promise<void> {
     try {
       // Parse, transpose, and serialize
-      const chordFile = ChordFileModel.ChordFile.parse(fileStore.currentContent);
+      const chordFile = ChordFileModel.ChordFile.parse(fileManagerStore.cachedContent);
       chordFile.transpose(offset);
       const newContent = chordFile.serialize();
 
-      // Update fileStore and save directly
-      fileStore.currentContent = newContent;
-      await fileStore.saveFile(file, newContent);
+      // Update cache and save directly
+      fileManagerStore.updateCachedContent(newContent);
+      this.editedContent = newContent;
+      await fileStore.storage.writeFile(file, newContent);
     } catch (error: any) {
       console.error('Error transposing:', error);
       fileStore.error = `Error transposing: ${error.message}`;
