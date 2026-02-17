@@ -16,9 +16,6 @@
     );
     let viewContainer: HTMLDivElement;
 
-    $effect(() => {
-        console.log(`detected key: ${chordFile.detectedKey}`);
-    });
     // Generate SVGs based on chordFile and theme
     let chordSVGs = $derived.by(() => {
         const svgs = new Map<string, string>();
@@ -219,7 +216,7 @@
         {:else if line.type === "chords"}
             <div class="chord-line-wrapper">
                 <div class="lyrics chord-markers">
-                    {#each Array(line.maxChordPosition + 1) as _, idx}
+                    {#each Array(line.content.length + 1) as _, idx}
                         {#each line.chordsOrWords?.filter((c) => c.position === idx) as cow}
                             <span class="marker chord-marker" id={cow.markerId}>
                                 {#if cow.content instanceof chordTypes.Chord}

@@ -68,6 +68,7 @@ function bassToIndex(bass: number, chordIndices: Point[]): Point {
 
 /* expects the chord in c-major */
 export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark'): string {
+
   // Select color scheme based on theme
   const colors = theme === 'light' ? LIGHT_MODE : DARK_MODE;
   const CHORD_RAD = colors.CHORD_RAD;
@@ -103,7 +104,7 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
       : bassToIndex(chord.bass, chordPointIndices)
   ];
   
-  const rootIndex = intervalToIndex((chord.root - 4) * 7);
+  const rootIndex = intervalToIndex((chord.root - 3) * 7);
   chordPointIndices = chordPointIndices.map(idx => add(idx, rootIndex));
   bassIndex = bassIndex.map(idx => add(idx, rootIndex));
   
@@ -112,8 +113,8 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   const rewardRoot: Point = [1, 2];
   const rewards = [
     [0.0, 0.0, 0.2, 0.2, 0.2, 0.3, 0.0, 0.0],
-    [0.3, 0.5, 1.0, 1.0, 1.0, 0.8, 0.0, 0.0],
-    [0.0, 0.5, 1.0, 1.0, 1.0, 0.7, 0.0, 0.0],
+    [0.4, 0.5, 1.0, 1.0, 1.0, 0.8, 0.0, 0.0],
+    [0.0, 0.6, 1.0, 1.0, 1.0, 0.7, 0.0, 0.0],
     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
   ];
   

@@ -6,7 +6,11 @@
 
 // Krumhansl-Schmuckler weights for major keys
 // These weights represent how likely each scale degree is in a major key
-const KRUMHANSL_SCHMUCKLER_WEIGHTS = [10.0, 0.0, 4.0, 174.0, 265.0, 231.0, 139.0, 221.0, 180.0, 100.0, 6.0, 2.0];
+// const KRUMHANSL_SCHMUCKLER_WEIGHTS = [10.0, 0.0, 4.0, 174.0, 265.0, 231.0, 139.0, 221.0, 180.0, 100.0, 6.0, 2.0];
+const KRUMHANSL_SCHMUCKLER_WEIGHTS = [0.0, 0.0, 0.0, 1.0, 1.8, 1.3, 1.0, 1.8, 1.0, 0.5, 0.0, 0.0]; // simplified weights for major keys
+const MAJOR_WEIGHT = 0.5; // weight for major chords
+const DIMINISHED_WEIGHT = 0.1; // weight for diminished chords
+
 
 /**
  * Count note occurrences from chords with weighted importance
@@ -21,13 +25,14 @@ function countNoteOccurrences(chords: any[]): number[] {
     const isMajor = chord.type.intervals.slice(0, 3).toString() === '0,4,7';
     const isDiminished = chord.type.intervals.slice(0, 3).toString() === '0,3,6';
 
+    const typeWeight = isMajor ? MAJOR_WEIGHT : isDiminished ? DIMINISHED_WEIGHT : 1.0;
     // Add each note in the chord to the count
     for (const interval of chord.type.intervals) {
       const note = (chord.root + interval * 7) % 12;
-      noteCount[note] += isMajor ? 0.8 : isDiminished ? 0.3 : 1; // weight major chords slightly less, diminished even less
+      noteCount[note] += typeWeight; // weight major chords slightly less, diminished even less
     }
-    // Bass note gets double weight (more important for key detection)
-    noteCount[(chord.root + chord.bass * 7) % 12] += 1;
+    // root note gets double weight (more important for key detection)
+    noteCount[chord.root] += 2 * typeWeight;
   }
   
   return noteCount;
@@ -47,11 +52,14 @@ function findBestKeyOffset(noteCount: number[]): number {
     for (let i = 0; i < 12; i++) {
       score += noteCount[(i + offset) % 12] * KRUMHANSL_SCHMUCKLER_WEIGHTS[i];
     }
+    console.log(`Key ${(offset+4) % 12}: score ${score.toFixed(2)}\n`);
     if (score > maxScore) {
       maxScore = score;
       bestOffset = offset;
     }
   }
+  console.log(`note counts after shifting to C: ${noteCount.map((count, i) => `${count.toFixed(0)}`).join(' ')}\n`);
+  console.log(`detected key: ${(bestOffset + 4) % 12}`);
   
   return bestOffset;
 }
