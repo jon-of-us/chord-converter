@@ -11,8 +11,13 @@ export interface TreeNode {
   name: string;
   path: string;
   isFolder: boolean;
-  file?: FileEntry;
   children: TreeNode[];
+  
+  /**
+   * Get the FileEntry for this node from the current store state.
+   * Returns null if this is a folder or file doesn't exist.
+   */
+  getFile(): FileEntry | null;
 }
 
 class FileManagerStore {
@@ -63,6 +68,7 @@ class FileManagerStore {
             path: currentPath,
             isFolder: true,
             children: [],
+            getFile: () => null,
           };
           folderMap.set(currentPath, folderNode);
           currentLevel.push(folderNode);
@@ -88,6 +94,7 @@ class FileManagerStore {
             path: currentPath,
             isFolder: true,
             children: [],
+            getFile: () => null,
           };
           folderMap.set(currentPath, folderNode);
           currentLevel.push(folderNode);
@@ -101,8 +108,10 @@ class FileManagerStore {
         name: file.name,
         path: file.path,
         isFolder: false,
-        file,
         children: [],
+        getFile: () => {
+          return fileStore.files.find(f => f.path === file.path) || null;
+        },
       });
     }
 

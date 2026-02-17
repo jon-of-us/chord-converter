@@ -3,8 +3,8 @@
     name: string;
     path: string;
     isFolder: boolean;
-    file?: any;
     children: TreeNode[];
+    getFile(): any | null;
   }
 </script>
 
@@ -53,8 +53,11 @@
     try {
       if (node.isFolder) {
         await fileStore.renameFolder(node.path, editValue);
-      } else if (node.file) {
-        await fileStore.renameFile(node.file, editValue);
+      } else {
+        const file = node.getFile();
+        if (file) {
+          await fileStore.renameFile(file, editValue);
+        }
       }
       fileManagerStore.cancelEditing();
     } catch (error: any) {
@@ -75,8 +78,11 @@
       }
       if (node.isFolder) {
         await fileStore.deleteFolder(node.path);
-      } else if (node.file) {
-        await fileStore.deleteFile(node.file);
+      } else {
+        const file = node.getFile();
+        if (file) {
+          await fileStore.deleteFile(file);
+        }
       }
     } catch (error: any) {
       // Error already handled in store
