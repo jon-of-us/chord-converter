@@ -1,10 +1,13 @@
+import { draw } from 'svelte/transition';
 import type { Chord } from './chordTypes';
 
 // Configuration constants from Python config.py
 const TONIC_RAD = 90;
-const BASS_INNER_RAD = TONIC_RAD * 0.3;
+const CHORD_RAD = 70;
+const BASS_INNER_RAD = TONIC_RAD * 0.3; 
 const PADDING = 5 + Math.max(70, TONIC_RAD);
 const LINE_WIDTH = 50;
+const LOWER_RAD = LINE_WIDTH/2 * 1.1; // "lower" = notes below root note
 const HORIZONTAL_DISTANCE = 200;
 const VERTICAL_DISTANCE = HORIZONTAL_DISTANCE * Math.sqrt(3) / 2;
 const ROW_SHIFT = -HORIZONTAL_DISTANCE / 2;
@@ -13,14 +16,12 @@ const TONIC_POINT_INDICES: [number, number][] = [[0, 0], [1, 0], [0, 1], [1, 1],
 // Color schemes
 const LIGHT_MODE = {
   CHORD_COLOR: "#333333",
-  CHORD_RAD: 70,
   TONIC_COLOR: "#BDBDBD",
   BASS_INNER_COLOR: "white"
 };
 
 const DARK_MODE = {
   CHORD_COLOR: "#d7d7d7ff",
-  CHORD_RAD: 70,
   TONIC_COLOR: "#646464ff",
   BASS_INNER_COLOR: "#1e1e1e"
 };
@@ -45,7 +46,7 @@ function intervalToIndex(interval: number): Point {
 
 function bassToIndex(bass: number, chordIndices: Point[]): Point {
   const idx = intervalToIndex(bass);
-  const octaveShifts: Point[] = [[0, 0], [-1, 3], [1, -3]];
+  const octaveShifts: Point[] = [[0, 0], [-1, 3], [1, -3], [-2, 6], [2, -6]];
   let bestIdx: Point | null = null;
   let bestDist = Infinity;
   
@@ -71,7 +72,6 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
 
   // Select color scheme based on theme
   const colors = theme === 'light' ? LIGHT_MODE : DARK_MODE;
-  const CHORD_RAD = colors.CHORD_RAD;
   const CHORD_COLOR = colors.CHORD_COLOR;
   const TONIC_COLOR = colors.TONIC_COLOR;
   const BASS_INNER_COLOR = colors.BASS_INNER_COLOR;
@@ -105,6 +105,7 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   ];
   
   const rootIndex = intervalToIndex((chord.root - 3) * 7);
+  let rootPoint: Point = add([0, 0], rootIndex); // Track root position
   chordPointIndices = chordPointIndices.map(idx => add(idx, rootIndex));
   bassIndex = bassIndex.map(idx => add(idx, rootIndex));
   
@@ -142,6 +143,7 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   if (bestOctave) {
     chordPointIndices = chordPointIndices.map(idx => add(idx, bestOctave!));
     bassIndex = bassIndex.map(idx => add(idx, bestOctave!));
+    rootPoint = add(rootPoint, bestOctave!);
   }
   
   // normalize all point indices to start from (0,0) to ensure no negative indices
@@ -157,6 +159,7 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   const shiftedBass = shiftAll(bassIndex);
   const shiftedChord = shiftAll(chordPointIndices);
   const shiftedTonic = shiftAll(tonicPointIndices);
+  const shiftedRoot = add(rootPoint, [-minRowIdx, -minColIdx]);
   const allShifted = [...shiftedBass, ...shiftedChord, ...shiftedTonic];
   
   // Shift coordinates to fit drawn points
@@ -184,6 +187,15 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
     return `  <circle cx="${cx}" cy="${cy}" r="${rad}" fill="${color}" />\n`;
   };
   
+  const drawSquare = (point: Point, rad: number, color: string): string => {
+    const cx = adjustedColCoords[point[0]][point[1]];
+    const cy = adjustedRowCoords[point[0]][point[1]];
+    const size = rad * 2;
+    const x = cx - rad;
+    const y = cy - rad;
+    return `  <rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${color}" />\n`;
+  };
+  
   // Draw tonic points
   for (const point of shiftedTonic) {
     svgContent += drawCircle(point, TONIC_RAD, TONIC_COLOR);
@@ -209,15 +221,20 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   
   // Draw chord points
   for (const point of shiftedChord) {
-    svgContent += drawCircle(point, CHORD_RAD, CHORD_COLOR);
+    const isBelowRoot = adjustedColCoords[point[0]][point[1]] < adjustedColCoords[shiftedRoot[0]][shiftedRoot[1]];
+    if (!isBelowRoot) {
+      svgContent += drawCircle(point, CHORD_RAD, CHORD_COLOR);
+    } else {
+      svgContent += drawCircle(point, LOWER_RAD, CHORD_COLOR);
+    }
   }
   
-  // Draw bass (only if it's not the leftmost point)
+  // Draw bass (only if it's not the root)
   for (const bassIdx of shiftedBass) {
-    const bassCol = adjustedColCoords[bassIdx[0]][bassIdx[1]];
-    const minChordCol = Math.min(...shiftedChord.map(([r, c]) => adjustedColCoords[r][c]));
-    
-    if (bassCol !== minChordCol) {
+    const isBassRoot = bassIdx[0] === shiftedRoot[0] && bassIdx[1] === shiftedRoot[1];
+    if (!isBassRoot) {
+      // const isBelowRoot = adjustedColCoords[bassIdx[0]][bassIdx[1]] < adjustedColCoords[shiftedRoot[0]][shiftedRoot[1]];
+      // svgContent += drawCircle(bassIdx, isBelowRoot ? LOWER_RAD : CHORD_RAD, CHORD_COLOR);
       svgContent += drawCircle(bassIdx, CHORD_RAD, CHORD_COLOR);
       svgContent += drawCircle(bassIdx, BASS_INNER_RAD, BASS_INNER_COLOR);
     }
@@ -230,7 +247,6 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
 export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'dark'): string {
   // Select color scheme based on theme
   const colors = theme === 'light' ? LIGHT_MODE : DARK_MODE;
-  const CHORD_RAD = colors.CHORD_RAD;
   const CHORD_COLOR = colors.CHORD_COLOR;
   const BASS_INNER_COLOR = colors.BASS_INNER_COLOR;
   
@@ -262,6 +278,8 @@ export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'd
       : bassToIndex(chord.bass, chordPointIndices)
   ];
   
+  // Track root position (starts at origin before any shifts)
+  let rootPoint: Point = [0, 0];
   
   // Determine octave of points
   const shifts: Point[] = [];
@@ -310,6 +328,7 @@ export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'd
   if (bestPositionShift) {
     chordPointIndices = chordPointIndices.map(idx => add(idx, bestPositionShift!));
     bassIndex = bassIndex.map(idx => add(idx, bestPositionShift!));
+    rootPoint = add(rootPoint, bestPositionShift!);
   }
   
   // normalize all point indices to start from (0,0) to ensure no negative coords
@@ -323,6 +342,7 @@ export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'd
   
   const shiftedBass = shiftAll(bassIndex);
   const shiftedChord = shiftAll(chordPointIndices);
+  const shiftedRoot = add(rootPoint, [-minRowIdx, -minColIdx]);
   const allShifted = [...shiftedBass, ...shiftedChord];
   
   // Shift coordinates to fit drawn points
@@ -350,6 +370,15 @@ export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'd
     return `  <circle cx="${cx}" cy="${cy}" r="${rad}" fill="${color}" />\n`;
   };
   
+  const drawSquare = (point: Point, rad: number, color: string): string => {
+    const cx = adjustedColCoords[point[0]][point[1]];
+    const cy = adjustedRowCoords[point[0]][point[1]];
+    const size = rad * 2;
+    const x = cx - rad;
+    const y = cy - rad;
+    return `  <rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${color}" />\n`;
+  };
+  
   // Draw lines between chord points
   for (let i = 0; i < shiftedChord.length; i++) {
     const [r1, c1] = shiftedChord[i];
@@ -370,15 +399,21 @@ export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'd
   
   // Draw chord points
   for (const point of shiftedChord) {
-    svgContent += drawCircle(point, CHORD_RAD, CHORD_COLOR);
+    const isBelowRoot = adjustedColCoords[point[0]][point[1]] < adjustedColCoords[shiftedRoot[0]][shiftedRoot[1]];
+    if (!isBelowRoot) {
+      svgContent += drawCircle(point, CHORD_RAD, CHORD_COLOR);
+    } else {
+      svgContent += drawCircle(point, LOWER_RAD, CHORD_COLOR);
+    }
   }
   
-  // Draw bass (only if it's not the leftmost point)
+  // Draw bass (only if it's not the root)
   for (const bassIdx of shiftedBass) {
-    const bassCol = adjustedColCoords[bassIdx[0]][bassIdx[1]];
-    const minChordCol = Math.min(...shiftedChord.map(([r, c]) => adjustedColCoords[r][c]));
+    const isBassRoot = bassIdx[0] === shiftedRoot[0] && bassIdx[1] === shiftedRoot[1];
     
-    if (bassCol !== minChordCol) {
+    if (!isBassRoot) {
+      // const isBelowRoot = adjustedColCoords[bassIdx[0]][bassIdx[1]] < adjustedColCoords[shiftedRoot[0]][shiftedRoot[1]];
+      // svgContent += drawCircle(bassIdx, isBelowRoot ? LOWER_RAD : CHORD_RAD, CHORD_COLOR);
       svgContent += drawCircle(bassIdx, CHORD_RAD, CHORD_COLOR);
       svgContent += drawCircle(bassIdx, BASS_INNER_RAD, BASS_INNER_COLOR);
     }
