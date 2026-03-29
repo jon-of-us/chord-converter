@@ -139,6 +139,13 @@
       >
         {themeStore.theme === 'dark' ? '☀' : '🌙'}
       </button>
+      <button
+        onclick={() => editorStore.toggleBassMode()}
+        class="control-button"
+        title={editorStore.bassMode === 'add-bass' ? 'slash chords add a base note to the chord (marked with a dot)' : 'slash chords invert the chord so the bass note becomes the root'}
+      >
+        {editorStore.bassMode === 'add-bass' ? 'Added Base' : 'Inversion Base'}
+      </button>
       <button 
         onclick={toggleLeftSidebar}
         class="control-button"

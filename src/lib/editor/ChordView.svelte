@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { generateChordSVG, generateChordShapeSVG } from "../chords/chordToSVG";
+    import * as ChordToSvg from "../chords/chordToSVG";
     import { onMount } from "svelte";
     import * as ChordFileModel from "../models/ChordFile";
     import { editorStore } from "../stores/editorStore.svelte";
@@ -26,7 +26,11 @@
                         if (!svgs.has(key)) {
                             svgs.set(
                                 key,
-                                generateChordSVG(cow.content, themeStore.current),
+                                ChordToSvg.generateChordSVG(
+                                    cow.content,
+                                    themeStore.current,
+                                    editorStore.bassMode,
+                                ),
                             );
                         }
                     }
@@ -45,9 +49,10 @@
                         if (!svgs.has(key)) {
                             svgs.set(
                                 key,
-                                generateChordShapeSVG(
+                                ChordToSvg.generateChordShapeSVG(
                                     cow.content,
                                     themeStore.current,
+                                    editorStore.bassMode,
                                 ),
                             );
                         }
@@ -221,7 +226,10 @@
                                     <div class="chord-container">
                                         {#if editorStore.viewMode === "chords"}
                                             <span class="root-number">
-                                                {(cow.content.root +
+                                                {(ChordToSvg.getChordDisplayRoot(
+                                                    cow.content,
+                                                    editorStore.bassMode,
+                                                ) +
                                                     chordFile.specifiedKey +
                                                     8) %
                                                     12}

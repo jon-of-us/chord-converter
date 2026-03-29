@@ -10,9 +10,11 @@ import * as indexedDB from '../utils/indexedDB';
  */
 
 export type ViewMode = 'text' | 'structure' | 'chords';
+export type BassMode = 'add-bass' | 'invert-bass';
 
 class EditorStore {
   viewMode = $state<ViewMode>('text');
+  bassMode = $state<BassMode>('add-bass');
   zoomLevel = $state(editorConfig.defaultZoom);
   isAutoscrolling = $state(false);
   autoscrollSpeed = $state(editorConfig.defaultAutoscrollSpeed);
@@ -45,6 +47,7 @@ class EditorStore {
     await indexedDB.saveFilePreferences(file.path, {
       zoom: this.zoomLevel,
       scrollSpeed: this.autoscrollSpeed,
+      bassMode: this.bassMode,
     });
   }
 
@@ -53,6 +56,7 @@ class EditorStore {
     if (!file) {
       this.zoomLevel = editorConfig.defaultZoom;
       this.autoscrollSpeed = editorConfig.defaultAutoscrollSpeed;
+      this.bassMode = 'add-bass';
       return;
     }
 
@@ -60,11 +64,13 @@ class EditorStore {
     if (!preferences) {
       this.zoomLevel = editorConfig.defaultZoom;
       this.autoscrollSpeed = editorConfig.defaultAutoscrollSpeed;
+      this.bassMode = 'add-bass';
       return;
     }
 
     this.zoomLevel = this.clampZoom(preferences.zoom);
     this.autoscrollSpeed = this.clampAutoscrollSpeed(preferences.scrollSpeed);
+    this.bassMode = preferences.bassMode === 'invert-bass' ? 'invert-bass' : 'add-bass';
   }
 
   async ensureDetectedKeyForSelectedFile(): Promise<void> {
@@ -168,6 +174,17 @@ class EditorStore {
     if (mode !== 'text') {
       await this.ensureDetectedKeyForSelectedFile();
     }
+  }
+
+  // ===== Bass Interpretation =====
+
+  setBassMode(mode: BassMode) {
+    this.bassMode = mode;
+    void this.persistSelectedFilePreferences();
+  }
+
+  toggleBassMode() {
+    this.setBassMode(this.bassMode === 'add-bass' ? 'invert-bass' : 'add-bass');
   }
 
   // ===== Zoom =====

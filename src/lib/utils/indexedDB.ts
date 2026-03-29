@@ -214,6 +214,7 @@ export async function renameBrowserFile(oldName: string, newName: string): Promi
 export interface FilePreferences {
   zoom: number;
   scrollSpeed: number;
+  bassMode?: 'add-bass' | 'invert-bass';
 }
 
 export async function saveFilePreferences(path: string, preferences: FilePreferences): Promise<void> {

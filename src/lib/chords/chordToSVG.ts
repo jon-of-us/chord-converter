@@ -1,6 +1,8 @@
 import { draw } from 'svelte/transition';
 import type { Chord } from './chordTypes';
 
+export type BassRenderMode = 'add-bass' | 'invert-bass';
+
 // Configuration constants from Python config.py
 const TONIC_RAD = 90;
 const CHORD_RAD = 70;
@@ -31,6 +33,22 @@ type Point = [number, number];
 
 function mod(n: number, m: number): number {
   return ((n % m) + m) % m;
+}
+
+function shouldApplyBassInversion(chord: Chord, mode: BassRenderMode): boolean {
+  if (mode !== 'invert-bass') {
+    return false;
+  }
+
+  const bassInterval = mod(chord.bass, 12);
+  return chord.type.intervals.some(interval => mod(interval, 12) === bassInterval);
+}
+
+export function getChordDisplayRoot(chord: Chord, mode: BassRenderMode = 'add-bass'): number {
+  if (shouldApplyBassInversion(chord, mode)) {
+    return mod(chord.root + chord.bass, 12);
+  }
+  return chord.root;
 }
 
 function add(tup1: Point, tup2: Point): Point {
@@ -68,7 +86,11 @@ function bassToIndex(bass: number, chordIndices: Point[]): Point {
 }
 
 /* expects the chord in c-major */
-export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark'): string {
+export function generateChordSVG(
+  chord: Chord,
+  theme: 'dark' | 'light' = 'dark',
+  mode: BassRenderMode = 'add-bass'
+): string {
 
   // Select color scheme based on theme
   const colors = theme === 'light' ? LIGHT_MODE : DARK_MODE;
@@ -144,6 +166,9 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
     bassIndex = bassIndex.map(idx => add(idx, bestOctave!));
     rootPoint = add(rootPoint, bestOctave!);
   }
+
+  // Minimal inversion mode: keep geometry unchanged, only switch the effective root reference.
+  const effectiveRootPoint = shouldApplyBassInversion(chord, mode) ? bassIndex[0] : rootPoint;
   
   // normalize all point indices to start from (0,0) to ensure no negative indices
   const tonicPointIndices = [...TONIC_POINT_INDICES];
@@ -158,7 +183,7 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   const shiftedBass = shiftAll(bassIndex);
   const shiftedChord = shiftAll(chordPointIndices);
   const shiftedTonic = shiftAll(tonicPointIndices);
-  const shiftedRoot = add(rootPoint, [-minRowIdx, -minColIdx]);
+  const shiftedRoot = add(effectiveRootPoint, [-minRowIdx, -minColIdx]);
   const allShifted = [...shiftedBass, ...shiftedChord, ...shiftedTonic];
   
   // Shift coordinates to fit drawn points
@@ -243,7 +268,11 @@ export function generateChordSVG(chord: Chord, theme: 'dark' | 'light' = 'dark')
   return svgContent;
 }
 
-export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'dark'): string {
+export function generateChordShapeSVG(
+  chord: Chord,
+  theme: 'dark' | 'light' = 'dark',
+  mode: BassRenderMode = 'add-bass'
+): string {
   // Select color scheme based on theme
   const colors = theme === 'light' ? LIGHT_MODE : DARK_MODE;
   const CHORD_COLOR = colors.CHORD_COLOR;
@@ -329,6 +358,9 @@ export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'd
     bassIndex = bassIndex.map(idx => add(idx, bestPositionShift!));
     rootPoint = add(rootPoint, bestPositionShift!);
   }
+
+  // Minimal inversion mode: keep geometry unchanged, only switch the effective root reference.
+  const effectiveRootPoint = shouldApplyBassInversion(chord, mode) ? bassIndex[0] : rootPoint;
   
   // normalize all point indices to start from (0,0) to ensure no negative coords
   const drawnPoints = [...bassIndex, ...chordPointIndices];
@@ -341,7 +373,7 @@ export function generateChordShapeSVG(chord: Chord, theme: 'dark' | 'light' = 'd
   
   const shiftedBass = shiftAll(bassIndex);
   const shiftedChord = shiftAll(chordPointIndices);
-  const shiftedRoot = add(rootPoint, [-minRowIdx, -minColIdx]);
+  const shiftedRoot = add(effectiveRootPoint, [-minRowIdx, -minColIdx]);
   const allShifted = [...shiftedBass, ...shiftedChord];
   
   // Shift coordinates to fit drawn points

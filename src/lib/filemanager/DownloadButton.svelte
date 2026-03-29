@@ -1,6 +1,9 @@
 <script lang="ts">
   import { fileStore } from '../stores/fileStore.svelte';
+  import { fileManagerStore } from '../stores/fileManagerStore.svelte';
   import Button from '../components/Button.svelte';
+
+  let currentFile = $derived(fileManagerStore.getSelectedFile());
 
   async function downloadAllFiles() {
     try {
@@ -11,13 +14,13 @@
   }
 
   async function downloadCurrentFile() {
-    if (!fileStore.currentFile) {
+    if (!currentFile) {
       fileStore.error = 'No file selected';
       return;
     }
 
     try {
-      await fileStore.downloadFile(fileStore.currentFile);
+      await fileStore.downloadFile(currentFile);
     } catch (error) {
       // Error already handled in store
     }
@@ -28,7 +31,7 @@
   <div class="download-section">
     <Button
       onclick={downloadCurrentFile}
-      disabled={!fileStore.currentFile || fileStore.loading}
+      disabled={!currentFile || fileStore.loading}
       title="Download current file"
     >
       ⬇️ Current
