@@ -121,6 +121,7 @@ class FileStore {
 
       this.removeFile(file.path);
       this.addFile(newFile);
+      await indexedDB.renameFilePreferences(file.path, newFile.path);
 
       // Update selectedPath if it was the renamed file
       if (fileManagerStore.selectedPath === file.path) {
@@ -169,6 +170,7 @@ class FileStore {
 
         this.removeFile(file.path);
         this.addFile(newFile);
+        await indexedDB.renameFilePreferences(file.path, newFile.path);
       }
     } catch (error: any) {
       this.error = `Error renaming folder: ${error.message}`;
@@ -183,6 +185,7 @@ class FileStore {
       this.loading = true;
 
       await this.storage.deleteFile(file);
+      await indexedDB.deleteFilePreferences(file.path);
       this.removeFile(file.path);
     } catch (error: any) {
       this.error = `Error deleting: ${error.message}`;
@@ -206,6 +209,7 @@ class FileStore {
       // Delete all files in the folder
       for (const file of filesToDelete) {
         await this.storage.deleteFile(file);
+        await indexedDB.deleteFilePreferences(file.path);
         this.removeFile(file.path);
       }
     } catch (error: any) {

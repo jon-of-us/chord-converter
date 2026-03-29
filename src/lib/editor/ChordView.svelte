@@ -1,7 +1,6 @@
 <script lang="ts">
     import { generateChordSVG, generateChordShapeSVG } from "../chords/chordToSVG";
     import { onMount } from "svelte";
-    import { editorConfig } from "../config";
     import * as ChordFileModel from "../models/ChordFile";
     import { editorStore } from "../stores/editorStore.svelte";
     import { themeStore } from "../stores/themeStore.svelte";
@@ -146,14 +145,13 @@
         const scroll = () => {
             if (!editorStore.isAutoscrolling || !viewContainer) return;
 
-            // Convert speed multiplier to pixels per frame (at 60fps)
-            // Scale with zoom level - higher zoom = faster scroll
-            const zoomMultiplier = editorStore.zoomLevel / 100;
+            // Convert rem/s to px/frame based on root font size.
+            const rootFontSize =
+                Number.parseFloat(
+                    window.getComputedStyle(document.documentElement).fontSize,
+                ) || 16;
             const pixelsPerFrame =
-                (editorStore.autoscrollSpeed *
-                    editorConfig.autoscrollPixelsPerSecond *
-                    zoomMultiplier) /
-                60;
+                (editorStore.autoscrollSpeed * rootFontSize) / 60;
             scrollAccumulator += pixelsPerFrame;
 
             // Only apply integer pixels to scrollTop
@@ -189,7 +187,7 @@
 <div
     class="chord-view"
     bind:this={viewContainer}
-    style="font-size: {editorStore.zoomLevel}%; background-color: {themeStore.current ===
+    style="font-size: {editorStore.zoomLevel}rem; background-color: {themeStore.current ===
     'light'
         ? '#ffffff'
         : '#1e1e1e'}; color: {themeStore.current === 'light' ? '#333333' : '#e0e0e0'};"

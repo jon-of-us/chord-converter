@@ -322,6 +322,33 @@ export class ChordFile {
   }
 
   /**
+   * Ensure metadata key is set to detected key and stored as numeric value (0-11)
+   * Mutates parsedLines and returns the detected key number
+   */
+  ensureDetectedKeyMetadata(): number {
+    const detected = ((this.detectedKey ?? 0) % 12 + 12) % 12;
+    const keyLine = this.lines.find(
+      l => l.type === 'metadata' && l.metadataField?.toLowerCase() === 'key'
+    );
+
+    if (keyLine) {
+      keyLine.content = detected.toString();
+    } else {
+      const titleIdx = this.lines.findIndex(
+        l => l.type === 'metadata' && l.metadataField?.toLowerCase() === 'title'
+      );
+      if (titleIdx >= 0) {
+        this.lines.splice(titleIdx + 1, 0, new ParsedLine('metadata', detected.toString(), 0, undefined, 'key'));
+      } else {
+        this.lines.unshift(new ParsedLine('metadata', detected.toString(), 0, undefined, 'key'));
+      }
+    }
+
+    this.specifiedKey = detected;
+    return detected;
+  }
+
+  /**
    * Transpose the key by semitone offset
    * Mutates the key line in parsedLines
    */

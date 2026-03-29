@@ -32,17 +32,17 @@ Key:
 
 // Editor controls settings
 export const editorConfig = {
-  // Zoom levels
-  minZoom: 50,
-  maxZoom: 250,
-  defaultZoom: 100,
+  // Zoom in rem
+  minZoom: 0.5,
+  maxZoom: 2.5,
+  defaultZoom: 1,
+  zoomStepSize: 0.1,
   
-  // Autoscroll settings
-  minAutoscrollSpeed: 0.1,
-  maxAutoscrollSpeed: 5,
-  defaultAutoscrollSpeed: 1,
-  autoscrollStepSize: 0.1,
-  autoscrollPixelsPerSecond: 5, // Base scroll speed at 1.0x 
+  // Autoscroll speed in rem/s
+  minAutoscrollSpeed: 0.05,
+  maxAutoscrollSpeed: 1.6,
+  defaultAutoscrollSpeed: 0.3,
+  autoscrollStepSize: 0.03,
 };
 
 // Sidebar styling - permanently dark mode

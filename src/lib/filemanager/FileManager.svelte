@@ -28,12 +28,12 @@
   });
   
   async function handleSelectFile(path: string) {
-    if (fileManagerStore.getSelectedFile() !== null) {
-      editorStore.saveFile(); // Save current file before switching
+    if (fileManagerStore.getSelectedFile() !== null && editorStore.hasChanges) {
+      await editorStore.saveFile(); // Save current file before switching
     }
     fileManagerStore.selectedPath = path;
     await fileManagerStore.loadSelectedContent();
-    editorStore.editedContent = fileManagerStore.cachedContent;
+    await editorStore.onSelectedFileOpened();
   }
   
   async function addFile() {

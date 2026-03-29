@@ -34,7 +34,7 @@
         const firstFile = files[0];
         fileManagerStore.selectedPath = firstFile.path;
         await fileManagerStore.loadSelectedContent();
-        editorStore.editedContent = fileManagerStore.cachedContent;
+        await editorStore.onSelectedFileOpened();
       }
     } catch (error) {
       console.error('Error loading browser files:', error);

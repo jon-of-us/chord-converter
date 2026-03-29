@@ -1,7 +1,8 @@
 const DB_NAME = 'ChordConverterDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const HANDLE_STORE_NAME = 'folderHandles';
 const FILES_STORE_NAME = 'files';
+const PREFERENCES_STORE_NAME = 'filePreferences';
 const HANDLE_KEY = 'selectedFolder';
 
 function openDB(): Promise<IDBDatabase> {
@@ -18,6 +19,9 @@ function openDB(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(FILES_STORE_NAME)) {
         db.createObjectStore(FILES_STORE_NAME);
+      }
+      if (!db.objectStoreNames.contains(PREFERENCES_STORE_NAME)) {
+        db.createObjectStore(PREFERENCES_STORE_NAME);
       }
     };
   });
@@ -203,6 +207,97 @@ export async function renameBrowserFile(oldName: string, newName: string): Promi
     await deleteBrowserFile(oldName);
   } catch (error) {
     console.error('Error renaming browser file:', error);
+    throw error;
+  }
+}
+
+export interface FilePreferences {
+  zoom: number;
+  scrollSpeed: number;
+}
+
+export async function saveFilePreferences(path: string, preferences: FilePreferences): Promise<void> {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(PREFERENCES_STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(PREFERENCES_STORE_NAME);
+
+    store.put(preferences, path);
+
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      transaction.onerror = () => {
+        db.close();
+        reject(transaction.error);
+      };
+    });
+  } catch (error) {
+    console.error('Error saving file preferences:', error);
+    throw error;
+  }
+}
+
+export async function loadFilePreferences(path: string): Promise<FilePreferences | null> {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(PREFERENCES_STORE_NAME, 'readonly');
+    const store = transaction.objectStore(PREFERENCES_STORE_NAME);
+    const request = store.get(path);
+
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        db.close();
+        resolve(request.result || null);
+      };
+      request.onerror = () => {
+        db.close();
+        reject(request.error);
+      };
+    });
+  } catch (error) {
+    console.error('Error loading file preferences:', error);
+    return null;
+  }
+}
+
+export async function deleteFilePreferences(path: string): Promise<void> {
+  try {
+    const db = await openDB();
+    const transaction = db.transaction(PREFERENCES_STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(PREFERENCES_STORE_NAME);
+
+    store.delete(path);
+
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      transaction.onerror = () => {
+        db.close();
+        reject(transaction.error);
+      };
+    });
+  } catch (error) {
+    console.error('Error deleting file preferences:', error);
+    throw error;
+  }
+}
+
+export async function renameFilePreferences(oldPath: string, newPath: string): Promise<void> {
+  try {
+    const preferences = await loadFilePreferences(oldPath);
+    if (!preferences) {
+      return;
+    }
+
+    await saveFilePreferences(newPath, preferences);
+    await deleteFilePreferences(oldPath);
+  } catch (error) {
+    console.error('Error renaming file preferences:', error);
     throw error;
   }
 }

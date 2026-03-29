@@ -2,6 +2,7 @@ import { editorConfig } from '../config';
 import { fileStore, type FileEntry } from './fileStore.svelte';
 import { fileManagerStore } from './fileManagerStore.svelte';
 import * as ChordFileModel from '../models/ChordFile';
+import * as indexedDB from '../utils/indexedDB';
 
 /**
  * Editor Store
@@ -22,6 +23,77 @@ class EditorStore {
   // Derived property for hasChanges
   get hasChanges(): boolean {
     return this.editedContent !== fileManagerStore.cachedContent;
+  }
+
+  private clampZoom(level: number): number {
+    return Math.max(editorConfig.minZoom, Math.min(editorConfig.maxZoom, level));
+  }
+
+  private clampAutoscrollSpeed(speed: number): number {
+    return Math.max(
+      editorConfig.minAutoscrollSpeed,
+      Math.min(editorConfig.maxAutoscrollSpeed, speed)
+    );
+  }
+
+  private async persistSelectedFilePreferences(): Promise<void> {
+    const file = fileManagerStore.getSelectedFile();
+    if (!file) {
+      return;
+    }
+
+    await indexedDB.saveFilePreferences(file.path, {
+      zoom: this.zoomLevel,
+      scrollSpeed: this.autoscrollSpeed,
+    });
+  }
+
+  private async loadSelectedFilePreferences(): Promise<void> {
+    const file = fileManagerStore.getSelectedFile();
+    if (!file) {
+      this.zoomLevel = editorConfig.defaultZoom;
+      this.autoscrollSpeed = editorConfig.defaultAutoscrollSpeed;
+      return;
+    }
+
+    const preferences = await indexedDB.loadFilePreferences(file.path);
+    if (!preferences) {
+      this.zoomLevel = editorConfig.defaultZoom;
+      this.autoscrollSpeed = editorConfig.defaultAutoscrollSpeed;
+      return;
+    }
+
+    this.zoomLevel = this.clampZoom(preferences.zoom);
+    this.autoscrollSpeed = this.clampAutoscrollSpeed(preferences.scrollSpeed);
+  }
+
+  async ensureDetectedKeyForSelectedFile(): Promise<void> {
+    const file = fileManagerStore.getSelectedFile();
+    if (!file) {
+      return;
+    }
+
+    const chordFile = ChordFileModel.ChordFile.parse(fileManagerStore.cachedContent);
+    chordFile.ensureDetectedKeyMetadata();
+    const updatedContent = chordFile.serialize();
+
+    if (updatedContent === fileManagerStore.cachedContent) {
+      return;
+    }
+
+    fileManagerStore.updateCachedContent(updatedContent);
+    this.editedContent = updatedContent;
+    await fileStore.storage.writeFile(file, updatedContent);
+  }
+
+  async onSelectedFileOpened(): Promise<void> {
+    await this.loadSelectedFilePreferences();
+
+    if (this.viewMode !== 'text') {
+      await this.ensureDetectedKeyForSelectedFile();
+    }
+
+    this.editedContent = fileManagerStore.cachedContent;
   }
 
   // ===== File Operations =====
@@ -83,22 +155,31 @@ class EditorStore {
 
   // ===== View Mode =====
 
-  setViewMode(mode: ViewMode) {
+  async setViewMode(mode: ViewMode): Promise<void> {
+    if (this.viewMode === 'text' && mode !== 'text' && this.hasChanges) {
+      await this.saveFile();
+    }
+
     this.viewMode = mode;
+
+    if (mode !== 'text') {
+      await this.ensureDetectedKeyForSelectedFile();
+    }
   }
 
   // ===== Zoom =====
 
   setZoomLevel(level: number) {
-    this.zoomLevel = Math.max(editorConfig.minZoom, Math.min(editorConfig.maxZoom, level));
+    this.zoomLevel = this.clampZoom(level);
+    void this.persistSelectedFilePreferences();
   }
 
   zoomIn() {
-    this.zoomLevel = Math.min(this.zoomLevel + 10, editorConfig.maxZoom);
+    this.setZoomLevel(this.zoomLevel + editorConfig.zoomStepSize);
   }
 
   zoomOut() {
-    this.zoomLevel = Math.max(this.zoomLevel - 10, editorConfig.minZoom);
+    this.setZoomLevel(this.zoomLevel - editorConfig.zoomStepSize);
   }
 
   // ===== Autoscroll =====
@@ -112,24 +193,16 @@ class EditorStore {
   }
 
   setAutoscrollSpeed(speed: number) {
-    this.autoscrollSpeed = Math.max(
-      editorConfig.minAutoscrollSpeed,
-      Math.min(editorConfig.maxAutoscrollSpeed, speed)
-    );
+    this.autoscrollSpeed = this.clampAutoscrollSpeed(speed);
+    void this.persistSelectedFilePreferences();
   }
 
   increaseAutoscrollSpeed() {
-    this.autoscrollSpeed = Math.min(
-      this.autoscrollSpeed + editorConfig.autoscrollStepSize,
-      editorConfig.maxAutoscrollSpeed
-    );
+    this.setAutoscrollSpeed(this.autoscrollSpeed + editorConfig.autoscrollStepSize);
   }
 
   decreaseAutoscrollSpeed() {
-    this.autoscrollSpeed = Math.max(
-      this.autoscrollSpeed - editorConfig.autoscrollStepSize,
-      editorConfig.minAutoscrollSpeed
-    );
+    this.setAutoscrollSpeed(this.autoscrollSpeed - editorConfig.autoscrollStepSize);
   }
 }
 

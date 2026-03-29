@@ -68,7 +68,7 @@
         >
           −
         </button>
-        <span class="value">{editorStore.zoomLevel}%</span>
+        <span class="value">{editorStore.zoomLevel.toFixed(1)}</span>
         <button 
           onclick={() => editorStore.zoomIn()}
           title="Zoom in (Ctrl/+)"
@@ -98,7 +98,7 @@
         >
           −
         </button>
-        <span class="value">{editorStore.autoscrollSpeed.toFixed(1)}x</span>
+        <span class="value">{(editorStore.autoscrollSpeed/editorConfig.defaultAutoscrollSpeed).toFixed(1)}</span>
         <button 
           onclick={() => editorStore.increaseAutoscrollSpeed()}
           title="Increase speed"
@@ -278,7 +278,7 @@
     font-size: 11px;
     color: rgba(255, 255, 255, 0.7);
     font-weight: 600;
-    min-width: 35px;
+    min-width: 58px;
     text-align: center;
   }
 

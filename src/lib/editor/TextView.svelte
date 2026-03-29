@@ -43,7 +43,7 @@
   bind:value={editorStore.editedContent}
   spellcheck="false"
   placeholder="File content..."
-  style="font-size: {editorStore.zoomLevel}%; background-color: {themeStore.theme === 'light' ? '#ffffff' : '#1e1e1e'}; color: {themeStore.theme === 'light' ? '#333333' : '#e0e0e0'};"
+  style="font-size: {editorStore.zoomLevel}rem; background-color: {themeStore.theme === 'light' ? '#ffffff' : '#1e1e1e'}; color: {themeStore.theme === 'light' ? '#333333' : '#e0e0e0'};"
 ></textarea>
 
 <style>
