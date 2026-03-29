@@ -131,14 +131,17 @@ class EditorStore {
    */
   async transpose(offset: number): Promise<void> {
     try {
-      this.saveFile() 
+      if (this.hasChanges) {
+        await this.saveFile();
+      }
+
       const file = fileManagerStore.getSelectedFile();
       if (!file) {
         throw new Error('No file selected');
       }
       
       // Parse, transpose, and serialize
-      const chordFile = ChordFileModel.ChordFile.parse(fileManagerStore.cachedContent);
+      const chordFile = ChordFileModel.ChordFile.parse(this.editedContent);
       chordFile.transpose(offset);
       const newContent = chordFile.serialize();
 

@@ -8,12 +8,19 @@ import * as indexedDB from '../utils/indexedDB';
  */
 export class BrowserStorage implements IFileStorage {
   async readFile(file: FileEntry): Promise<string> {
+    const fromDb = await indexedDB.loadBrowserFile(file.path);
+    if (fromDb) {
+      file.content = fromDb.content;
+      return String(fromDb.content);
+    }
+
     return String(file.content || '');
   }
 
   async writeFile(file: FileEntry, content: string): Promise<void> {
     // In browser mode, path is used as the key
     await indexedDB.saveBrowserFile(file.path, content);
+    file.content = content;
   }
 
   async createFile(fileName: string, folderPath: string, content: string): Promise<FileEntry> {
