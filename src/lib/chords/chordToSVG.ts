@@ -46,7 +46,7 @@ function shouldApplyBassInversion(chord: Chord, mode: BassRenderMode): boolean {
 
 export function getChordDisplayRoot(chord: Chord, mode: BassRenderMode = 'add-bass'): number {
   if (shouldApplyBassInversion(chord, mode)) {
-    return mod(chord.root + chord.bass, 12);
+    return mod(chord.root + chord.bass * 7, 12);
   }
   return chord.root;
 }
