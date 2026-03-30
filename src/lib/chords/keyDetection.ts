@@ -52,14 +52,11 @@ function findBestKeyOffset(noteCount: number[]): number {
     for (let i = 0; i < 12; i++) {
       score += noteCount[(i + offset) % 12] * KRUMHANSL_SCHMUCKLER_WEIGHTS[i];
     }
-    // console.log(`Key ${(offset+4) % 12}: score ${score.toFixed(2)}\n`);
     if (score > maxScore) {
       maxScore = score;
       bestOffset = offset;
     }
   }
-  // console.log(`note counts after shifting to C: ${noteCount.map((count, i) => `${count.toFixed(0)}`).join(' ')}\n`);
-  // console.log(`detected key: ${(bestOffset + 4) % 12}`);
   
   return bestOffset;
 }
