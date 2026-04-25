@@ -332,7 +332,8 @@ export class ChordFile {
     );
 
     if (keyLine) {
-      keyLine.content = detected.toString();
+      // Key is already present — keep it as-is
+      return this.specifiedKey;
     } else {
       const titleIdx = this.lines.findIndex(
         l => l.type === 'metadata' && l.metadataField?.toLowerCase() === 'title'

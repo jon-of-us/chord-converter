@@ -30,6 +30,75 @@ Key:
 `,
 };
 
+// Default file created on first launch
+export const defaultFile = {
+  name: 'fly_me_to_the_moon.chords',
+  content: `Title: Fly me to the moon
+Artist: Frank Sinatra
+Key: 4
+
+
+[Verse]
+
+Am7            Dm7
+Fly me to the moon
+       G7             Cmaj7
+Let me play among the stars
+F               Dm
+Let me see what spring is like on,
+  E7         Am7
+A Jupiter and Mars
+
+
+[Chorus]
+
+   Dm7          G7          C     Am
+In other words,    hold my hand
+   Dm7          G7       C        E7
+In other words,    baby kiss me
+
+
+[Verse]
+
+Am7                Dm7
+Fill my heart with song
+       G7            Cmaj7
+Let me sing for ever more
+F             Dm
+You are all I long for
+      E7          Am7
+All I worship and adore
+
+
+[Chorus]
+
+   Dm7          G7            C     Am
+In other words,    please be true
+   Dm7          G7     C     E7
+In other words, I love you
+
+
+[Verse]
+
+Am7                Dm7
+Fill my heart with song
+       G7            Cmaj7
+Let me sing for ever more
+F             Dm
+You are all I long for
+      E7          Am7
+All I worship and adore
+
+
+[Chorus]
+
+   Dm7          G7            C     Am
+In other words,    please be true
+   Dm7         G7    Gm7 G7       C
+In other words       I love ... you
+`,
+};
+
 // Editor controls settings
 export const editorConfig = {
   // Zoom in rem

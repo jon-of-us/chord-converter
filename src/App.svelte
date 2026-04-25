@@ -7,7 +7,7 @@
   import { fileStore } from './lib/stores/fileStore.svelte';
   import { fileManagerStore } from './lib/stores/fileManagerStore.svelte';
   import { editorStore } from './lib/stores/editorStore.svelte';
-  import { sidebarConfig } from './lib/config';
+  import { sidebarConfig, defaultFile } from './lib/config';
   
   let leftSidebarVisible = $state(true);
   
@@ -35,6 +35,15 @@
         fileManagerStore.selectedPath = firstFile.path;
         await fileManagerStore.loadSelectedContent();
         await editorStore.onSelectedFileOpened();
+      } else {
+        // First launch: create the default example file
+        await fileStore.importFiles([{ path: defaultFile.name, content: defaultFile.content }]);
+        const createdFile = fileStore.files[0];
+        if (createdFile) {
+          fileManagerStore.selectedPath = createdFile.path;
+          await fileManagerStore.loadSelectedContent();
+          await editorStore.onSelectedFileOpened();
+        }
       }
     } catch (error) {
       console.error('Error loading browser files:', error);
