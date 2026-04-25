@@ -131,6 +131,11 @@
       "aliases": ["7sus4", "7sus"],
       "intervals": [0, 5, 7, 10],
       "coords": [[0, 0], [0, -1], [0, 1], [-1, 1]]
+    },
+    { 
+      "name": "Seven sharp 9",
+      "aliases": ["7#9"],
+      "intervals": [0, 4, 7, 10, 15]
     }
   ]
 }
