@@ -44,7 +44,7 @@ Am7            Dm7
 Fly me to the moon
        G7             Cmaj7
 Let me play among the stars
-F               Dm
+F               Bdim
 Let me see what spring is like on,
   E7         Am7
 A Jupiter and Mars
@@ -64,7 +64,7 @@ Am7                Dm7
 Fill my heart with song
        G7            Cmaj7
 Let me sing for ever more
-F             Dm
+F             Bdim
 You are all I long for
       E7          Am7
 All I worship and adore
@@ -84,7 +84,7 @@ Am7                Dm7
 Fill my heart with song
        G7            Cmaj7
 Let me sing for ever more
-F             Dm
+F             Bdim
 You are all I long for
       E7          Am7
 All I worship and adore
