@@ -17,11 +17,10 @@
 
   Svelte.onMount(async () => {
     // Check if File System Access API is available
-    const isFileSystemSupported = 'showDirectoryPicker' in window;
-    
-    if (!isFileSystemSupported) {
-      alert('In this browser you can not connect the app to a local folder. For full functionality, please use Chrome or Edge on a computer.');
-    }
+    // const isFileSystemSupported = 'showDirectoryPicker' in window;
+    // if (!isFileSystemSupported) {
+      // alert('In this browser you can not connect the app to a local folder. For full functionality, please use Chrome or Edge on a computer.');
+    // }
 
     // Load files from browser storage on startup
     try {
